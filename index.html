@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload</title>
+    <link rel="stylesheet" href="css/file-upload.css" />
+    <script src="js/file-upload.js" defer></script>
+  </head>
+  <body>
+    <div class="file-upload-container">
+      <h1>Upload Your Photos</h1>
+      <div class="custom-upload-container" data-product-id="{{ product.id }}">
+        <input
+          type="file"
+          id="actual-file-input-{{ product.id }}"
+          class="hidden-file-input"
+          accept="image/*"
+          multiple
+        />
+        <button
+          type="button"
+          id="custom-upload-button-{{ product.id }}"
+          class="button custom-upload-button"
+        >
+          From your computer
+        </button>
+        <div
+          id="upload-preview-{{ product.id }}"
+          class="upload-preview preview-image-container"
+        ></div>
+        <div id="upload-status-{{ product.id }}" class="upload-status"></div>
+      </div>
+    </div>
+  </body>
+</html>
