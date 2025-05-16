@@ -47,11 +47,11 @@ h1 {
   background-color: #0056b3;
 }
 
-.custom-upload-button {
+.custom-upload-btn {
   background-color: #7b0cbb;
   transition: 0.7s;
 }
-.custom-upload-button:hover {
+.custom-upload-btn:hover {
   background-color: #ae37f3;
 }
 

@@ -10,7 +10,7 @@
   <body>
     <div class="file-upload-container">
       <h1>Upload Your Photos</h1>
-      <div class="custom-upload-container" data-product-id="{{ product.id }}">
+      <!-- <div class="custom-upload-container" data-product-id="{{ product.id }}">
         <input
           type="file"
           id="actual-file-input-{{ product.id }}"
@@ -30,6 +30,28 @@
           class="upload-preview preview-image-container"
         ></div>
         <div id="upload-status-{{ product.id }}" class="upload-status"></div>
+      </div> -->
+      <div class="custom-upload-container">
+        <input
+          type="file"
+          id="actual-file-input"
+          class="hidden-file-input"
+          accept="image/*"
+          multiple
+        />
+        <button
+          type="button"
+          id="custom-upload-button"
+          class="button custom-upload-btn"
+        >
+          Upload Images (Max 9)
+        </button>
+        <div
+          id="upload-preview-container"
+          class="upload-preview-container"
+        ></div>
+        <div id="upload-status" class="upload-status"></div>
+        <div id="file-count" class="file-count">0/9 images selected</div>
       </div>
     </div>
   </body>
