@@ -5,32 +5,45 @@ body {
   height: 100vh;
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+}
+* {
+  box-sizing: border-box;
 }
 
-h1 {
+.heading {
   font-size: 24px;
   margin-bottom: 20px;
 }
 
+.heading-subtext {
+  font-size: 16px;
+  color: #666;
+}
+
 .file-upload-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   background-color: #fff;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.preview-image-container {
-  display: flex;
+.upload-preview-container {
   width: 100%;
   min-height: 100px;
   border: 2px dashed #ccc;
+  padding: 10px;
   border-radius: 10px;
   margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Creates 3 equal columns */
+  gap: 10px;
+  margin-top: 15px;
+  width: 100%;
 }
+
 .button {
   padding: 10px 20px;
   font-size: 16px;

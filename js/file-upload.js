@@ -1,11 +1,17 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const actualFileInput = document.getElementById("actual-file-input");
-  const customUploadButton = document.getElementById("custom-upload-button");
-  const uploadPreviewContainer = document.getElementById(
-    "upload-preview-container"
+const initializeImageUploader = (productId) => {
+  const actualFileInput = document.getElementById(
+    `actual-file-input-${productId}`
   );
-  const uploadStatus = document.getElementById("upload-status");
-  const fileCountDisplay = document.getElementById("file-count");
+  const customUploadButton = document.getElementById(
+    `custom-upload-button-${productId}`
+  );
+  const uploadPreviewContainer = document.getElementById(
+    `upload-preview-container-${productId}`
+  );
+  const uploadStatus = document.getElementById(`upload-status-${productId}`);
+  const fileCountDisplay = document.getElementById(
+    `file-count-display-${productId}`
+  );
 
   const MAX_FILES = 9;
   let selectedFiles = [];
@@ -113,4 +119,18 @@ document.addEventListener("DOMContentLoaded", function () {
   //   e.preventDefault();
   //   handleUpload();
   // });
+};
+
+// Initialize any uploaders on the page
+document.addEventListener("DOMContentLoaded", function () {
+  const uploadContainers = document.querySelectorAll(
+    ".custom-upload-container"
+  );
+
+  uploadContainers.forEach((container) => {
+    const productId = container.dataset.productId;
+    if (productId) {
+      initializeImageUploader(productId);
+    }
+  });
 });

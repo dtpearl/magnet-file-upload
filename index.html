@@ -4,13 +4,64 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>File Upload</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+    />
     <link rel="stylesheet" href="css/file-upload.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="js/file-upload.js" defer></script>
   </head>
   <body>
     <div class="file-upload-container">
-      <h1>Upload Your Photos</h1>
-      <!-- <div class="custom-upload-container" data-product-id="{{ product.id }}">
+      <h1 class="heading">
+        Upload Your Photos <span class="heading-subtext">(Max 9)</span>
+      </h1>
+      <div class="custom-upload-container" data-product-id="{{ product.id }}">
+        <input
+          type="file"
+          id="actual-file-input-{{ product.id }}"
+          class="hidden-file-input"
+          accept="image/*"
+          multiple
+        />
+        <button
+          type="button"
+          id="custom-upload-button-{{ product.id }}"
+          class="button custom-upload-btn"
+        >
+          From your computer
+        </button>
+        <div
+          id="upload-preview-container-{{ product.id }}"
+          class="upload-preview-container"
+        ></div>
+        <div id="upload-status-{{ product.id }}" class="upload-status"></div>
+        <div id="file-count-display-{{ product.id }}" class="file-count">
+          0/9 images selected
+        </div>
+      </div>
+    </div>
+    <!-- Image Cropping Modal -->
+    <div id="crop-modal" class="crop-modal">
+      <div class="crop-modal-content">
+        <div class="crop-header">
+          <h3>Crop Image</h3>
+          <button id="close-crop-modal" class="close-button">&times;</button>
+        </div>
+        <div class="crop-container">
+          <img id="image-to-crop" src="" />
+        </div>
+        <div class="crop-controls">
+          <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+          <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<!-- <div class="custom-upload-container" data-product-id="{{ product.id }}">
         <input
           type="file"
           id="actual-file-input-{{ product.id }}"
@@ -31,28 +82,3 @@
         ></div>
         <div id="upload-status-{{ product.id }}" class="upload-status"></div>
       </div> -->
-      <div class="custom-upload-container">
-        <input
-          type="file"
-          id="actual-file-input"
-          class="hidden-file-input"
-          accept="image/*"
-          multiple
-        />
-        <button
-          type="button"
-          id="custom-upload-button"
-          class="button custom-upload-btn"
-        >
-          Upload Images (Max 9)
-        </button>
-        <div
-          id="upload-preview-container"
-          class="upload-preview-container"
-        ></div>
-        <div id="upload-status" class="upload-status"></div>
-        <div id="file-count" class="file-count">0/9 images selected</div>
-      </div>
-    </div>
-  </body>
-</html>
