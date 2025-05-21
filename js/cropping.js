@@ -11,9 +11,16 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeCropModal = document.getElementById("close-crop-modal");
   const cropCancel = document.getElementById("crop-cancel");
   const cropApply = document.getElementById("crop-apply");
+  const safeAreaToggle = document.getElementById("safe-area-toggle");
 
   const MAX_FILES = 9;
   const ASPECT_RATIO = 1; // 1:1 square aspect ratio; change as needed (e.g., 16/9 for widescreen)
+
+  // Print safe area configuration - adjust these values as needed
+  const SAFE_AREA_PERCENTAGE = 0.9; // 90% of the cropped area is considered "safe" for print
+  const SAFE_AREA_COLOR = "rgba(255, 255, 255, 0.2)";
+  const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
+  let showSafeArea = true; // Default state for safe area visibility
 
   let selectedFiles = [];
   let croppedFiles = [];
@@ -83,6 +90,25 @@ document.addEventListener("DOMContentLoaded", function () {
         rotatable: true,
         scalable: true,
         zoomable: true,
+        ready: function () {
+          console.log("Cropper is ready");
+          // Add safe area indicator when cropper is ready
+          if (showSafeArea) {
+            drawSafeArea();
+          }
+        },
+        cropend: function () {
+          // Redraw safe area after crop box is adjusted
+          if (showSafeArea) {
+            drawSafeArea();
+          }
+        },
+        zoom: function () {
+          // Redraw safe area after zooming
+          if (showSafeArea) {
+            drawSafeArea();
+          }
+        },
       });
 
       // Show the modal
@@ -90,6 +116,75 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     imageToCrop.src = objectUrl;
+  }
+
+  // Function to draw the safe area indicator
+  function drawSafeArea() {
+    console.log("Drawing safe area...");
+    if (!currentCropperInstance) return;
+
+    // Remove existing safe area if any
+    const existingSafeArea = document.querySelector(".safe-print-area");
+    if (existingSafeArea) {
+      existingSafeArea.remove();
+    }
+
+    // Get crop box dimensions
+    const cropBox = currentCropperInstance.getCropBoxData();
+
+    // Calculate safe area dimensions (smaller than the crop box)
+    const safeWidth = cropBox.width * SAFE_AREA_PERCENTAGE;
+    const safeHeight = cropBox.height * SAFE_AREA_PERCENTAGE;
+
+    // Calculate position (centered within crop box)
+    const safeLeft = cropBox.left + (cropBox.width - safeWidth) / 2;
+    const safeTop = cropBox.top + (cropBox.height - safeHeight) / 2;
+
+    // Create safe area element
+    const safeArea = document.createElement("div");
+    safeArea.className = "safe-print-area";
+    safeArea.style.position = "absolute";
+    safeArea.style.left = `${safeLeft}px`;
+    safeArea.style.top = `${safeTop}px`;
+    safeArea.style.width = `${safeWidth}px`;
+    safeArea.style.height = `${safeHeight}px`;
+    safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
+    safeArea.style.backgroundColor = SAFE_AREA_COLOR;
+    safeArea.style.pointerEvents = "none"; // Make it non-interactive
+    safeArea.style.zIndex = "2000"; // Ensure it's above the crop box but below the handles
+
+    // Add a label to explain what this area represents
+    const label = document.createElement("div");
+    label.textContent = "Safe Print Area";
+    label.style.position = "absolute";
+    label.style.top = "-25px";
+    label.style.left = "0";
+    label.style.backgroundColor = "rgba(0, 120, 255, 0.8)";
+    label.style.color = "white";
+    label.style.padding = "2px 6px";
+    label.style.fontSize = "12px";
+    label.style.borderRadius = "3px";
+    safeArea.appendChild(label);
+    console.log("Safe area drawn:", safeArea);
+    // Add to the cropper container
+    const cropperContainer = document.querySelector(".cropper-container");
+    cropperContainer.appendChild(safeArea);
+  }
+
+  // Toggle safe area visibility if there's a toggle button
+  if (safeAreaToggle) {
+    safeAreaToggle.addEventListener("click", function () {
+      showSafeArea = !showSafeArea;
+
+      if (showSafeArea) {
+        drawSafeArea();
+        safeAreaToggle.textContent = "Hide Safe Area";
+      } else {
+        const safeArea = document.querySelector(".safe-print-area");
+        if (safeArea) safeArea.remove();
+        safeAreaToggle.textContent = "Show Safe Area";
+      }
+    });
   }
 
   // Apply the crop and move to the next image

@@ -168,6 +168,31 @@ body {
   opacity: 0.9;
 }
 
+.safe-print-area {
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.crop-info {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f0f8ff;
+  border-left: 4px solid #0078ff;
+  font-size: 13px;
+}
+
+#safe-area-toggle {
+  background-color: #f0f8ff;
+  border: 1px solid #0078ff;
+  color: #0078ff;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+#safe-area-toggle:hover {
+  background-color: #e0f0ff;
+}
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
   .upload-preview-container {

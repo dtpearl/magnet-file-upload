@@ -50,11 +50,18 @@
           <button id="close-crop-modal" class="close-button">&times;</button>
         </div>
         <div class="crop-container">
-          <img id="image-to-crop" src="" />
+          <img id="image-to-crop" src="" alt="Image to crop" />
         </div>
         <div class="crop-controls">
+          <button id="safe-area-toggle" type="button">Hide Safe Area</button>
           <button id="crop-cancel" class="crop-button cancel">Cancel</button>
           <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+        </div>
+        <div class="crop-info">
+          <p>
+            The dashed blue box indicates the safe print area. Content outside
+            this area may be trimmed during printing.
+          </p>
         </div>
       </div>
     </div>
