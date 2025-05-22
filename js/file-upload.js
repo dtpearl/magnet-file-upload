@@ -142,14 +142,14 @@ const initializeImageUploader = (productId) => {
           }
         },
         cropmove: function () {
-          console.log("Crop box selector moved");
           // Remove existing safe area when moving the crop box
           if (showSafeArea) {
+            drawSafeArea();
             // Remove existing safe area if any
-            const existingSafeArea = document.querySelector(".safe-print-area");
-            if (existingSafeArea) {
-              existingSafeArea.remove();
-            }
+            // const existingSafeArea = document.querySelector(".safe-print-area");
+            // if (existingSafeArea) {
+            //   existingSafeArea.remove();
+            // }
           }
         },
       });
