@@ -49,15 +49,6 @@ const initializeImageUploader = (productId) => {
       return;
     }
 
-    // // Add new files to selected files array
-    // selectedFiles = [...selectedFiles, ...newFiles];
-
-    // // Update file count display
-    // updateFileCountDisplay();
-
-    // // Display previews
-    // displayImagePreviews();
-
     // Process and add new files
     processNewFiles(newFiles);
   });
@@ -123,33 +114,18 @@ const initializeImageUploader = (productId) => {
         scalable: true,
         zoomable: true,
         ready: function () {
-          console.log("Cropper is ready");
           // Add safe area indicator when cropper is ready
           if (showSafeArea) {
             drawSafeArea();
           }
         },
         cropend: function () {
-          // Redraw safe area after crop box is adjusted
-          if (showSafeArea) {
-            drawSafeArea();
-          }
-        },
-        zoom: function () {
-          // Redraw safe area after zooming
-          if (showSafeArea) {
-            drawSafeArea();
-          }
+          // Code to execute after cropping ends
         },
         cropmove: function () {
           // Remove existing safe area when moving the crop box
           if (showSafeArea) {
             drawSafeArea();
-            // Remove existing safe area if any
-            // const existingSafeArea = document.querySelector(".safe-print-area");
-            // if (existingSafeArea) {
-            //   existingSafeArea.remove();
-            // }
           }
         },
       });
@@ -191,7 +167,7 @@ const initializeImageUploader = (productId) => {
     safeArea.style.width = `${safeWidth}px`;
     safeArea.style.height = `${safeHeight}px`;
     safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
-    safeArea.style.backgroundColor = SAFE_AREA_COLOR;
+    // safeArea.style.backgroundColor = SAFE_AREA_COLOR;
     safeArea.style.pointerEvents = "none"; // Make it non-interactive
     safeArea.style.zIndex = "2000"; // Ensure it's above the crop box but below the handles
 
