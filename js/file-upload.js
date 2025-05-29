@@ -142,9 +142,11 @@ const initializeImageUploader = (productId) => {
     if (!currentCropperInstance) return;
 
     // Remove existing safe area if any
-    const existingSafeArea = document.querySelector(".safe-print-area");
-    if (existingSafeArea) {
-      existingSafeArea.remove();
+    const existingSafeAreaContainer = document.querySelector(
+      ".safe-print-container"
+    );
+    if (existingSafeAreaContainer) {
+      existingSafeAreaContainer.remove();
     }
 
     // Get crop box dimensions
@@ -155,10 +157,19 @@ const initializeImageUploader = (productId) => {
     const safeHeight = cropBox.height * SAFE_AREA_PERCENTAGE;
 
     // Calculate position (centered within crop box)
-    const safeLeft = cropBox.left + (cropBox.width - safeWidth) / 2;
-    const safeTop = cropBox.top + (cropBox.height - safeHeight) / 2;
+    const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.left + (cropBox.width - safeWidth) / 2;
+    const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.top + (cropBox.height - safeHeight) / 2;
 
-    // Create safe area element
+    // Create safe area contaner element
+    const safeAreaContainer = document.createElement("div");
+    safeAreaContainer.className = "safe-print-container";
+    safeAreaContainer.style.position = "absolute";
+    safeAreaContainer.style.left = `${cropBox.left}px`;
+    safeAreaContainer.style.top = `${cropBox.top}px`;
+    safeAreaContainer.style.width = `${cropBox.width}px`;
+    safeAreaContainer.style.height = `${cropBox.height}px`;
+    safeAreaContainer.style.pointerEvents = "none";
+
     const safeArea = document.createElement("div");
     safeArea.className = "safe-print-area";
     safeArea.style.position = "absolute";
@@ -167,26 +178,28 @@ const initializeImageUploader = (productId) => {
     safeArea.style.width = `${safeWidth}px`;
     safeArea.style.height = `${safeHeight}px`;
     safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
-    // safeArea.style.backgroundColor = SAFE_AREA_COLOR;
-    safeArea.style.pointerEvents = "none"; // Make it non-interactive
-    safeArea.style.zIndex = "2000"; // Ensure it's above the crop box but below the handles
+    safeArea.style.background = "transparent";
+    safeArea.style.boxShadow = "0 0 0 9999px rgba(0, 0, 0, 0.5)";
+    safeArea.style.pointerEvents = "none";
+    safeArea.style.zIndex = "2000";
 
     // Add a label to explain what this area represents
     const label = document.createElement("div");
     label.textContent = "Safe Print Area";
     label.style.position = "absolute";
-    label.style.top = "-25px";
-    label.style.left = "0";
+    label.style.top = "-8px";
+    label.style.left = "4px";
     label.style.backgroundColor = "rgba(0, 120, 255, 0.8)";
     label.style.color = "white";
     label.style.padding = "2px 6px";
     label.style.fontSize = "12px";
     label.style.borderRadius = "3px";
-    safeArea.appendChild(label);
+    safeAreaContainer.appendChild(label);
 
+    safeAreaContainer.appendChild(safeArea);
     // Add to the cropper container
     const cropperContainer = document.querySelector(".cropper-container");
-    cropperContainer.appendChild(safeArea);
+    cropperContainer.appendChild(safeAreaContainer);
   }
 
   // Toggle safe area visibility if there's a toggle button
