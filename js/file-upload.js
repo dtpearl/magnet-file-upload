@@ -119,9 +119,6 @@ const initializeImageUploader = (productId) => {
             drawSafeArea();
           }
         },
-        cropend: function () {
-          // Code to execute after cropping ends
-        },
         cropmove: function () {
           // Remove existing safe area when moving the crop box
           if (showSafeArea) {
@@ -129,6 +126,15 @@ const initializeImageUploader = (productId) => {
           }
         },
       });
+      /*
+        Other methods that can be used with the cropper instance:
+        cropend: function () {
+          // Code to execute after cropping ends
+        },
+        zoom: function () {
+          // Code to execute when zooming
+        }
+      */
 
       // Show the modal
       cropModal.style.display = "flex";
