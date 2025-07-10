@@ -4,19 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>File Upload</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
     <link rel="stylesheet" href="css/file-upload.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="js/file-upload.js" defer></script>
   </head>
   <body>
     <div class="file-upload-container">
-      <h1 class="heading">
-        Upload Your Photos <span class="heading-subtext">(Max 9)</span>
-      </h1>
+      <button class="button select-photos-button" id="select-photos-button-{{ product.id }}">Select photos</button>
+      <h1 class="heading">Upload Your Photos <span class="heading-subtext">(Max 9)</span></h1>
       <div class="custom-upload-container" data-product-id="{{ product.id }}">
         <input
           type="file"
@@ -25,43 +21,34 @@
           accept="image/*"
           multiple
         />
-        <button
-          type="button"
-          id="custom-upload-button-{{ product.id }}"
-          class="button custom-upload-btn"
-        >
+        <button type="button" id="custom-upload-button-{{ product.id }}" class="button custom-upload-btn">
           From your computer
         </button>
-        <div
-          id="upload-preview-container-{{ product.id }}"
-          class="upload-preview-container"
-        ></div>
+        <div id="upload-preview-container-{{ product.id }}" class="upload-preview-container"></div>
         <div id="upload-status-{{ product.id }}" class="upload-status"></div>
-        <div id="file-count-display-{{ product.id }}" class="file-count">
-          0/9 images selected
-        </div>
+        <div id="file-count-display-{{ product.id }}" class="file-count">0/9 images selected</div>
       </div>
-    </div>
-    <!-- Image Cropping Modal -->
-    <div id="crop-modal" class="crop-modal">
-      <div class="crop-modal-content">
-        <div class="crop-header">
-          <h3>Crop Image</h3>
-          <button id="close-crop-modal" class="close-button">&times;</button>
-        </div>
-        <div class="crop-container">
-          <img id="image-to-crop" src="" alt="Image to crop" />
-        </div>
-        <div class="crop-controls">
-          <button id="safe-area-toggle" type="button">Hide Safe Area</button>
-          <button id="crop-cancel" class="crop-button cancel">Cancel</button>
-          <button id="crop-apply" class="crop-button apply">Apply Crop</button>
-        </div>
-        <div class="crop-info">
-          <p>
-            The dashed blue box indicates the safe print area. Content outside
-            this area may be trimmed during printing.
-          </p>
+      <!-- Image Cropping Modal -->
+      <div id="crop-modal" class="crop-modal">
+        <div class="crop-modal-content">
+          <div class="crop-header">
+            <h3>Crop Image</h3>
+            <button id="close-crop-modal" class="close-button">&times;</button>
+          </div>
+          <div class="crop-container">
+            <img id="image-to-crop" src="" alt="Image to crop" />
+          </div>
+          <div class="crop-controls">
+            <button id="safe-area-toggle" type="button">Hide Safe Area</button>
+            <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+            <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+          </div>
+          <div class="crop-info">
+            <p>
+              The dashed blue box indicates the safe print area. Content outside this area may be trimmed during
+              printing and magnet construction.
+            </p>
+          </div>
         </div>
       </div>
     </div>

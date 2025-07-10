@@ -1,0 +1,274 @@
+<div class="file-upload-container" data-product-id="{{ product.id }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <!-- 
+    CSS styling for photo selection code.
+  -->
+  <style>
+    .button {
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .select-photos-button {
+      font-family: Cardo, serif;
+      text-transform: uppercase;
+      letter-spacing: 0.225em;
+      background-color: #95887a;
+      opacity: 0.8;
+      width: 100%;
+    }
+    .select-photos-button:hover {
+      background-color: #95887a !important;
+    }
+    .upload-icon {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+      margin-left: 1em;
+    }
+
+    .select-photos-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f0e5d9;
+      z-index: 1000;
+    }
+
+    .select-photos-modal.active {
+      display: flex;
+    }
+
+    .modal-header {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      width: 100%;
+    }
+
+    .modal-title-container {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #374151;
+      display: inline-block;
+    }
+
+    .close-btn {
+      width: 3rem;
+      height: 3rem;
+      background-color: #ef4444;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+      margin-right: 1rem;
+    }
+
+    .close-btn:hover {
+      background-color: #dc2626;
+    }
+
+    .close-btn svg {
+      width: 1.5rem;
+      height: 1.5rem;
+      color: white;
+    }
+
+    .modal-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .content-subtitle {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: 2rem;
+    }
+
+    .upload-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 28rem;
+      width: 100%;
+    }
+
+    .upload-text {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .upload-text h3 {
+      font-size: 2.25rem;
+      font-weight: 300;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text .or-text {
+      color: #9ca3af;
+      font-size: 0.875rem;
+      margin-top: 1.5rem;
+    }
+
+    .upload-btn {
+      background-color: #ef4444;
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 9999px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .upload-btn:hover {
+      background-color: #dc2626;
+    }
+
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 28rem;
+      margin-top: 2rem;
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .add-to-cart-btn {
+      background-color: #d1d5db;
+      color: #374151;
+      padding: 0.5rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .add-to-cart-btn:hover {
+      background-color: #9ca3af;
+    }
+  </style>
+
+  <!-- 
+    JavaScript for photo selection code.
+  -->
+  <script>
+    const openModal = (modalId) => {
+      console.log(`Opening modal with ID: ${modalId}`);
+      const modal = document.getElementById(modalId);
+      modal.classList.add('active');
+    };
+
+    const closeModal = (modalId) => {
+      const modal = document.getElementById(modalId);
+      modal.classList.remove('active');
+    };
+    const initializeImageUploader = (productId) => {
+      const selectPhotosModal = document.getElementById('select-photos-modal');
+      selectPhotosModal.style.display = 'block';
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+      const uploadContainers = document.querySelectorAll('.file-upload-container');
+
+      uploadContainers.forEach((container) => {
+        const productId = container.dataset.productId;
+        if (productId) {
+          //   initializeImageUploader(productId);
+          console.log(`Initializing uploader for product ID: ${productId}`);
+        }
+      });
+    });
+  </script>
+  <!-- 
+    HTML for photo selection code.
+  -->
+  <button
+    class="button select-photos-button"
+    id="select-photos-button-{{ product.id }}"
+    onclick="openModal(`select-photos-modal-{{ product.id }}`)"
+  >
+    Select photos
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="upload-icon"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5"
+      />
+    </svg>
+  </button>
+  <div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
+    <!-- Content -->
+    <div class="modal-content">
+      <!-- Drag & Drop Area -->
+      <div class="upload-area">
+        <div class="upload-text">
+          <h3>drag & drop</h3>
+          <h3>any files</h3>
+          <p class="or-text">or</p>
+        </div>
+
+        <!-- Upload Button -->
+        <button class="upload-btn">Upload from camera roll or PC</button>
+      </div>
+    </div>
+    <!-- Header -->
+    <div class="preview-container">
+      <div class="modal-header">
+        <div class="modal-title-container">
+          <h2 class="modal-title">Selection preview</h2>
+          <button class="close-btn" onclick="closeModal(`select-photos-modal-{{ product.id }}`)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <p class="content-subtitle">Click pictures to resize or crop</p>
+      </div>
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="add-to-cart-btn">Add to cart</button>
+      </div>
+    </div>
+  </div>
+</div>
