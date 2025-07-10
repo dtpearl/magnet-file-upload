@@ -32,8 +32,8 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       background-color: #f0e5d9;
       z-index: 1000;
     }
@@ -190,6 +190,9 @@
     const openModal = (modalId) => {
       console.log(`Opening modal with ID: ${modalId}`);
       const modal = document.getElementById(modalId);
+      if (modal && modal.parentNode !== document.body) {
+        document.body.appendChild(modal); // Move modal to body
+      }
       modal.classList.add('active');
     };
 
@@ -237,38 +240,39 @@
       />
     </svg>
   </button>
-  <div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
-    <!-- Content -->
-    <div class="modal-content">
-      <!-- Drag & Drop Area -->
-      <div class="upload-area">
-        <div class="upload-text">
-          <h3>drag & drop</h3>
-          <h3>any files</h3>
-          <p class="or-text">or</p>
-        </div>
+</div>
+<div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
+  <!-- Content -->
+  <div class="modal-content">
+    <!-- Drag & Drop Area -->
+    <div class="upload-area">
+      <div class="upload-text">
+        <h3>drag & drop</h3>
+        <h3>any files</h3>
+        <p class="or-text">or</p>
+      </div>
 
-        <!-- Upload Button -->
-        <button class="upload-btn">Upload from camera roll or PC</button>
-      </div>
+      <!-- Upload Button -->
+      <button class="upload-btn">Upload from camera roll or PC</button>
     </div>
-    <!-- Header -->
-    <div class="preview-container">
-      <div class="modal-header">
-        <div class="modal-title-container">
-          <h2 class="modal-title">Selection preview</h2>
-          <button class="close-btn" onclick="closeModal(`select-photos-modal-{{ product.id }}`)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        <p class="content-subtitle">Click pictures to resize or crop</p>
+  </div>
+  <!-- Header -->
+  <div class="preview-container">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Selection preview</h2>
+        <button class="close-btn" onclick="closeModal(`select-photos-modal-{{ product.id }}`)">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
       </div>
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button class="add-to-cart-btn">Add to cart</button>
-      </div>
+      <p class="content-subtitle">Click pictures to resize or crop</p>
+    </div>
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="add-to-cart-btn">Add to cart</button>
     </div>
   </div>
 </div>
+<!-- This website uses Cropper.js by Chen Fengyuan -->
