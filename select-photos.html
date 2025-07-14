@@ -104,6 +104,12 @@
       margin-bottom: 2rem;
     }
 
+    .hidden-file-input {
+      opacity: 0;
+      position: absolute;
+      z-index: -1;
+    }
+
     .upload-area {
       flex: 1;
       display: flex;
@@ -200,17 +206,57 @@
       const modal = document.getElementById(modalId);
       modal.classList.remove('active');
     };
+
     const initializeImageUploader = (productId) => {
-      const selectPhotosModal = document.getElementById('select-photos-modal');
-      selectPhotosModal.style.display = 'block';
+      const MAX_FILES = 9;
+      const ASPECT_RATIO = 1; // 1:1 square aspect ratio; change as needed (e.g., 16/9 for widescreen)
+
+      // Print safe area configuration - adjust these values as needed
+      const SAFE_AREA_PERCENTAGE = 0.9; // 90% of the cropped area is considered "safe" for print
+      const SAFE_AREA_COLOR = 'rgba(255, 255, 255, 0.2)';
+      const SAFE_AREA_BORDER = 'rgba(0, 120, 255, 0.8)';
+      let showSafeArea = true; // Default state for safe area visibility
+
+      let selectedFiles = [];
+      let croppedFiles = [];
+      let currentCropperInstance = null;
+      let currentCropIndex = -1;
+
+      const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
+      const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
+      const uploadStatus = document.getElementById(`upload-status-${productId}`);
+
+      // Trigger file input when custom button is clicked
+      customUploadButton.addEventListener('click', function () {
+        actualFileInput.click();
+      });
+
+      // Handle file selection
+      actualFileInput.addEventListener('change', function (e) {
+        const newFiles = Array.from(e.target.files);
+
+        // Check if adding these files would exceed the limit
+        if (selectedFiles.length + newFiles.length > MAX_FILES) {
+          uploadStatus.textContent = `You can only upload a maximum of ${MAX_FILES} images.`;
+          uploadStatus.style.color = 'red';
+          return;
+        }
+
+        // Process and add new files
+        processNewFiles(newFiles);
+      });
+
+      const processNewFiles = (files) => {
+        console.log(`Processing new files: ${files.length} files selected`);
+      };
     };
     document.addEventListener('DOMContentLoaded', function () {
       const uploadContainers = document.querySelectorAll('.file-upload-container');
-
+      console.log({ hostName: window.location.hostname, uploadContainers });
       uploadContainers.forEach((container) => {
         const productId = container.dataset.productId;
         if (productId) {
-          //   initializeImageUploader(productId);
+          initializeImageUploader(productId);
           console.log(`Initializing uploader for product ID: ${productId}`);
         }
       });
@@ -246,6 +292,7 @@
   <div class="modal-content">
     <!-- Drag & Drop Area -->
     <div class="upload-area">
+      <input type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" multiple />
       <div class="upload-text">
         <h3>drag & drop</h3>
         <h3>any files</h3>
@@ -253,7 +300,8 @@
       </div>
 
       <!-- Upload Button -->
-      <button class="upload-btn">Upload from camera roll or PC</button>
+      <button id="custom-upload-button-{{ product.id }}" class="upload-btn">Upload from camera roll or PC</button>
+      <div id="upload-status-{{ product.id }}" class="upload-status"></div>
     </div>
   </div>
   <!-- Header -->
@@ -269,10 +317,15 @@
       </div>
       <p class="content-subtitle">Click pictures to resize or crop</p>
     </div>
+    <div>
+      <div>Your 9 chosen images have been cropped to fit on square magnets.</div>
+      <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+      <div>Please review before placing your order.</div>
+    </div>
     <!-- Footer -->
     <div class="modal-footer">
       <button class="add-to-cart-btn">Add to cart</button>
     </div>
   </div>
+  <!-- This website uses Cropper.js by Chen Fengyuan -->
 </div>
-<!-- This website uses Cropper.js by Chen Fengyuan -->
