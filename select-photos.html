@@ -253,6 +253,7 @@
     document.addEventListener('DOMContentLoaded', function () {
       const uploadContainers = document.querySelectorAll('.file-upload-container');
       console.log({ hostName: window.location.hostname, uploadContainers });
+      // Initialize image uploader
       uploadContainers.forEach((container) => {
         const productId = container.dataset.productId;
         if (productId) {
