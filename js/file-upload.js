@@ -1,31 +1,23 @@
 const initializeImageUploader = (productId) => {
-  const actualFileInput = document.getElementById(
-    `actual-file-input-${productId}`
-  );
-  const customUploadButton = document.getElementById(
-    `custom-upload-button-${productId}`
-  );
-  const uploadPreviewContainer = document.getElementById(
-    `upload-preview-container-${productId}`
-  );
+  const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
+  const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
+  const uploadPreviewContainer = document.getElementById(`upload-preview-container-${productId}`);
   const uploadStatus = document.getElementById(`upload-status-${productId}`);
-  const fileCountDisplay = document.getElementById(
-    `file-count-display-${productId}`
-  );
-  const cropModal = document.getElementById("crop-modal");
-  const imageToCrop = document.getElementById("image-to-crop");
-  const closeCropModal = document.getElementById("close-crop-modal");
-  const cropCancel = document.getElementById("crop-cancel");
-  const cropApply = document.getElementById("crop-apply");
-  const safeAreaToggle = document.getElementById("safe-area-toggle");
+  const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
+  const cropModal = document.getElementById('crop-modal');
+  const imageToCrop = document.getElementById('image-to-crop');
+  const closeCropModal = document.getElementById('close-crop-modal');
+  const cropCancel = document.getElementById('crop-cancel');
+  const cropApply = document.getElementById('crop-apply');
+  const safeAreaToggle = document.getElementById('safe-area-toggle');
 
   const MAX_FILES = 9;
   const ASPECT_RATIO = 1; // 1:1 square aspect ratio; change as needed (e.g., 16/9 for widescreen)
 
   // Print safe area configuration - adjust these values as needed
   const SAFE_AREA_PERCENTAGE = 0.9; // 90% of the cropped area is considered "safe" for print
-  const SAFE_AREA_COLOR = "rgba(255, 255, 255, 0.2)";
-  const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
+  const SAFE_AREA_COLOR = 'rgba(255, 255, 255, 0.2)';
+  const SAFE_AREA_BORDER = 'rgba(0, 120, 255, 0.8)';
   let showSafeArea = true; // Default state for safe area visibility
 
   let selectedFiles = [];
@@ -34,41 +26,24 @@ const initializeImageUploader = (productId) => {
   let currentCropIndex = -1;
 
   // Trigger file input when custom button is clicked
-  customUploadButton.addEventListener("click", function () {
+  customUploadButton.addEventListener('click', function () {
     actualFileInput.click();
   });
 
   // Handle file selection
-  actualFileInput.addEventListener("change", function (e) {
+  actualFileInput.addEventListener('change', function (e) {
     const newFiles = Array.from(e.target.files);
 
     // Check if adding these files would exceed the limit
     if (selectedFiles.length + newFiles.length > MAX_FILES) {
       uploadStatus.textContent = `You can only upload a maximum of ${MAX_FILES} images.`;
-      uploadStatus.style.color = "red";
+      uploadStatus.style.color = 'red';
       return;
     }
 
     // Process and add new files
     processNewFiles(newFiles);
   });
-
-  // Process newly selected files and start cropping
-  function processNewFiles(files) {
-    if (files.length === 0) return;
-
-    // Add files to selected files array
-    for (let i = 0; i < files.length; i++) {
-      selectedFiles.push(files[i]);
-      croppedFiles.push(null); // Placeholder for cropped version
-    }
-
-    // Update file count display
-    updateFileCountDisplay();
-
-    // Start cropping the first new file
-    startCropping(selectedFiles.length - files.length);
-  }
 
   // Process newly selected files and start cropping
   function processNewFiles(files) {
@@ -137,7 +112,7 @@ const initializeImageUploader = (productId) => {
       */
 
       // Show the modal
-      cropModal.style.display = "flex";
+      cropModal.style.display = 'flex';
     };
 
     imageToCrop.src = objectUrl;
@@ -148,9 +123,7 @@ const initializeImageUploader = (productId) => {
     if (!currentCropperInstance) return;
 
     // Remove existing safe area if any
-    const existingSafeAreaContainer = document.querySelector(
-      ".safe-print-container"
-    );
+    const existingSafeAreaContainer = document.querySelector('.safe-print-container');
     if (existingSafeAreaContainer) {
       existingSafeAreaContainer.remove();
     }
@@ -167,98 +140,94 @@ const initializeImageUploader = (productId) => {
     const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.top + (cropBox.height - safeHeight) / 2;
 
     // Create safe area contaner element
-    const safeAreaContainer = document.createElement("div");
-    safeAreaContainer.className = "safe-print-container";
-    safeAreaContainer.style.position = "absolute";
+    const safeAreaContainer = document.createElement('div');
+    safeAreaContainer.className = 'safe-print-container';
+    safeAreaContainer.style.position = 'absolute';
     safeAreaContainer.style.left = `${cropBox.left}px`;
     safeAreaContainer.style.top = `${cropBox.top}px`;
     safeAreaContainer.style.width = `${cropBox.width}px`;
     safeAreaContainer.style.height = `${cropBox.height}px`;
-    safeAreaContainer.style.pointerEvents = "none";
+    safeAreaContainer.style.pointerEvents = 'none';
 
-    const safeArea = document.createElement("div");
-    safeArea.className = "safe-print-area";
-    safeArea.style.position = "absolute";
+    const safeArea = document.createElement('div');
+    safeArea.className = 'safe-print-area';
+    safeArea.style.position = 'absolute';
     safeArea.style.left = `${safeLeft}px`;
     safeArea.style.top = `${safeTop}px`;
     safeArea.style.width = `${safeWidth}px`;
     safeArea.style.height = `${safeHeight}px`;
     safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
-    safeArea.style.background = "transparent";
-    safeArea.style.boxShadow = "0 0 0 9999px rgba(0, 0, 0, 0.5)";
-    safeArea.style.pointerEvents = "none";
-    safeArea.style.zIndex = "2000";
+    safeArea.style.background = 'transparent';
+    safeArea.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.5)';
+    safeArea.style.pointerEvents = 'none';
+    safeArea.style.zIndex = '2000';
 
     // Add a label to explain what this area represents
-    const label = document.createElement("div");
-    label.textContent = "Safe Print Area";
-    label.style.position = "absolute";
-    label.style.top = "-8px";
-    label.style.left = "4px";
-    label.style.backgroundColor = "rgba(0, 120, 255, 0.8)";
-    label.style.color = "white";
-    label.style.padding = "2px 6px";
-    label.style.fontSize = "12px";
-    label.style.borderRadius = "3px";
+    const label = document.createElement('div');
+    label.textContent = 'Safe Print Area';
+    label.style.position = 'absolute';
+    label.style.top = '-8px';
+    label.style.left = '4px';
+    label.style.backgroundColor = 'rgba(0, 120, 255, 0.8)';
+    label.style.color = 'white';
+    label.style.padding = '2px 6px';
+    label.style.fontSize = '12px';
+    label.style.borderRadius = '3px';
     safeAreaContainer.appendChild(label);
 
     safeAreaContainer.appendChild(safeArea);
     // Add to the cropper container
-    const cropperContainer = document.querySelector(".cropper-container");
+    const cropperContainer = document.querySelector('.cropper-container');
     cropperContainer.appendChild(safeAreaContainer);
   }
 
   // Toggle safe area visibility if there's a toggle button
   if (safeAreaToggle) {
-    safeAreaToggle.addEventListener("click", function () {
+    safeAreaToggle.addEventListener('click', function () {
       showSafeArea = !showSafeArea;
 
       if (showSafeArea) {
         drawSafeArea();
-        safeAreaToggle.textContent = "Hide Safe Area";
+        safeAreaToggle.textContent = 'Hide Safe Area';
       } else {
-        const safeArea = document.querySelector(".safe-print-area");
+        const safeArea = document.querySelector('.safe-print-area');
         if (safeArea) safeArea.remove();
-        safeAreaToggle.textContent = "Show Safe Area";
+        safeAreaToggle.textContent = 'Show Safe Area';
       }
     });
   }
 
   // Apply the crop and move to the next image
-  cropApply.addEventListener("click", function () {
+  cropApply.addEventListener('click', function () {
     if (!currentCropperInstance) return;
 
     // Get the cropped canvas
     const croppedCanvas = currentCropperInstance.getCroppedCanvas({
       width: 600, // Maximum width
       height: 600, // Maximum height
-      fillColor: "#fff",
+      fillColor: '#fff',
     });
 
     // Convert to blob
     croppedCanvas.toBlob(function (blob) {
       // Store the cropped version
-      croppedFiles[currentCropIndex] = new File(
-        [blob],
-        selectedFiles[currentCropIndex].name,
-        {
-          type: "image/jpeg",
-          lastModified: new Date().getTime(),
-        }
-      );
+      croppedFiles[currentCropIndex] = new File([blob], selectedFiles[currentCropIndex].name, {
+        type: 'image/jpeg',
+        lastModified: new Date().getTime(),
+      });
 
       // Clean up
       currentCropperInstance.destroy();
       currentCropperInstance = null;
-      cropModal.style.display = "none";
+      cropModal.style.display = 'none';
 
       // Move to next image
       startCropping(currentCropIndex + 1);
-    }, "image/jpeg");
+    }, 'image/jpeg');
   });
 
   // Cancel button handling
-  cropCancel.addEventListener("click", function () {
+  cropCancel.addEventListener('click', function () {
     // Remove this file from the queue
     selectedFiles.splice(currentCropIndex, 1);
     croppedFiles.splice(currentCropIndex, 1);
@@ -268,7 +237,7 @@ const initializeImageUploader = (productId) => {
       currentCropperInstance.destroy();
       currentCropperInstance = null;
     }
-    cropModal.style.display = "none";
+    cropModal.style.display = 'none';
 
     // Update count
     updateFileCountDisplay();
@@ -278,7 +247,7 @@ const initializeImageUploader = (productId) => {
   });
 
   // Close button handling
-  closeCropModal.addEventListener("click", function () {
+  closeCropModal.addEventListener('click', function () {
     cropCancel.click(); // Reuse the cancel logic
   });
 
@@ -288,12 +257,12 @@ const initializeImageUploader = (productId) => {
 
   function displayImagePreviews() {
     // Clear previous previews
-    uploadPreviewContainer.innerHTML = "";
+    uploadPreviewContainer.innerHTML = '';
 
     // Create a preview for each selected file
     selectedFiles.forEach((file, index) => {
-      const previewWrapper = document.createElement("div");
-      previewWrapper.className = "preview-item";
+      const previewWrapper = document.createElement('div');
+      previewWrapper.className = 'preview-item';
 
       // Use cropped version if available, otherwise original
       const fileToDisplay = croppedFiles[index] || file;
@@ -303,9 +272,7 @@ const initializeImageUploader = (productId) => {
 
       previewWrapper.innerHTML = `
         <div class="image-container">
-          <img src="${objectUrl}" alt="Preview ${
-        index + 1
-      }" class="preview-image">
+          <img src="${objectUrl}" alt="Preview ${index + 1}" class="preview-image">
           <div class="image-actions">
             <button type="button" class="edit-image" data-index="${index}">Edit</button>
             <button type="button" class="remove-image" data-index="${index}">×</button>
@@ -316,7 +283,7 @@ const initializeImageUploader = (productId) => {
       uploadPreviewContainer.appendChild(previewWrapper);
 
       // Revoke the URL when the image loads to free memory
-      const img = previewWrapper.querySelector("img");
+      const img = previewWrapper.querySelector('img');
       img.onload = () => URL.revokeObjectURL(objectUrl);
     });
 
@@ -326,18 +293,18 @@ const initializeImageUploader = (productId) => {
 
   function addPreviewButtonListeners() {
     // Remove buttons
-    const removeButtons = document.querySelectorAll(".remove-image");
+    const removeButtons = document.querySelectorAll('.remove-image');
     removeButtons.forEach((button) => {
-      button.addEventListener("click", function () {
+      button.addEventListener('click', function () {
         const index = parseInt(this.dataset.index);
         removeFile(index);
       });
     });
 
     // Edit buttons
-    const editButtons = document.querySelectorAll(".edit-image");
+    const editButtons = document.querySelectorAll('.edit-image');
     editButtons.forEach((button) => {
-      button.addEventListener("click", function () {
+      button.addEventListener('click', function () {
         const index = parseInt(this.dataset.index);
         startCropping(index); // Reopen the cropper for this image
       });
@@ -354,23 +321,23 @@ const initializeImageUploader = (productId) => {
     displayImagePreviews();
 
     // Reset status message
-    uploadStatus.textContent = "";
+    uploadStatus.textContent = '';
   }
 
   // Function to handle upload when form is submitted
   function handleUpload() {
     if (selectedFiles.length === 0) {
-      uploadStatus.textContent = "Please select at least one image.";
+      uploadStatus.textContent = 'Please select at least one image.';
       return;
     }
 
-    uploadStatus.textContent = "Uploading...";
+    uploadStatus.textContent = 'Uploading...';
 
     // Get the final files (cropped where available)
     const filesToUpload = getFilesForUpload();
 
     // Here you would implement the actual upload logic with filesToUpload
-    console.log("Files ready for upload:", filesToUpload);
+    console.log('Files ready for upload:', filesToUpload);
 
     // Example placeholder for upload logic
     // uploadImages(filesToUpload).then(...)
@@ -384,10 +351,8 @@ const initializeImageUploader = (productId) => {
 };
 
 // Initialize any uploaders on the page
-document.addEventListener("DOMContentLoaded", function () {
-  const uploadContainers = document.querySelectorAll(
-    ".custom-upload-container"
-  );
+document.addEventListener('DOMContentLoaded', function () {
+  const uploadContainers = document.querySelectorAll('.custom-upload-container');
 
   uploadContainers.forEach((container) => {
     const productId = container.dataset.productId;

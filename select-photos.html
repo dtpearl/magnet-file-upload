@@ -225,6 +225,7 @@
       const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
       const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
       const uploadStatus = document.getElementById(`upload-status-${productId}`);
+      const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
 
       // Trigger file input when custom button is clicked
       customUploadButton.addEventListener('click', function () {
@@ -245,9 +246,25 @@
         // Process and add new files
         processNewFiles(newFiles);
       });
+      const updateFileCountDisplay = () => {
+        fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
+      };
 
       const processNewFiles = (files) => {
         console.log(`Processing new files: ${files.length} files selected`);
+        if (files.length === 0) return;
+
+        // Add files to selected files array
+        for (let i = 0; i < files.length; i++) {
+          selectedFiles.push(files[i]);
+          croppedFiles.push(null); // Placeholder for cropped version
+        }
+
+        // Update file count display
+        updateFileCountDisplay(productId);
+
+        // Start cropping the first new file
+        // startCropping(selectedFiles.length - files.length);
       };
     };
     document.addEventListener('DOMContentLoaded', function () {
@@ -303,6 +320,7 @@
       <!-- Upload Button -->
       <button id="custom-upload-button-{{ product.id }}" class="upload-btn">Upload from camera roll or PC</button>
       <div id="upload-status-{{ product.id }}" class="upload-status"></div>
+      <div id="file-count-display-{{ product.id }}" class="file-count">0/9 images selected</div>
     </div>
   </div>
   <!-- Header -->
