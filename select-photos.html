@@ -173,7 +173,6 @@
       justify-content: center;
       width: 100%;
       padding: 40px;
-      background-color: #dc2626;
     }
 
     .placeholder-thumbnail {
@@ -189,8 +188,8 @@
     }
 
     .main-thumbnail {
-      width: 25%;
-      height: auto;
+      /* width: 30%; */
+      /* height: auto; */
       max-width: 300px;
       max-height: 300px;
       object-fit: cover;
@@ -382,6 +381,7 @@
     <div class="main-thumbnail-container">
       <!-- Thumbnails will be dynamically added here -->
     </div>
+
     <!-- Drag & Drop Area -->
     <div class="upload-area">
       <input type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" multiple />
