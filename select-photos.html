@@ -96,6 +96,7 @@
       align-items: center;
       justify-content: center;
       padding: 2rem;
+      overflow: auto;
     }
 
     .content-subtitle {
@@ -164,6 +165,38 @@
       width: 100%;
       max-width: 28rem;
       margin-top: 2rem;
+    }
+
+    .main-thumbnail-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      padding: 40px;
+      background-color: #dc2626;
+    }
+
+    .placeholder-thumbnail {
+      width: 25%;
+      height: auto;
+      max-width: 100px;
+      max-height: 100px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      margin: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .main-thumbnail {
+      width: 25%;
+      height: auto;
+      max-width: 300px;
+      max-height: 300px;
+      object-fit: cover;
+      margin: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .modal-footer {
@@ -242,12 +275,18 @@
           uploadStatus.style.color = 'red';
           return;
         }
-
         // Process and add new files
         processNewFiles(newFiles);
       });
+
       const updateFileCountDisplay = () => {
         fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
+        const uploadArea = document.querySelector(`.upload-area`);
+        if (selectedFiles.length >= MAX_FILES) {
+          uploadArea.style.display = 'none';
+        } else {
+          uploadArea.style.display = '';
+        }
       };
 
       const processNewFiles = (files) => {
@@ -259,12 +298,44 @@
           selectedFiles.push(files[i]);
           croppedFiles.push(null); // Placeholder for cropped version
         }
-
+        if (selectedFiles.length <= MAX_FILES) {
+          processThumbnails();
+        }
         // Update file count display
-        updateFileCountDisplay(productId);
+        updateFileCountDisplay();
 
         // Start cropping the first new file
         // startCropping(selectedFiles.length - files.length);
+      };
+
+      const processThumbnails = () => {
+        console.log(`Processing thumbnails for ${selectedFiles.length} selected files`);
+
+        const placeholderThumbnailContainer = document.querySelector('.thumbnail-container');
+        const mainThumbnailContainer = document.querySelector('.main-thumbnail-container');
+
+        // Clear existing thumbnails
+        if (placeholderThumbnailContainer) {
+          placeholderThumbnailContainer.innerHTML = '';
+        }
+        if (mainThumbnailContainer) {
+          mainThumbnailContainer.innerHTML = '';
+        }
+
+        const maxFilesAdded = selectedFiles.length === MAX_FILES;
+        const thumbnailContainer = maxFilesAdded ? mainThumbnailContainer : placeholderThumbnailContainer;
+
+        selectedFiles.forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imgElement = document.createElement('img');
+            imgElement.src = e.target.result;
+            imgElement.classList.add(maxFilesAdded ? 'main-thumbnail' : 'placeholder-thumbnail');
+            imgElement.addEventListener('click', () => index);
+            thumbnailContainer.appendChild(imgElement);
+          };
+          reader.readAsDataURL(file);
+        });
       };
     };
     document.addEventListener('DOMContentLoaded', function () {
@@ -308,6 +379,9 @@
 <div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
   <!-- Content -->
   <div class="modal-content">
+    <div class="main-thumbnail-container">
+      <!-- Thumbnails will be dynamically added here -->
+    </div>
     <!-- Drag & Drop Area -->
     <div class="upload-area">
       <input type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" multiple />
@@ -335,6 +409,9 @@
         </button>
       </div>
       <p class="content-subtitle">Click pictures to resize or crop</p>
+      <div class="thumbnail-container">
+        <!-- Thumbnails will be dynamically added here -->
+      </div>
     </div>
     <div>
       <div>Your 9 chosen images have been cropped to fit on square magnets.</div>
