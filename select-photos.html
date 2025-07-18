@@ -187,13 +187,21 @@
       transition: transform 0.2s, box-shadow 0.2s;
     }
 
+    .main-thumbnail-img-container {
+      display: inline-flex;
+      margin: 0.5rem;
+      aspect-ratio: 1 / 1;
+      width: 30%;
+      max-width: 300px;
+      overflow: hidden;
+    }
+
     .main-thumbnail {
-      /* width: 30%; */
-      /* height: auto; */
+      width: 100%;
+      height: auto;
       max-width: 300px;
       max-height: 300px;
       object-fit: cover;
-      margin: 0.5rem;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -278,13 +286,13 @@
         processNewFiles(newFiles);
       });
 
-      const updateFileCountDisplay = () => {
+      const updateUploadUI = () => {
         fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
         const uploadArea = document.querySelector(`.upload-area`);
         if (selectedFiles.length >= MAX_FILES) {
           uploadArea.style.display = 'none';
         } else {
-          uploadArea.style.display = '';
+          uploadArea.style.display = 'flex';
         }
       };
 
@@ -301,7 +309,7 @@
           processThumbnails();
         }
         // Update file count display
-        updateFileCountDisplay();
+        updateUploadUI();
 
         // Start cropping the first new file
         // startCropping(selectedFiles.length - files.length);
@@ -324,16 +332,60 @@
         const maxFilesAdded = selectedFiles.length === MAX_FILES;
         const thumbnailContainer = maxFilesAdded ? mainThumbnailContainer : placeholderThumbnailContainer;
 
-        selectedFiles.forEach((file, index) => {
+        let imagesLoaded = 0;
+        selectedFiles.forEach(async (file, index) => {
+          const sourceFile = croppedFiles[index] || file;
           const reader = new FileReader();
           reader.onload = (e) => {
+            const imgContainer = document.createElement('div');
+            imgContainer.classList.add('main-thumbnail-img-container');
+            imgContainer.style.position = 'relative';
+            imgContainer.style.display = 'inline-flex';
             const imgElement = document.createElement('img');
             imgElement.src = e.target.result;
             imgElement.classList.add(maxFilesAdded ? 'main-thumbnail' : 'placeholder-thumbnail');
             imgElement.addEventListener('click', () => index);
-            thumbnailContainer.appendChild(imgElement);
+            imgContainer.appendChild(imgElement);
+            thumbnailContainer.appendChild(imgContainer);
+
+            imagesLoaded++;
+            // When all images are loaded, call handleSafeAreaOverlay
+            if (maxFilesAdded && imagesLoaded === selectedFiles.length) {
+              // Wait for DOM to finish updating, without timeout the last image won't have been added yet.
+              setTimeout(() => {
+                handleSafeAreaOverlay();
+              }, 0);
+            }
           };
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(sourceFile);
+        });
+      };
+
+      const handleSafeAreaOverlay = () => {
+        const thumbnailContainers = document.querySelectorAll('.main-thumbnail-img-container');
+        thumbnailContainers.forEach((thumbnail) => {
+          // Calculate safe area dimensions
+          const thumbnailImgElement = thumbnail.querySelector('img');
+
+          const safeWidth = thumbnailImgElement.clientWidth * SAFE_AREA_PERCENTAGE;
+          const safeHeight = thumbnailImgElement.clientHeight * SAFE_AREA_PERCENTAGE;
+
+          // Calculate position
+          const safeLeft = (safeWidth * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+          const safeTop = (safeHeight * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+
+          const safeAreaDiv = document.createElement('div');
+          safeAreaDiv.classList.add('safe-area-overlay');
+          safeAreaDiv.style.position = 'absolute';
+          safeAreaDiv.style.left = `${safeLeft}px`;
+          safeAreaDiv.style.top = `${safeTop}px`;
+          safeAreaDiv.style.width = `${safeWidth}px`;
+          safeAreaDiv.style.height = `${safeHeight}px`;
+          safeAreaDiv.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
+          safeAreaDiv.style.background = 'transparent';
+          safeAreaDiv.style.boxShadow = `0 0 0 ${safeLeft}px rgba(0, 0, 0, 0.5)`;
+          safeAreaDiv.style.pointerEvents = 'none';
+          thumbnail.appendChild(safeAreaDiv);
         });
       };
     };
@@ -384,7 +436,14 @@
 
     <!-- Drag & Drop Area -->
     <div class="upload-area">
-      <input type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" multiple />
+      <input
+        title="File Input"
+        type="file"
+        id="actual-file-input-{{ product.id }}"
+        class="hidden-file-input"
+        accept="image/*"
+        multiple
+      />
       <div class="upload-text">
         <h3>drag & drop</h3>
         <h3>any files</h3>
@@ -402,7 +461,12 @@
     <div class="modal-header">
       <div class="modal-title-container">
         <h2 class="modal-title">Selection preview</h2>
-        <button class="close-btn" onclick="closeModal(`select-photos-modal-{{ product.id }}`)">
+        <button
+          class="close-btn"
+          onclick="closeModal(`select-photos-modal-{{ product.id }}`)"
+          aria-label="Close modal"
+          title="Close"
+        >
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
