@@ -94,7 +94,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       padding: 2rem;
       overflow: auto;
     }
@@ -172,7 +171,6 @@
       flex-wrap: wrap;
       justify-content: center;
       width: 100%;
-      padding: 40px;
     }
 
     .placeholder-thumbnail {
@@ -337,16 +335,26 @@
           const sourceFile = croppedFiles[index] || file;
           const reader = new FileReader();
           reader.onload = (e) => {
-            const imgContainer = document.createElement('div');
-            imgContainer.classList.add('main-thumbnail-img-container');
-            imgContainer.style.position = 'relative';
-            imgContainer.style.display = 'inline-flex';
-            const imgElement = document.createElement('img');
-            imgElement.src = e.target.result;
-            imgElement.classList.add(maxFilesAdded ? 'main-thumbnail' : 'placeholder-thumbnail');
-            imgElement.addEventListener('click', () => index);
-            imgContainer.appendChild(imgElement);
-            thumbnailContainer.appendChild(imgContainer);
+            if (maxFilesAdded) {
+              // Add thumbnail with safe area overlay to main thumbnail container.
+              const imgContainer = document.createElement('div');
+              imgContainer.classList.add('main-thumbnail-img-container');
+              imgContainer.style.position = 'relative';
+              imgContainer.style.display = 'inline-flex';
+              const imgElement = document.createElement('img');
+              imgElement.src = e.target.result;
+              imgElement.classList.add('main-thumbnail');
+              imgElement.addEventListener('click', () => index);
+              imgContainer.appendChild(imgElement);
+              thumbnailContainer.appendChild(imgContainer);
+            } else {
+              // Add thumbnail to placeholder thumbnail container.
+              const imgElement = document.createElement('img');
+              imgElement.src = e.target.result;
+              imgElement.classList.add('placeholder-thumbnail');
+              imgElement.addEventListener('click', () => index);
+              thumbnailContainer.appendChild(imgElement);
+            }
 
             imagesLoaded++;
             // When all images are loaded, call handleSafeAreaOverlay
