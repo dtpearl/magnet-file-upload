@@ -235,6 +235,40 @@
     .add-to-cart-btn:hover {
       background-color: #9ca3af;
     }
+
+    .thumbnail-action-buttons {
+      position: absolute;
+      bottom: 5%;
+      right: 5%;
+      display: flex;
+      gap: 0.5em;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 2;
+    }
+
+    .main-thumbnail-img-container:hover .thumbnail-action-buttons,
+    .placeholder-thumbnail-container:hover .thumbnail-action-buttons {
+      opacity: 1;
+    }
+
+    .thumbnail-action-btn {
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      width: 2em;
+      height: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .thumbnail-action-btn svg {
+      width: 1em;
+      height: 1em;
+    }
   </style>
 
   <!-- 
@@ -297,7 +331,7 @@
       const updateUploadUI = () => {
         fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
         const uploadArea = document.querySelector(`.upload-area`);
-        const postSelectionInfo = document.querySelector('post-selection-info');
+        const postSelectionInfo = document.querySelector('.post-selection-info');
         if (selectedFiles.length === MAX_FILES) {
           uploadArea.style.display = 'none';
           postSelectionInfo.style.display = 'flex';
@@ -348,6 +382,35 @@
           const sourceFile = croppedFiles[index] || file;
           const reader = new FileReader();
           reader.onload = (e) => {
+            // --- Action buttons ---
+            // Styling for action buttons is consistent regardless of where thumbnails are displayed.
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'thumbnail-action-buttons';
+
+            // Edit button
+            const editBtn = document.createElement('button');
+            editBtn.className = 'thumbnail-action-btn';
+            editBtn.title = 'Edit';
+            editBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="currentColor" stroke-width="1.5"/><path d="M14.06 6.44a1.5 1.5 0 0 0 0-2.12l-1.38-1.38a1.5 1.5 0 0 0-2.12 0l-1.06 1.06 3.5 3.5 1.06-1.06z" stroke="currentColor" stroke-width="1.5"/></svg>`;
+            editBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              console.log(`Editing button clicked for index: ${index}`);
+              // Call edit handler here;
+            };
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'thumbnail-action-btn';
+            deleteBtn.title = 'Remove';
+            deleteBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M6 8v6m4-6v6m4-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4m5-2h-2a2 2 0 0 0-2 2v2h8V4a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+            deleteBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              console.log(`Delete button clicked for index: ${index}`);
+              // Call delete handler here;
+            };
+
+            actionButtons.appendChild(editBtn);
+            actionButtons.appendChild(deleteBtn);
+
             if (maxFilesAdded) {
               // Add thumbnail with safe area overlay to main thumbnail container.
               const imgContainer = document.createElement('div');
@@ -359,6 +422,7 @@
               imgElement.classList.add('main-thumbnail');
               imgElement.addEventListener('click', () => index);
               imgContainer.appendChild(imgElement);
+              imgContainer.appendChild(actionButtons);
               thumbnailContainer.appendChild(imgContainer);
             } else {
               // Add thumbnail to placeholder thumbnail container.
@@ -366,6 +430,7 @@
               imgElement.src = e.target.result;
               imgElement.classList.add('placeholder-thumbnail');
               imgElement.addEventListener('click', () => index);
+              thumbnailContainer.appendChild(actionButtons);
               thumbnailContainer.appendChild(imgElement);
             }
 
