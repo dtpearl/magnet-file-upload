@@ -173,13 +173,17 @@
       width: 100%;
     }
 
+    .placeholder-thumbnail-img-container {
+      margin: 0.5rem;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
     .placeholder-thumbnail {
       height: auto;
       max-width: 200px;
       max-height: 180px;
       object-fit: cover;
-      border-radius: 0.5rem;
-      margin: 0.5rem;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -248,7 +252,7 @@
     }
 
     .main-thumbnail-img-container:hover .thumbnail-action-buttons,
-    .placeholder-thumbnail-container:hover .thumbnail-action-buttons {
+    .placeholder-thumbnail-img-container:hover .thumbnail-action-buttons {
       opacity: 1;
     }
 
@@ -337,7 +341,7 @@
           postSelectionInfo.style.display = 'flex';
         } else {
           uploadArea.style.display = 'flex';
-          postSelectionInfo.classList.style.display = 'none';
+          postSelectionInfo.style.display = 'none';
         }
       };
 
@@ -426,12 +430,18 @@
               thumbnailContainer.appendChild(imgContainer);
             } else {
               // Add thumbnail to placeholder thumbnail container.
+              const imgContainer = document.createElement('div');
+              imgContainer.classList.add('placeholder-thumbnail-img-container');
+              imgContainer.style.position = 'relative';
+              imgContainer.style.display = 'inline-flex';
               const imgElement = document.createElement('img');
               imgElement.src = e.target.result;
               imgElement.classList.add('placeholder-thumbnail');
               imgElement.addEventListener('click', () => index);
-              thumbnailContainer.appendChild(actionButtons);
-              thumbnailContainer.appendChild(imgElement);
+              imgContainer.appendChild(imgElement);
+              imgContainer.appendChild(actionButtons);
+              thumbnailContainer.appendChild(imgContainer);
+              // thumbnailContainer.appendChild(imgElement);
             }
 
             imagesLoaded++;
