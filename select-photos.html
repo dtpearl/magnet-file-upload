@@ -223,6 +223,23 @@
       border-top: 1px solid #e5e7eb;
       display: flex;
       justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    .remove-all-files-btn {
+      background-color: #ef4444;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: none;
+    }
+
+    .remove-all-files-btn:hover {
+      background-color: #dc2626;
     }
 
     .add-to-cart-btn {
@@ -310,12 +327,17 @@
 
       const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
       const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
+      const removeAllFilesButton = document.getElementById(`remove-all-files-btn`);
       const uploadStatus = document.getElementById(`upload-status-${productId}`);
       const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
 
       // Trigger file input when custom button is clicked
       customUploadButton.addEventListener('click', function () {
         actualFileInput.click();
+      });
+
+      removeAllFilesButton.addEventListener('click', function () {
+        removeAllFiles();
       });
 
       // Handle file selection
@@ -336,6 +358,12 @@
         fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
         const uploadArea = document.querySelector(`.upload-area`);
         const postSelectionInfo = document.querySelector('.post-selection-info');
+        const removeAllFilesBtn = document.querySelector('.remove-all-files-btn');
+        if (selectedFiles.length === 0) {
+          removeAllFilesBtn.style.display = 'none';
+        } else {
+          removeAllFilesBtn.style.display = 'block';
+        }
         if (selectedFiles.length === MAX_FILES) {
           uploadArea.style.display = 'none';
           postSelectionInfo.style.display = 'flex';
@@ -409,7 +437,8 @@
             deleteBtn.onclick = (ev) => {
               ev.stopPropagation();
               console.log(`Delete button clicked for index: ${index}`);
-              // Call delete handler here;
+
+              removeFile(index);
             };
 
             actionButtons.appendChild(editBtn);
@@ -483,6 +512,31 @@
           safeAreaDiv.style.pointerEvents = 'none';
           thumbnail.appendChild(safeAreaDiv);
         });
+      };
+
+      const removeFile = (index) => {
+        console.log(`Removing file at index: ${index}`);
+        if (index < 0 || index >= selectedFiles.length) return;
+
+        // Remove the file from selected files and cropped files
+        selectedFiles.splice(index, 1);
+        croppedFiles.splice(index, 1);
+
+        // Update the UI
+        processThumbnails();
+        updateUploadUI();
+      };
+
+      const removeAllFiles = () => {
+        console.log(`Removing all files.`);
+
+        // Remove the files from selected files and cropped files
+        selectedFiles = [];
+        croppedFiles = [];
+
+        // Update the UI
+        processThumbnails();
+        updateUploadUI();
       };
     };
     document.addEventListener('DOMContentLoaded', function () {
@@ -580,6 +634,7 @@
     </div>
     <!-- Footer -->
     <div class="modal-footer">
+      <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
       <button class="add-to-cart-btn">Add to cart</button>
     </div>
   </div>
