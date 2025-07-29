@@ -343,7 +343,6 @@
       // Handle file selection
       actualFileInput.addEventListener('change', function (e) {
         const newFiles = Array.from(e.target.files);
-
         // Check if adding these files would exceed the limit
         if (selectedFiles.length + newFiles.length > MAX_FILES) {
           uploadStatus.textContent = `You can only upload a maximum of ${MAX_FILES} images.`;
@@ -522,6 +521,11 @@
         selectedFiles.splice(index, 1);
         croppedFiles.splice(index, 1);
 
+        if (selectedFiles.length === 0) {
+          // If no files left, reset the file input
+          actualFileInput.value = '';
+        }
+
         // Update the UI
         processThumbnails();
         updateUploadUI();
@@ -533,6 +537,8 @@
         // Remove the files from selected files and cropped files
         selectedFiles = [];
         croppedFiles = [];
+
+        actualFileInput.value = ''; // Clear the file input
 
         // Update the UI
         processThumbnails();
