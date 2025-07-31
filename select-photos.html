@@ -1,5 +1,6 @@
 <div class="file-upload-container" data-product-id="{{ product.id }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <!-- 
     CSS styling for photo selection code.
   -->
@@ -40,6 +41,62 @@
 
     .select-photos-modal.active {
       display: flex;
+    }
+
+    .edit-photos-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #e67a07;
+      z-index: 1000;
+    }
+
+    .edit-photos-modal.active {
+      display: flex;
+    }
+
+    .crop-container {
+      height: 500px;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+
+    #image-to-crop {
+      display: block;
+      max-width: 100%;
+    }
+
+    .crop-controls {
+      display: flex;
+      justify-content: flex-end;
+      padding: 15px 20px;
+      gap: 10px;
+      border-top: 1px solid #eee;
+    }
+
+    .crop-button {
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      border: none;
+    }
+
+    .crop-button.cancel {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    .crop-button.apply {
+      background-color: #4a90e2;
+      color: white;
+    }
+
+    .crop-button:hover {
+      opacity: 0.9;
     }
 
     .modal-header {
@@ -330,6 +387,10 @@
       const removeAllFilesButton = document.getElementById(`remove-all-files-btn`);
       const uploadStatus = document.getElementById(`upload-status-${productId}`);
       const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
+      const imageToCrop = document.getElementById('image-to-crop');
+      const cropCancel = document.getElementById('crop-cancel');
+      const cropApply = document.getElementById('crop-apply');
+      const safeAreaToggle = document.getElementById('safe-area-toggle');
 
       // Trigger file input when custom button is clicked
       customUploadButton.addEventListener('click', function () {
@@ -352,6 +413,101 @@
         // Process and add new files
         processNewFiles(newFiles);
       });
+
+      // Start the cropping process for a specific file index
+      const startCropping = (index) => {
+        // if (index >= selectedFiles.length) {
+        //   // All files processed, display the final previews
+        //   displayImagePreviews();
+        //   return;
+        // }
+
+        currentCropIndex = index;
+        const file = selectedFiles[index];
+
+        // Create a URL for the image
+        const objectUrl = URL.createObjectURL(file);
+
+        // Set the image source and prepare the cropper
+        imageToCrop.onload = function () {
+          // Initialize cropper
+          currentCropperInstance = new Cropper(imageToCrop, {
+            aspectRatio: ASPECT_RATIO,
+            viewMode: 1,
+            guides: true,
+            autoCropArea: 0.8,
+            movable: true,
+            rotatable: true,
+            scalable: true,
+            zoomable: true,
+            ready: function () {
+              // Add safe area indicator when cropper is ready
+              if (showSafeArea) {
+                drawSafeArea();
+              }
+            },
+            cropmove: function () {
+              // Remove existing safe area when moving the crop box
+              if (showSafeArea) {
+                drawSafeArea();
+              }
+            },
+          });
+          /*
+        Other methods that can be used with the cropper instance:
+        cropend: function () {
+          // Code to execute after cropping ends
+        },
+        zoom: function () {
+          // Code to execute when zooming
+        }
+        */
+
+          // Show the modal
+          // cropModal.style.display = 'flex';
+        };
+
+        imageToCrop.src = objectUrl;
+      };
+
+      // Apply the crop and move to the next image
+      cropApply.addEventListener('click', function () {
+        if (!currentCropperInstance) return;
+
+        // Get the cropped canvas
+        const croppedCanvas = currentCropperInstance.getCroppedCanvas({
+          width: 600, // Maximum width
+          height: 600, // Maximum height
+          fillColor: '#fff',
+        });
+
+        // Convert to blob
+        croppedCanvas.toBlob(function (blob) {
+          // Store the cropped version
+          croppedFiles[currentCropIndex] = new File([blob], selectedFiles[currentCropIndex].name, {
+            type: 'image/jpeg',
+            lastModified: new Date().getTime(),
+          });
+
+          // Clean up
+          currentCropperInstance.destroy();
+          currentCropperInstance = null;
+
+          // Move to next image
+          // startCropping(currentCropIndex + 1);
+          closeEditModal();
+        }, 'image/jpeg');
+      });
+
+      const closeEditModal = () => {
+        const cropModal = document.getElementById('edit-photos-modal');
+        cropModal.classList.remove('active');
+        imageToCrop.src = ''; // Clear the image source
+
+        currentCropIndex = -1; // Reset the current crop index
+        closeModal('edit-photos-modal');
+        processThumbnails();
+      };
 
       const updateUploadUI = () => {
         fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
@@ -386,9 +542,6 @@
         }
         // Update file count display
         updateUploadUI();
-
-        // Start cropping the first new file
-        // startCropping(selectedFiles.length - files.length);
       };
 
       const processThumbnails = () => {
@@ -427,6 +580,8 @@
               ev.stopPropagation();
               console.log(`Editing button clicked for index: ${index}`);
               // Call edit handler here;
+              openModal(`edit-photos-modal`);
+              startCropping(index);
             };
             // Delete button
             const deleteBtn = document.createElement('button');
@@ -512,6 +667,69 @@
           thumbnail.appendChild(safeAreaDiv);
         });
       };
+
+      // Function to draw the safe area indicator
+      function drawSafeArea() {
+        if (!currentCropperInstance) return;
+
+        // Remove existing safe area if any
+        const existingSafeAreaContainer = document.querySelector('.safe-print-container');
+        if (existingSafeAreaContainer) {
+          existingSafeAreaContainer.remove();
+        }
+
+        // Get crop box dimensions
+        const cropBox = currentCropperInstance.getCropBoxData();
+
+        // Calculate safe area dimensions (smaller than the crop box)
+        const safeWidth = cropBox.width * SAFE_AREA_PERCENTAGE;
+        const safeHeight = cropBox.height * SAFE_AREA_PERCENTAGE;
+
+        // Calculate position (centered within crop box)
+        const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.left + (cropBox.width - safeWidth) / 2;
+        const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.top + (cropBox.height - safeHeight) / 2;
+
+        // Create safe area contaner element
+        const safeAreaContainer = document.createElement('div');
+        safeAreaContainer.className = 'safe-print-container';
+        safeAreaContainer.style.position = 'absolute';
+        safeAreaContainer.style.left = `${cropBox.left}px`;
+        safeAreaContainer.style.top = `${cropBox.top}px`;
+        safeAreaContainer.style.width = `${cropBox.width}px`;
+        safeAreaContainer.style.height = `${cropBox.height}px`;
+        safeAreaContainer.style.pointerEvents = 'none';
+
+        const safeArea = document.createElement('div');
+        safeArea.className = 'safe-print-area';
+        safeArea.style.position = 'absolute';
+        safeArea.style.left = `${safeLeft}px`;
+        safeArea.style.top = `${safeTop}px`;
+        safeArea.style.width = `${safeWidth}px`;
+        safeArea.style.height = `${safeHeight}px`;
+        safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
+        safeArea.style.background = 'transparent';
+        safeArea.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.5)';
+        safeArea.style.pointerEvents = 'none';
+        safeArea.style.zIndex = '2000';
+
+        // Add a label to explain what this area represents
+        const label = document.createElement('div');
+        label.textContent = 'Safe Print Area';
+        label.style.position = 'absolute';
+        label.style.top = '-8px';
+        label.style.left = '4px';
+        label.style.backgroundColor = 'rgba(0, 120, 255, 0.8)';
+        label.style.color = 'white';
+        label.style.padding = '2px 6px';
+        label.style.fontSize = '12px';
+        label.style.borderRadius = '3px';
+        safeAreaContainer.appendChild(label);
+
+        safeAreaContainer.appendChild(safeArea);
+        // Add to the cropper container
+        const cropperContainer = document.querySelector('.cropper-container');
+        cropperContainer.appendChild(safeAreaContainer);
+      }
 
       const removeFile = (index) => {
         console.log(`Removing file at index: ${index}`);
@@ -642,6 +860,33 @@
     <div class="modal-footer">
       <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
       <button class="add-to-cart-btn">Add to cart</button>
+    </div>
+  </div>
+  <div id="edit-photos-modal" class="edit-photos-modal">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Crop your image</h2>
+        <button class="close-btn" onclick="closeModal(`edit-photos-modal`)" aria-label="Close modal" title="Close">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <p class="content-subtitle">Click pictures to resize or crop</p>
+      <div class="crop-container">
+        <img id="image-to-crop" src="" alt="Image to crop" />
+      </div>
+      <div class="crop-controls">
+        <button id="safe-area-toggle" type="button">Hide Safe Area</button>
+        <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+        <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+      </div>
+      <div class="crop-info">
+        <p>
+          The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing
+          and magnet construction.
+        </p>
+      </div>
     </div>
   </div>
   <!-- This website uses Cropper.js by Chen Fengyuan -->
