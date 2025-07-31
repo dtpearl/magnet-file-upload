@@ -561,13 +561,14 @@
         const maxFilesAdded = selectedFiles.length === MAX_FILES;
         const thumbnailContainer = maxFilesAdded ? mainThumbnailContainer : placeholderThumbnailContainer;
 
+        const containers = new Array(selectedFiles.length);
+
         let imagesLoaded = 0;
         selectedFiles.forEach(async (file, index) => {
           const sourceFile = croppedFiles[index] || file;
           const reader = new FileReader();
           reader.onload = (e) => {
             // --- Action buttons ---
-            // Styling for action buttons is consistent regardless of where thumbnails are displayed.
             const actionButtons = document.createElement('div');
             actionButtons.className = 'thumbnail-action-buttons';
 
@@ -579,10 +580,10 @@
             editBtn.onclick = (ev) => {
               ev.stopPropagation();
               console.log(`Editing button clicked for index: ${index}`);
-              // Call edit handler here;
               openModal(`edit-photos-modal`);
               startCropping(index);
             };
+
             // Delete button
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'thumbnail-action-btn';
@@ -591,49 +592,43 @@
             deleteBtn.onclick = (ev) => {
               ev.stopPropagation();
               console.log(`Delete button clicked for index: ${index}`);
-
               removeFile(index);
             };
 
             actionButtons.appendChild(editBtn);
             actionButtons.appendChild(deleteBtn);
+            const imgContainer = document.createElement('div');
 
             if (maxFilesAdded) {
-              // Add thumbnail with safe area overlay to main thumbnail container.
-              const imgContainer = document.createElement('div');
               imgContainer.classList.add('main-thumbnail-img-container');
-              imgContainer.style.position = 'relative';
-              imgContainer.style.display = 'inline-flex';
-              const imgElement = document.createElement('img');
-              imgElement.src = e.target.result;
-              imgElement.classList.add('main-thumbnail');
-              imgElement.addEventListener('click', () => index);
-              imgContainer.appendChild(imgElement);
-              imgContainer.appendChild(actionButtons);
-              thumbnailContainer.appendChild(imgContainer);
             } else {
-              // Add thumbnail to placeholder thumbnail container.
-              const imgContainer = document.createElement('div');
               imgContainer.classList.add('placeholder-thumbnail-img-container');
-              imgContainer.style.position = 'relative';
-              imgContainer.style.display = 'inline-flex';
-              const imgElement = document.createElement('img');
-              imgElement.src = e.target.result;
-              imgElement.classList.add('placeholder-thumbnail');
-              imgElement.addEventListener('click', () => index);
-              imgContainer.appendChild(imgElement);
-              imgContainer.appendChild(actionButtons);
-              thumbnailContainer.appendChild(imgContainer);
-              // thumbnailContainer.appendChild(imgElement);
             }
 
-            imagesLoaded++;
-            // When all images are loaded, call handleSafeAreaOverlay
-            if (maxFilesAdded && imagesLoaded === selectedFiles.length) {
-              // Wait for DOM to finish updating, without timeout the last image won't have been added yet.
-              setTimeout(() => {
-                handleSafeAreaOverlay();
-              }, 0);
+            imgContainer.style.position = 'relative';
+            imgContainer.style.display = 'inline-flex';
+
+            const imgElement = document.createElement('img');
+            imgElement.src = e.target.result;
+            imgElement.classList.add(maxFilesAdded ? 'main-thumbnail' : 'placeholder-thumbnail');
+            imgElement.addEventListener('click', () => index);
+
+            imgContainer.appendChild(imgElement);
+            imgContainer.appendChild(actionButtons);
+
+            // Place the container at the correct index
+            containers[index] = imgContainer;
+
+            // When all images are loaded, append in order
+            if (containers.filter(Boolean).length === selectedFiles.length) {
+              containers.forEach((container) => {
+                if (container) thumbnailContainer.appendChild(container);
+              });
+              if (maxFilesAdded) {
+                setTimeout(() => {
+                  handleSafeAreaOverlay();
+                }, 0);
+              }
             }
           };
           reader.readAsDataURL(sourceFile);
