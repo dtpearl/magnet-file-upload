@@ -233,13 +233,17 @@
     .placeholder-thumbnail-img-container {
       margin: 0.5rem;
       border-radius: 0.5rem;
+      width: 28%;
+      max-width: 200px;
+      max-height: 200px;
       overflow: hidden;
     }
 
     .placeholder-thumbnail {
+      width: 100%;
       height: auto;
+      aspect-ratio: 1 / 1;
       max-width: 200px;
-      max-height: 180px;
       object-fit: cover;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
