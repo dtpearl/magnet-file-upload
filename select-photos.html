@@ -383,6 +383,7 @@
 
       let selectedFiles = [];
       let croppedFiles = [];
+      let compressedFiles = [];
       let currentCropperInstance = null;
       let currentCropIndex = -1;
 
@@ -394,7 +395,6 @@
       const imageToCrop = document.getElementById('image-to-crop');
       const cropCancel = document.getElementById('crop-cancel');
       const cropApply = document.getElementById('crop-apply');
-      const safeAreaToggle = document.getElementById('safe-area-toggle');
 
       // Trigger file input when custom button is clicked
       customUploadButton.addEventListener('click', function () {
@@ -458,14 +458,14 @@
             },
           });
           /*
-        Other methods that can be used with the cropper instance:
-        cropend: function () {
-          // Code to execute after cropping ends
-        },
-        zoom: function () {
-          // Code to execute when zooming
-        }
-        */
+          Other methods that can be used with the cropper instance:
+          cropend: function () {
+            // Code to execute after cropping ends
+          },
+          zoom: function () {
+            // Code to execute when zooming
+          }
+          */
 
           // Show the modal
           // cropModal.style.display = 'flex';
@@ -532,20 +532,58 @@
         }
       };
 
+      const compressImage = async (file, maxWidth = 2000, quality = 0.7) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+
+              const scale = Math.min(maxWidth / img.width, 1);
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+              canvas.toBlob(
+                (blob) => {
+                  const orignalSizeInKB = Math.round(file.size / 1024);
+                  const blobSizeInKB = Math.round(blob.size / 1024);
+                  console.log('Original size:', orignalSizeInKB, 'KB');
+                  console.log('Compressed size:', blobSizeInKB, 'KB');
+                  resolve(blob);
+                },
+                'image/jpeg',
+                quality
+              );
+            };
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
       const processNewFiles = (files) => {
         console.log(`Processing new files: ${files.length} files selected`);
         if (files.length === 0) return;
 
         // Add files to selected files array
-        for (let i = 0; i < files.length; i++) {
-          selectedFiles.push(files[i]);
+        let compressedCount = 0;
+        files.forEach(async (file, i) => {
+          // selectedFiles.push(files[i]);
           croppedFiles.push(null); // Placeholder for cropped version
-        }
-        if (selectedFiles.length <= MAX_FILES) {
-          processThumbnails();
-        }
-        // Update file count display
-        updateUploadUI();
+          selectedFiles.push(await compressImage(files[i]));
+          compressedCount++;
+          // When all images are loaded, append in order
+
+          if (compressedCount === files.length) {
+            processThumbnails();
+            updateUploadUI();
+          }
+        });
       };
 
       const processThumbnails = () => {
@@ -615,7 +653,13 @@
             const imgElement = document.createElement('img');
             imgElement.src = e.target.result;
             imgElement.classList.add(maxFilesAdded ? 'main-thumbnail' : 'placeholder-thumbnail');
-            imgElement.addEventListener('click', () => index);
+            imgElement.onclick = (ev) => {
+              ev.stopPropagation();
+              console.log(`Thumbnail clicked for index: ${index}`);
+              console.log(`Opening edit modal for index: ${index}`);
+              openModal(`edit-photos-modal`);
+              startCropping(index);
+            };
 
             imgContainer.appendChild(imgElement);
             imgContainer.appendChild(actionButtons);
@@ -661,7 +705,7 @@
           safeAreaDiv.style.height = `${safeHeight}px`;
           safeAreaDiv.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
           safeAreaDiv.style.background = 'transparent';
-          safeAreaDiv.style.boxShadow = `0 0 0 ${safeLeft}px rgba(0, 0, 0, 0.5)`;
+          safeAreaDiv.style.boxShadow = `0 0 0 ${safeLeft}px rgba(0, 0, 0, 0.25)`;
           safeAreaDiv.style.pointerEvents = 'none';
           thumbnail.appendChild(safeAreaDiv);
         });
@@ -707,7 +751,7 @@
         safeArea.style.height = `${safeHeight}px`;
         safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
         safeArea.style.background = 'transparent';
-        safeArea.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.5)';
+        safeArea.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.25)';
         safeArea.style.pointerEvents = 'none';
         safeArea.style.zIndex = '2000';
 
@@ -876,7 +920,6 @@
         <img id="image-to-crop" src="" alt="Image to crop" />
       </div>
       <div class="crop-controls">
-        <button id="safe-area-toggle" type="button">Hide Safe Area</button>
         <button id="crop-cancel" class="crop-button cancel">Cancel</button>
         <button id="crop-apply" class="crop-button apply">Apply Crop</button>
       </div>
