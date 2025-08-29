@@ -383,7 +383,7 @@
 
       let selectedFiles = [];
       let croppedFiles = [];
-      let compressedFiles = [];
+
       let currentCropperInstance = null;
       let currentCropIndex = -1;
 
@@ -395,6 +395,7 @@
       const imageToCrop = document.getElementById('image-to-crop');
       const cropCancel = document.getElementById('crop-cancel');
       const cropApply = document.getElementById('crop-apply');
+      const addToCartButton = document.getElementById('add-to-cart-btn');
 
       // Trigger file input when custom button is clicked
       customUploadButton.addEventListener('click', function () {
@@ -403,6 +404,17 @@
 
       removeAllFilesButton.addEventListener('click', function () {
         removeAllFiles();
+      });
+
+      addToCartButton.addEventListener('click', function () {
+        console.log('Add to cart button clicked');
+        console.log({ selectedFiles, croppedFiles });
+        if (croppedFiles.length < MAX_FILES) {
+          alert(
+            `You have ${croppedFiles.length} chosen images. Please select and crop exactly ${MAX_FILES} images before adding to cart.`
+          );
+          return;
+        }
       });
 
       // Handle file selection
@@ -532,7 +544,7 @@
         }
       };
 
-      const compressImage = async (file, maxWidth = 2000, quality = 0.7) => {
+      const compressImage = async (file, index, maxWidth = 2000, quality = 0.7) => {
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -549,13 +561,35 @@
 
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-              canvas.toBlob(
-                (blob) => {
-                  const orignalSizeInKB = Math.round(file.size / 1024);
-                  const blobSizeInKB = Math.round(blob.size / 1024);
-                  console.log('Original size:', orignalSizeInKB, 'KB');
-                  console.log('Compressed size:', blobSizeInKB, 'KB');
-                  resolve(blob);
+              // Cropping to square
+              const cropSize = Math.min(canvas.width, canvas.height);
+              const cropCanvas = document.createElement('canvas');
+              cropCanvas.width = cropSize;
+              cropCanvas.height = cropSize;
+              const cropCtx = cropCanvas.getContext('2d');
+              // Center crop
+              const sx = (canvas.width - cropSize) / 2;
+              const sy = (canvas.height - cropSize) / 2;
+              cropCtx.drawImage(canvas, sx, sy, cropSize, cropSize, 0, 0, cropSize, cropSize);
+
+              // Save cropped version to croppedFiles array
+              cropCanvas.toBlob(
+                (croppedBlob) => {
+                  // Save cropped file (square) for fallback
+                  croppedFiles[index] = croppedBlob;
+
+                  // Save compressed version (original aspect ratio)
+                  canvas.toBlob(
+                    (blob) => {
+                      const orignalSizeInKB = Math.round(file.size / 1024);
+                      const blobSizeInKB = Math.round(blob.size / 1024);
+                      console.log('Original size:', orignalSizeInKB, 'KB');
+                      console.log('Compressed size:', blobSizeInKB, 'KB');
+                      resolve(blob);
+                    },
+                    'image/jpeg',
+                    quality
+                  );
                 },
                 'image/jpeg',
                 quality
@@ -566,24 +600,28 @@
         });
       };
 
-      const processNewFiles = (files) => {
+      const processNewFiles = async (files) => {
         console.log(`Processing new files: ${files.length} files selected`);
         if (files.length === 0) return;
 
         // Add files to selected files array
-        let compressedCount = 0;
-        files.forEach(async (file, i) => {
+        let compressedCount = 1;
+        const initialLength = selectedFiles.length;
+        // Track initial length so new files are added to the end of the array
+        for (let i = 0; i < files.length; i++) {
           // selectedFiles.push(files[i]);
-          croppedFiles.push(null); // Placeholder for cropped version
-          selectedFiles.push(await compressImage(files[i]));
-          compressedCount++;
-          // When all images are loaded, append in order
+          // croppedFiles.push(null); // Placeholder for cropped version
+          console.log({ numberOfFiles: files.length, compressedCount });
+          const indexToInsert = initialLength + i;
+          selectedFiles[indexToInsert] = await compressImage(files[i], indexToInsert);
 
+          // When all images are loaded, process thumbnails and update UI
           if (compressedCount === files.length) {
             processThumbnails();
             updateUploadUI();
           }
-        });
+          compressedCount++;
+        }
       };
 
       const processThumbnails = () => {
@@ -902,7 +940,7 @@
     <!-- Footer -->
     <div class="modal-footer">
       <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
-      <button class="add-to-cart-btn">Add to cart</button>
+      <button id="add-to-cart-btn" class="add-to-cart-btn">Add to cart</button>
     </div>
   </div>
   <div id="edit-photos-modal" class="edit-photos-modal">
