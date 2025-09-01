@@ -406,15 +406,59 @@
         removeAllFiles();
       });
 
+      // Generates a session ID like: "20240901-1530-4821"
+      const generateSessionId = () => {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+        return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
+      };
+
+      const uploadToCloudinary = async (file, fileName) => {
+        const url = 'https://api.cloudinary.com/v1_1/djzc7ih0g/image/upload';
+        const form = new FormData();
+        form.append('upload_preset', 'shopify-magnets');
+        form.append('folder', 'shopify_uploads');
+        form.append('tags', 'order_pending');
+        form.append('public_id', fileName);
+        form.append('file', file); // this can be your client-compressed Blob
+        const res = await fetch(url, { method: 'POST', body: form });
+        if (!res.ok) throw new Error('Upload failed');
+        return res.json(); // contains secure_url and public_id
+      };
+
       addToCartButton.addEventListener('click', function () {
         console.log('Add to cart button clicked');
         console.log({ selectedFiles, croppedFiles });
+
         if (croppedFiles.length < MAX_FILES) {
           alert(
             `You have ${croppedFiles.length} chosen images. Please select and crop exactly ${MAX_FILES} images before adding to cart.`
           );
           return;
         }
+
+        const sessionId = generateSessionId();
+
+        croppedFiles.forEach(async (file, index) => {
+          try {
+            const response = await uploadToCloudinary(file, `${sessionId}_${index + 1}`);
+            console.log(`Uploaded file ${index + 1}:`, response);
+
+            // After all files are uploaded, redirect to cart with session ID
+            // if (index === croppedFiles.length - 1) {
+            //   const cartUrl = `/cart/add?product_id={{ product.id }}&quantity=1&properties[Image Session ID]=${sessionId}`;
+            //   window.location.href = cartUrl;
+            // }
+          } catch (error) {
+            console.error(`Error uploading file ${index + 1}:`, error);
+            alert('There was an error uploading your images. Please try again.');
+          }
+        });
       });
 
       // Handle file selection
