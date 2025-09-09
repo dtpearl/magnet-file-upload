@@ -177,6 +177,10 @@
       width: 100%;
     }
 
+    .upload-area:hover {
+      cursor: grab;
+    }
+
     .upload-text {
       text-align: center;
       margin-bottom: 2rem;
@@ -193,6 +197,10 @@
       color: #9ca3af;
       font-size: 0.875rem;
       margin-top: 1.5rem;
+    }
+
+    .upload-status {
+      color: #f00;
     }
 
     .upload-btn {
@@ -283,8 +291,19 @@
       padding: 1.5rem;
       border-top: 1px solid #e5e7eb;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       gap: 1rem;
+      flex-direction: column;
+      width: 100%;
+      align-items: center;
+    }
+
+    .modal-footer-actions {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      justify-content: center;
+      width: 100%;
     }
 
     .remove-all-files-btn {
@@ -351,6 +370,18 @@
       width: 1em;
       height: 1em;
     }
+
+    @media (max-width: 768px) {
+      /* Tablets & small laptops */
+      .select-photos-modal {
+        flex-direction: column;
+        align-items: stretch;
+        overflow: auto;
+      }
+      .modal-content {
+        overflow: unset;
+      }
+    }
   </style>
 
   <!-- 
@@ -391,12 +422,36 @@
       const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
       const removeAllFilesButton = document.getElementById(`remove-all-files-btn`);
       const uploadStatus = document.getElementById(`upload-status-${productId}`);
+      const mediaUploadStatus = document.getElementById(`media-upload-status-${productId}`);
       const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
       const imageToCrop = document.getElementById('image-to-crop');
       const cropCancel = document.getElementById('crop-cancel');
       const cropApply = document.getElementById('crop-apply');
       const addToCartButton = document.getElementById('add-to-cart-btn');
+      // ...inside initializeImageUploader(productId)...
+      const uploadArea = document.querySelector('.upload-area');
 
+      // Highlight on drag over
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = '#e5e7eb'; // Optional: visual feedback
+      });
+
+      // Remove highlight on drag leave
+      uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = ''; // Reset
+      });
+
+      // Handle drop
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = '';
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length) {
+          addFilesToFileInput(files);
+        }
+      });
       // Trigger file input when custom button is clicked
       customUploadButton.addEventListener('click', function () {
         actualFileInput.click();
@@ -436,9 +491,7 @@
         console.log({ selectedFiles, croppedFiles });
 
         if (croppedFiles.length < MAX_FILES) {
-          alert(
-            `You have ${croppedFiles.length} chosen images. Please select and crop exactly ${MAX_FILES} images before adding to cart.`
-          );
+          mediaUploadStatus.textContent = `You have ${croppedFiles.length} chosen images. Please select and crop exactly ${MAX_FILES} images before adding to cart.`;
           return;
         }
 
@@ -456,22 +509,26 @@
             // }
           } catch (error) {
             console.error(`Error uploading file ${index + 1}:`, error);
-            alert('There was an error uploading your images. Please try again.');
+            mediaUploadStatus.textContent = 'There was an error uploading your images. Please try again.';
           }
         });
       });
 
-      // Handle file selection
-      actualFileInput.addEventListener('change', function (e) {
-        const newFiles = Array.from(e.target.files);
+      const addFilesToFileInput = (files) => {
+        const newFiles = files;
         // Check if adding these files would exceed the limit
         if (selectedFiles.length + newFiles.length > MAX_FILES) {
           uploadStatus.textContent = `You can only upload a maximum of ${MAX_FILES} images.`;
-          uploadStatus.style.color = 'red';
           return;
         }
         // Process and add new files
         processNewFiles(newFiles);
+      };
+
+      // Handle file selection
+      actualFileInput.addEventListener('change', function (e) {
+        const filesToAdd = Array.from(e.target.files);
+        addFilesToFileInput(filesToAdd);
       });
 
       // Start the cropping process for a specific file index
@@ -983,8 +1040,11 @@
     </div>
     <!-- Footer -->
     <div class="modal-footer">
-      <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
-      <button id="add-to-cart-btn" class="add-to-cart-btn">Add to cart</button>
+      <div id="media-upload-status-{{ product.id }}" class="upload-status"></div>
+      <div class="modal-footer-actions">
+        <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
+        <button id="add-to-cart-btn" class="add-to-cart-btn">Add to cart</button>
+      </div>
     </div>
   </div>
   <div id="edit-photos-modal" class="edit-photos-modal">
