@@ -111,7 +111,6 @@
 
     .modal-title-container {
       display: flex;
-      justify-content: space-between;
       width: 100%;
     }
 
@@ -133,7 +132,9 @@
       align-items: center;
       justify-content: center;
       transition: background-color 0.2s;
-      margin-right: 1rem;
+      position: absolute;
+      top: 10px;
+      right: 10px;
     }
 
     .close-btn:hover {
@@ -380,6 +381,15 @@
       }
       .modal-content {
         overflow: unset;
+      }
+
+      .preview-container {
+        max-width: 100%;
+      }
+
+      .modal-title-container {
+        justify-content: center;
+        width: 100%;
       }
     }
   </style>
@@ -992,6 +1002,16 @@
   </button>
 </div>
 <div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
+  <button
+    class="close-btn"
+    onclick="closeModal(`select-photos-modal-{{ product.id }}`)"
+    aria-label="Close modal"
+    title="Close"
+  >
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
   <!-- Content -->
   <div class="modal-content">
     <div class="main-thumbnail-container">
@@ -1025,16 +1045,6 @@
     <div class="modal-header">
       <div class="modal-title-container">
         <h2 class="modal-title">Selection preview</h2>
-        <button
-          class="close-btn"
-          onclick="closeModal(`select-photos-modal-{{ product.id }}`)"
-          aria-label="Close modal"
-          title="Close"
-        >
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
       </div>
       <p class="content-subtitle">Click pictures to resize or crop</p>
       <div class="thumbnail-container">
