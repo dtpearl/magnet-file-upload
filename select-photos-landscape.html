@@ -1,5 +1,8 @@
 <div class="file-upload-container" data-product-id="{{ product.id }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+  />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <!--
     CSS styling for photo selection code.
@@ -233,9 +236,9 @@
     }
 
     .main-thumbnail-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
       width: 100%;
     }
 
@@ -255,26 +258,26 @@
       max-width: 280px;
       object-fit: cover;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s;
     }
 
     .main-thumbnail-img-container {
-      display: inline-flex;
-      margin: 0.5rem;
+      display: flex;
       aspect-ratio: 16 / 9;
-      width: 45%;
-      max-width: 400px;
+      width: 100%;
       overflow: hidden;
     }
 
     .main-thumbnail {
       width: 100%;
-      height: auto;
-      max-width: 400px;
-      max-height: 225px;
+      height: 100%;
       object-fit: cover;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s;
     }
 
     .post-selection-info {
@@ -404,22 +407,22 @@
       if (modal && modal.parentNode !== document.body) {
         document.body.appendChild(modal); // Move modal to body
       }
-      modal.classList.add('active');
+      modal.classList.add("active");
     };
 
     const closeModal = (modalId) => {
       const modal = document.getElementById(modalId);
-      modal.classList.remove('active');
+      modal.classList.remove("active");
     };
 
     const initializeImageUploader = (productId) => {
-      const MAX_FILES = 9;
+      const MAX_FILES = 6;
       const ASPECT_RATIO = 16 / 9; // 16:9 landscape aspect ratio
 
       // Print safe area configuration - adjust these values as needed
       const SAFE_AREA_PERCENTAGE = 0.9; // 90% of the cropped area is considered "safe" for print
-      const SAFE_AREA_COLOR = 'rgba(255, 255, 255, 0.2)';
-      const SAFE_AREA_BORDER = 'rgba(0, 120, 255, 0.8)';
+      const SAFE_AREA_COLOR = "rgba(255, 255, 255, 0.2)";
+      const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
       let showSafeArea = true; // Default state for safe area visibility
 
       let selectedFiles = [];
@@ -428,46 +431,57 @@
       let currentCropperInstance = null;
       let currentCropIndex = -1;
 
-      const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
-      const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
-      const removeAllFilesButton = document.getElementById(`remove-all-files-btn`);
-      const uploadStatus = document.getElementById(`upload-status-${productId}`);
-      const mediaUploadStatus = document.getElementById(`media-upload-status-${productId}`);
-      const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
-      const imageToCrop = document.getElementById('image-to-crop');
-      const cropCancel = document.getElementById('crop-cancel');
-      const cropApply = document.getElementById('crop-apply');
-      const addToCartButton = document.getElementById('add-to-cart-btn');
+      const actualFileInput = document.getElementById(
+        `actual-file-input-${productId}`,
+      );
+      const customUploadButton = document.getElementById(
+        `custom-upload-button-${productId}`,
+      );
+      const removeAllFilesButton =
+        document.getElementById(`remove-all-files-btn`);
+      const uploadStatus = document.getElementById(
+        `upload-status-${productId}`,
+      );
+      const mediaUploadStatus = document.getElementById(
+        `media-upload-status-${productId}`,
+      );
+      const fileCountDisplay = document.getElementById(
+        `file-count-display-${productId}`,
+      );
+      const imageToCrop = document.getElementById("image-to-crop");
+      const cropCancel = document.getElementById("crop-cancel");
+      const cropApply = document.getElementById("crop-apply");
+      const addToCartButton = document.getElementById("add-to-cart-btn");
       // ...inside initializeImageUploader(productId)...
-      const uploadArea = document.querySelector('.upload-area');
+      const uploadArea = document.querySelector(".upload-area");
 
       // Highlight on drag over
-      uploadArea.addEventListener('dragover', (e) => {
+      uploadArea.addEventListener("dragover", (e) => {
         e.preventDefault();
-        uploadArea.style.backgroundColor = '#e5e7eb'; // Optional: visual feedback
+        uploadArea.style.backgroundColor = "#e5e7eb"; // Optional: visual feedback
       });
 
       // Remove highlight on drag leave
-      uploadArea.addEventListener('dragleave', (e) => {
+      uploadArea.addEventListener("dragleave", (e) => {
         e.preventDefault();
-        uploadArea.style.backgroundColor = ''; // Reset
+        uploadArea.style.backgroundColor = ""; // Reset
       });
 
       // Handle drop
-      uploadArea.addEventListener('drop', (e) => {
+      uploadArea.addEventListener("drop", (e) => {
         e.preventDefault();
-        uploadArea.style.backgroundColor = '';
+        uploadArea.style.backgroundColor = "";
         const files = Array.from(e.dataTransfer.files);
         if (files.length) {
           addFilesToFileInput(files);
         }
       });
       // Trigger file input when custom button is clicked
-      customUploadButton.addEventListener('click', function () {
+      customUploadButton.addEventListener("click", function () {
         actualFileInput.click();
       });
 
-      removeAllFilesButton.addEventListener('click', function () {
+      removeAllFilesButton.addEventListener("click", function () {
         removeAllFiles();
       });
 
@@ -475,29 +489,29 @@
       const generateSessionId = () => {
         const now = new Date();
         const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const hh = String(now.getHours()).padStart(2, '0');
-        const min = String(now.getMinutes()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const hh = String(now.getHours()).padStart(2, "0");
+        const min = String(now.getMinutes()).padStart(2, "0");
         const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
         return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
       };
 
       const uploadToCloudinary = async (file, fileName) => {
-        const url = 'https://api.cloudinary.com/v1_1/djzc7ih0g/image/upload';
+        const url = "https://api.cloudinary.com/v1_1/djzc7ih0g/image/upload";
         const form = new FormData();
-        form.append('upload_preset', 'shopify-magnets');
-        form.append('folder', 'shopify_uploads');
-        form.append('tags', 'order_pending');
-        form.append('public_id', fileName);
-        form.append('file', file); // this can be your client-compressed Blob
-        const res = await fetch(url, { method: 'POST', body: form });
-        if (!res.ok) throw new Error('Upload failed');
+        form.append("upload_preset", "shopify-magnets");
+        form.append("folder", "shopify_uploads");
+        form.append("tags", "order_pending");
+        form.append("public_id", fileName);
+        form.append("file", file); // this can be your client-compressed Blob
+        const res = await fetch(url, { method: "POST", body: form });
+        if (!res.ok) throw new Error("Upload failed");
         return res.json(); // contains secure_url and public_id
       };
 
-      addToCartButton.addEventListener('click', function () {
-        console.log('Add to cart button clicked');
+      addToCartButton.addEventListener("click", function () {
+        console.log("Add to cart button clicked");
         console.log({ selectedFiles, croppedFiles });
 
         if (croppedFiles.length < MAX_FILES) {
@@ -509,7 +523,10 @@
 
         croppedFiles.forEach(async (file, index) => {
           try {
-            const response = await uploadToCloudinary(file, `${sessionId}_${index + 1}`);
+            const response = await uploadToCloudinary(
+              file,
+              `${sessionId}_${index + 1}`,
+            );
             console.log(`Uploaded file ${index + 1}:`, response);
 
             // After all files are uploaded, redirect to cart with session ID
@@ -519,7 +536,8 @@
             // }
           } catch (error) {
             console.error(`Error uploading file ${index + 1}:`, error);
-            mediaUploadStatus.textContent = 'There was an error uploading your images. Please try again.';
+            mediaUploadStatus.textContent =
+              "There was an error uploading your images. Please try again.";
           }
         });
       });
@@ -536,7 +554,7 @@
       };
 
       // Handle file selection
-      actualFileInput.addEventListener('change', function (e) {
+      actualFileInput.addEventListener("change", function (e) {
         const filesToAdd = Array.from(e.target.files);
         addFilesToFileInput(filesToAdd);
       });
@@ -598,23 +616,27 @@
       };
 
       // Apply the crop and move to the next image
-      cropApply.addEventListener('click', function () {
+      cropApply.addEventListener("click", function () {
         if (!currentCropperInstance) return;
 
         // Get the cropped canvas (16:9 aspect ratio)
         const croppedCanvas = currentCropperInstance.getCroppedCanvas({
           width: 1067, // 16:9 ratio width
           height: 600, // 16:9 ratio height
-          fillColor: '#fff',
+          fillColor: "#fff",
         });
 
         // Convert to blob
         croppedCanvas.toBlob(function (blob) {
           // Store the cropped version
-          croppedFiles[currentCropIndex] = new File([blob], selectedFiles[currentCropIndex].name, {
-            type: 'image/jpeg',
-            lastModified: new Date().getTime(),
-          });
+          croppedFiles[currentCropIndex] = new File(
+            [blob],
+            selectedFiles[currentCropIndex].name,
+            {
+              type: "image/jpeg",
+              lastModified: new Date().getTime(),
+            },
+          );
 
           // Clean up
           currentCropperInstance.destroy();
@@ -623,39 +645,57 @@
           // Move to next image
           // startCropping(currentCropIndex + 1);
           closeEditModal();
-        }, 'image/jpeg');
+        }, "image/jpeg");
+      });
+
+      // Cancel cropping and close the modal without saving
+      cropCancel.addEventListener("click", function () {
+        if (currentCropperInstance) {
+          currentCropperInstance.destroy();
+          currentCropperInstance = null;
+        }
+        closeEditModal();
       });
 
       const closeEditModal = () => {
-        const cropModal = document.getElementById('edit-photos-modal');
-        cropModal.classList.remove('active');
-        imageToCrop.src = ''; // Clear the image source
+        const cropModal = document.getElementById("edit-photos-modal");
+        cropModal.classList.remove("active");
+        imageToCrop.src = ""; // Clear the image source
 
         currentCropIndex = -1; // Reset the current crop index
-        closeModal('edit-photos-modal');
+        closeModal("edit-photos-modal");
         processThumbnails();
       };
 
       const updateUploadUI = () => {
         fileCountDisplay.textContent = `${selectedFiles.length}/${MAX_FILES} images selected`;
         const uploadArea = document.querySelector(`.upload-area`);
-        const postSelectionInfo = document.querySelector('.post-selection-info');
-        const removeAllFilesBtn = document.querySelector('.remove-all-files-btn');
+        const postSelectionInfo = document.querySelector(
+          ".post-selection-info",
+        );
+        const removeAllFilesBtn = document.querySelector(
+          ".remove-all-files-btn",
+        );
         if (selectedFiles.length === 0) {
-          removeAllFilesBtn.style.display = 'none';
+          removeAllFilesBtn.style.display = "none";
         } else {
-          removeAllFilesBtn.style.display = 'block';
+          removeAllFilesBtn.style.display = "block";
         }
         if (selectedFiles.length === MAX_FILES) {
-          uploadArea.style.display = 'none';
-          postSelectionInfo.style.display = 'flex';
+          uploadArea.style.display = "none";
+          postSelectionInfo.style.display = "flex";
         } else {
-          uploadArea.style.display = 'flex';
-          postSelectionInfo.style.display = 'none';
+          uploadArea.style.display = "flex";
+          postSelectionInfo.style.display = "none";
         }
       };
 
-      const compressImage = async (file, index, maxWidth = 2000, quality = 0.7) => {
+      const compressImage = async (
+        file,
+        index,
+        maxWidth = 2000,
+        quality = 0.7,
+      ) => {
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -663,8 +703,8 @@
             img.src = e.target.result;
 
             img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const ctx = canvas.getContext('2d');
+              const canvas = document.createElement("canvas");
+              const ctx = canvas.getContext("2d");
 
               const scale = Math.min(maxWidth / img.width, 1);
               canvas.width = img.width * scale;
@@ -684,14 +724,24 @@
                 cropWidth = canvas.width;
                 cropHeight = cropWidth / targetRatio;
               }
-              const cropCanvas = document.createElement('canvas');
+              const cropCanvas = document.createElement("canvas");
               cropCanvas.width = cropWidth;
               cropCanvas.height = cropHeight;
-              const cropCtx = cropCanvas.getContext('2d');
+              const cropCtx = cropCanvas.getContext("2d");
               // Center crop
               const sx = (canvas.width - cropWidth) / 2;
               const sy = (canvas.height - cropHeight) / 2;
-              cropCtx.drawImage(canvas, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+              cropCtx.drawImage(
+                canvas,
+                sx,
+                sy,
+                cropWidth,
+                cropHeight,
+                0,
+                0,
+                cropWidth,
+                cropHeight,
+              );
 
               // Save cropped version to croppedFiles array
               cropCanvas.toBlob(
@@ -704,16 +754,16 @@
                     (blob) => {
                       const orignalSizeInKB = Math.round(file.size / 1024);
                       const blobSizeInKB = Math.round(blob.size / 1024);
-                      console.log('Original size:', orignalSizeInKB, 'KB');
-                      console.log('Compressed size:', blobSizeInKB, 'KB');
+                      console.log("Original size:", orignalSizeInKB, "KB");
+                      console.log("Compressed size:", blobSizeInKB, "KB");
                       resolve(blob);
                     },
-                    'image/jpeg',
-                    quality
+                    "image/jpeg",
+                    quality,
                   );
                 },
-                'image/jpeg',
-                quality
+                "image/jpeg",
+                quality,
               );
             };
           };
@@ -734,7 +784,10 @@
           // croppedFiles.push(null); // Placeholder for cropped version
           console.log({ numberOfFiles: files.length, compressedCount });
           const indexToInsert = initialLength + i;
-          selectedFiles[indexToInsert] = await compressImage(files[i], indexToInsert);
+          selectedFiles[indexToInsert] = await compressImage(
+            files[i],
+            indexToInsert,
+          );
 
           // When all images are loaded, process thumbnails and update UI
           if (compressedCount === files.length) {
@@ -746,21 +799,29 @@
       };
 
       const processThumbnails = () => {
-        console.log(`Processing thumbnails for ${selectedFiles.length} selected files`);
+        console.log(
+          `Processing thumbnails for ${selectedFiles.length} selected files`,
+        );
 
-        const placeholderThumbnailContainer = document.querySelector('.thumbnail-container');
-        const mainThumbnailContainer = document.querySelector('.main-thumbnail-container');
+        const placeholderThumbnailContainer = document.querySelector(
+          ".thumbnail-container",
+        );
+        const mainThumbnailContainer = document.querySelector(
+          ".main-thumbnail-container",
+        );
 
         // Clear existing thumbnails
         if (placeholderThumbnailContainer) {
-          placeholderThumbnailContainer.innerHTML = '';
+          placeholderThumbnailContainer.innerHTML = "";
         }
         if (mainThumbnailContainer) {
-          mainThumbnailContainer.innerHTML = '';
+          mainThumbnailContainer.innerHTML = "";
         }
 
         const maxFilesAdded = selectedFiles.length === MAX_FILES;
-        const thumbnailContainer = maxFilesAdded ? mainThumbnailContainer : placeholderThumbnailContainer;
+        const thumbnailContainer = maxFilesAdded
+          ? mainThumbnailContainer
+          : placeholderThumbnailContainer;
 
         const containers = new Array(selectedFiles.length);
 
@@ -770,13 +831,13 @@
           const reader = new FileReader();
           reader.onload = (e) => {
             // --- Action buttons ---
-            const actionButtons = document.createElement('div');
-            actionButtons.className = 'thumbnail-action-buttons';
+            const actionButtons = document.createElement("div");
+            actionButtons.className = "thumbnail-action-buttons";
 
             // Edit button
-            const editBtn = document.createElement('button');
-            editBtn.className = 'thumbnail-action-btn';
-            editBtn.title = 'Edit';
+            const editBtn = document.createElement("button");
+            editBtn.className = "thumbnail-action-btn";
+            editBtn.title = "Edit";
             editBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="currentColor" stroke-width="1.5"/><path d="M14.06 6.44a1.5 1.5 0 0 0 0-2.12l-1.38-1.38a1.5 1.5 0 0 0-2.12 0l-1.06 1.06 3.5 3.5 1.06-1.06z" stroke="currentColor" stroke-width="1.5"/></svg>`;
             editBtn.onclick = (ev) => {
               ev.stopPropagation();
@@ -786,9 +847,9 @@
             };
 
             // Delete button
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'thumbnail-action-btn';
-            deleteBtn.title = 'Remove';
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "thumbnail-action-btn";
+            deleteBtn.title = "Remove";
             deleteBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M6 8v6m4-6v6m4-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4m5-2h-2a2 2 0 0 0-2 2v2h8V4a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
             deleteBtn.onclick = (ev) => {
               ev.stopPropagation();
@@ -798,20 +859,22 @@
 
             actionButtons.appendChild(editBtn);
             actionButtons.appendChild(deleteBtn);
-            const imgContainer = document.createElement('div');
+            const imgContainer = document.createElement("div");
 
             if (maxFilesAdded) {
-              imgContainer.classList.add('main-thumbnail-img-container');
+              imgContainer.classList.add("main-thumbnail-img-container");
             } else {
-              imgContainer.classList.add('placeholder-thumbnail-img-container');
+              imgContainer.classList.add("placeholder-thumbnail-img-container");
             }
 
-            imgContainer.style.position = 'relative';
-            imgContainer.style.display = 'inline-flex';
+            imgContainer.style.position = "relative";
+            imgContainer.style.display = "inline-flex";
 
-            const imgElement = document.createElement('img');
+            const imgElement = document.createElement("img");
             imgElement.src = e.target.result;
-            imgElement.classList.add(maxFilesAdded ? 'main-thumbnail' : 'placeholder-thumbnail');
+            imgElement.classList.add(
+              maxFilesAdded ? "main-thumbnail" : "placeholder-thumbnail",
+            );
             imgElement.onclick = (ev) => {
               ev.stopPropagation();
               console.log(`Thumbnail clicked for index: ${index}`);
@@ -843,37 +906,43 @@
       };
 
       const handleSafeAreaOverlay = () => {
-        const thumbnailContainers = document.querySelectorAll('.main-thumbnail-img-container');
+        const thumbnailContainers = document.querySelectorAll(
+          ".main-thumbnail-img-container",
+        );
         thumbnailContainers.forEach((thumbnail) => {
           // Calculate safe area dimensions
-          const thumbnailImgElement = thumbnail.querySelector('img');
+          const thumbnailImgElement = thumbnail.querySelector("img");
 
-          const safeWidth = thumbnailImgElement.clientWidth * SAFE_AREA_PERCENTAGE;
-          const safeHeight = thumbnailImgElement.clientHeight * SAFE_AREA_PERCENTAGE;
+          const safeWidth =
+            thumbnailImgElement.clientWidth * SAFE_AREA_PERCENTAGE;
+          const safeHeight =
+            thumbnailImgElement.clientHeight * SAFE_AREA_PERCENTAGE;
 
           // Calculate position
           const safeLeft = (safeWidth * (1 - SAFE_AREA_PERCENTAGE)) / 2;
           const safeTop = (safeHeight * (1 - SAFE_AREA_PERCENTAGE)) / 2;
 
-          const safeAreaDiv = document.createElement('div');
-          safeAreaDiv.classList.add('safe-area-overlay');
-          safeAreaDiv.style.position = 'absolute';
+          const safeAreaDiv = document.createElement("div");
+          safeAreaDiv.classList.add("safe-area-overlay");
+          safeAreaDiv.style.position = "absolute";
           safeAreaDiv.style.left = `${safeLeft}px`;
           safeAreaDiv.style.top = `${safeTop}px`;
           safeAreaDiv.style.width = `${safeWidth}px`;
           safeAreaDiv.style.height = `${safeHeight}px`;
           safeAreaDiv.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
-          safeAreaDiv.style.background = 'transparent';
+          safeAreaDiv.style.background = "transparent";
           safeAreaDiv.style.boxShadow = `0 0 0 ${safeLeft}px rgba(0, 0, 0, 0.25)`;
-          safeAreaDiv.style.pointerEvents = 'none';
+          safeAreaDiv.style.pointerEvents = "none";
           thumbnail.appendChild(safeAreaDiv);
         });
       };
 
-      window.addEventListener('resize', () => {
-        const modal = document.querySelector('.select-photos-modal.active');
+      window.addEventListener("resize", () => {
+        const modal = document.querySelector(".select-photos-modal.active");
         if (modal) {
-          document.querySelectorAll('.safe-area-overlay').forEach((el) => el.remove());
+          document
+            .querySelectorAll(".safe-area-overlay")
+            .forEach((el) => el.remove());
           handleSafeAreaOverlay();
         }
       });
@@ -883,7 +952,9 @@
         if (!currentCropperInstance) return;
 
         // Remove existing safe area if any
-        const existingSafeAreaContainer = document.querySelector('.safe-print-container');
+        const existingSafeAreaContainer = document.querySelector(
+          ".safe-print-container",
+        );
         if (existingSafeAreaContainer) {
           existingSafeAreaContainer.remove();
         }
@@ -900,44 +971,44 @@
         const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.top + (cropBox.height - safeHeight) / 2;
 
         // Create safe area contaner element
-        const safeAreaContainer = document.createElement('div');
-        safeAreaContainer.className = 'safe-print-container';
-        safeAreaContainer.style.position = 'absolute';
+        const safeAreaContainer = document.createElement("div");
+        safeAreaContainer.className = "safe-print-container";
+        safeAreaContainer.style.position = "absolute";
         safeAreaContainer.style.left = `${cropBox.left}px`;
         safeAreaContainer.style.top = `${cropBox.top}px`;
         safeAreaContainer.style.width = `${cropBox.width}px`;
         safeAreaContainer.style.height = `${cropBox.height}px`;
-        safeAreaContainer.style.pointerEvents = 'none';
+        safeAreaContainer.style.pointerEvents = "none";
 
-        const safeArea = document.createElement('div');
-        safeArea.className = 'safe-print-area';
-        safeArea.style.position = 'absolute';
+        const safeArea = document.createElement("div");
+        safeArea.className = "safe-print-area";
+        safeArea.style.position = "absolute";
         safeArea.style.left = `${safeLeft}px`;
         safeArea.style.top = `${safeTop}px`;
         safeArea.style.width = `${safeWidth}px`;
         safeArea.style.height = `${safeHeight}px`;
         safeArea.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
-        safeArea.style.background = 'transparent';
-        safeArea.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.25)';
-        safeArea.style.pointerEvents = 'none';
-        safeArea.style.zIndex = '2000';
+        safeArea.style.background = "transparent";
+        safeArea.style.boxShadow = "0 0 0 9999px rgba(0, 0, 0, 0.25)";
+        safeArea.style.pointerEvents = "none";
+        safeArea.style.zIndex = "2000";
 
         // Add a label to explain what this area represents
-        const label = document.createElement('div');
-        label.textContent = 'Safe Print Area';
-        label.style.position = 'absolute';
-        label.style.top = '-8px';
-        label.style.left = '4px';
-        label.style.backgroundColor = 'rgba(0, 120, 255, 0.8)';
-        label.style.color = 'white';
-        label.style.padding = '2px 6px';
-        label.style.fontSize = '12px';
-        label.style.borderRadius = '3px';
+        const label = document.createElement("div");
+        label.textContent = "Safe Print Area";
+        label.style.position = "absolute";
+        label.style.top = "-8px";
+        label.style.left = "4px";
+        label.style.backgroundColor = "rgba(0, 120, 255, 0.8)";
+        label.style.color = "white";
+        label.style.padding = "2px 6px";
+        label.style.fontSize = "12px";
+        label.style.borderRadius = "3px";
         safeAreaContainer.appendChild(label);
 
         safeAreaContainer.appendChild(safeArea);
         // Add to the cropper container
-        const cropperContainer = document.querySelector('.cropper-container');
+        const cropperContainer = document.querySelector(".cropper-container");
         cropperContainer.appendChild(safeAreaContainer);
       }
 
@@ -951,7 +1022,7 @@
 
         if (selectedFiles.length === 0) {
           // If no files left, reset the file input
-          actualFileInput.value = '';
+          actualFileInput.value = "";
         }
 
         // Update the UI
@@ -966,15 +1037,17 @@
         selectedFiles = [];
         croppedFiles = [];
 
-        actualFileInput.value = ''; // Clear the file input
+        actualFileInput.value = ""; // Clear the file input
 
         // Update the UI
         processThumbnails();
         updateUploadUI();
       };
     };
-    document.addEventListener('DOMContentLoaded', function () {
-      const uploadContainers = document.querySelectorAll('.file-upload-container');
+    document.addEventListener("DOMContentLoaded", function () {
+      const uploadContainers = document.querySelectorAll(
+        ".file-upload-container",
+      );
       console.log({ hostName: window.location.hostname, uploadContainers });
       // Initialize image uploader
       uploadContainers.forEach((container) => {
@@ -1019,7 +1092,12 @@
     title="Close"
   >
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M6 18L18 6M6 6l12 12"
+      ></path>
     </svg>
   </button>
   <!-- Content -->
@@ -1045,9 +1123,13 @@
       </div>
 
       <!-- Upload Button -->
-      <button id="custom-upload-button-{{ product.id }}" class="upload-btn">Upload from camera roll or PC</button>
+      <button id="custom-upload-button-{{ product.id }}" class="upload-btn">
+        Upload from camera roll or PC
+      </button>
       <div id="upload-status-{{ product.id }}" class="upload-status"></div>
-      <div id="file-count-display-{{ product.id }}" class="file-count">0/9 images selected</div>
+      <div id="file-count-display-{{ product.id }}" class="file-count">
+        0/6 images selected
+      </div>
     </div>
   </div>
   <!-- Header -->
@@ -1062,16 +1144,28 @@
       </div>
     </div>
     <div class="post-selection-info">
-      <div>Your 9 chosen images have been cropped to fit on landscape magnets.</div>
-      <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+      <div>
+        Your 6 chosen images have been cropped to fit on landscape magnets.
+      </div>
+      <div>
+        The area outside the dotted lines will wrap around the edges of your
+        magnets.
+      </div>
       <div>Please review before placing your order.</div>
     </div>
     <!-- Footer -->
     <div class="modal-footer">
-      <div id="media-upload-status-{{ product.id }}" class="upload-status"></div>
+      <div
+        id="media-upload-status-{{ product.id }}"
+        class="upload-status"
+      ></div>
       <div class="modal-footer-actions">
-        <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
-        <button id="add-to-cart-btn" class="add-to-cart-btn">Add to cart</button>
+        <button id="remove-all-files-btn" class="remove-all-files-btn">
+          Remove all files
+        </button>
+        <button id="add-to-cart-btn" class="add-to-cart-btn">
+          Add to cart
+        </button>
       </div>
     </div>
   </div>
@@ -1079,9 +1173,19 @@
     <div class="modal-header">
       <div class="modal-title-container">
         <h2 class="modal-title">Crop your image</h2>
-        <button class="close-btn" onclick="closeModal(`edit-photos-modal`)" aria-label="Close modal" title="Close">
+        <button
+          class="close-btn"
+          onclick="closeModal(`edit-photos-modal`)"
+          aria-label="Close modal"
+          title="Close"
+        >
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
           </svg>
         </button>
       </div>
@@ -1095,8 +1199,8 @@
       </div>
       <div class="crop-info">
         <p>
-          The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing
-          and magnet construction.
+          The dashed blue box indicates the safe print area. Content outside
+          this area may be trimmed during printing and magnet construction.
         </p>
       </div>
     </div>
