@@ -102,6 +102,49 @@
       opacity: 0.9;
     }
 
+    .orientation-toggle {
+      display: flex;
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #1f2937;
+      padding: 3px;
+      margin-right: auto;
+      gap: 2px;
+    }
+
+    .orientation-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 16px;
+      background-color: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .orientation-toggle-btn:hover {
+      color: #d1d5db;
+    }
+
+    .orientation-toggle-btn.active {
+      background-color: #374151;
+      color: white;
+    }
+
+    .orientation-toggle-btn.active:hover {
+      background-color: #4b5563;
+    }
+
+    .orientation-toggle-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
     .modal-header {
       display: flex;
       flex-direction: column;
@@ -242,21 +285,31 @@
       width: 100%;
     }
 
+    .thumbnail-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+    }
+
     .placeholder-thumbnail-img-container {
       margin: 0.5rem;
       border-radius: 0.5rem;
-      width: 40%;
-      max-width: 280px;
-      max-height: 158px;
+      width: 28%;
+      max-width: 200px;
+      aspect-ratio: 1 / 1;
       overflow: hidden;
+      background-color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .placeholder-thumbnail {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9;
-      max-width: 280px;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
       cursor: pointer;
       transition:
         transform 0.2s,
@@ -265,15 +318,19 @@
 
     .main-thumbnail-img-container {
       display: flex;
-      aspect-ratio: 16 / 9;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
       width: 100%;
       overflow: hidden;
+      background-color: #e5e7eb;
+      border-radius: 0.5rem;
     }
 
     .main-thumbnail {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
       cursor: pointer;
       transition:
         transform 0.2s,
@@ -417,7 +474,8 @@
 
     const initializeImageUploader = (productId) => {
       const MAX_FILES = 6;
-      const ASPECT_RATIO = 16 / 9; // 16:9 landscape aspect ratio
+      const LANDSCAPE_RATIO = 16 / 9;
+      const PORTRAIT_RATIO = 9 / 16;
 
       // Print safe area configuration - adjust these values as needed
       const SAFE_AREA_PERCENTAGE = 0.9; // 90% of the cropped area is considered "safe" for print
@@ -427,9 +485,11 @@
 
       let selectedFiles = [];
       let croppedFiles = [];
+      let cropOrientations = []; // Track orientation per image: 'landscape' or 'portrait'
 
       let currentCropperInstance = null;
       let currentCropIndex = -1;
+      let currentOrientation = "landscape"; // Current orientation in crop modal
 
       const actualFileInput = document.getElementById(
         `actual-file-input-${productId}`,
@@ -451,6 +511,8 @@
       const imageToCrop = document.getElementById("image-to-crop");
       const cropCancel = document.getElementById("crop-cancel");
       const cropApply = document.getElementById("crop-apply");
+      const orientationLandscapeBtn = document.getElementById("orientation-landscape");
+      const orientationPortraitBtn = document.getElementById("orientation-portrait");
       const addToCartButton = document.getElementById("add-to-cart-btn");
       // ...inside initializeImageUploader(productId)...
       const uploadArea = document.querySelector(".upload-area");
@@ -559,6 +621,17 @@
         addFilesToFileInput(filesToAdd);
       });
 
+      // Update orientation toggle UI
+      const updateOrientationToggle = () => {
+        if (currentOrientation === "landscape") {
+          orientationLandscapeBtn.classList.add("active");
+          orientationPortraitBtn.classList.remove("active");
+        } else {
+          orientationLandscapeBtn.classList.remove("active");
+          orientationPortraitBtn.classList.add("active");
+        }
+      };
+
       // Start the cropping process for a specific file index
       const startCropping = (index) => {
         // if (index >= selectedFiles.length) {
@@ -570,6 +643,12 @@
         currentCropIndex = index;
         const file = selectedFiles[index];
 
+        // Use saved orientation or default to landscape
+        currentOrientation = cropOrientations[index] || "landscape";
+        updateOrientationToggle();
+
+        const aspectRatio = currentOrientation === "landscape" ? LANDSCAPE_RATIO : PORTRAIT_RATIO;
+
         // Create a URL for the image
         const objectUrl = URL.createObjectURL(file);
 
@@ -577,7 +656,7 @@
         imageToCrop.onload = function () {
           // Initialize cropper
           currentCropperInstance = new Cropper(imageToCrop, {
-            aspectRatio: ASPECT_RATIO,
+            aspectRatio: aspectRatio,
             viewMode: 1,
             guides: true,
             autoCropArea: 0.8,
@@ -615,16 +694,55 @@
         imageToCrop.src = objectUrl;
       };
 
+      // Set orientation to landscape
+      orientationLandscapeBtn.addEventListener("click", function () {
+        if (!currentCropperInstance || currentOrientation === "landscape") return;
+
+        currentOrientation = "landscape";
+        updateOrientationToggle();
+
+        // Update cropper aspect ratio
+        currentCropperInstance.setAspectRatio(LANDSCAPE_RATIO);
+
+        // Redraw safe area
+        if (showSafeArea) {
+          drawSafeArea();
+        }
+      });
+
+      // Set orientation to portrait
+      orientationPortraitBtn.addEventListener("click", function () {
+        if (!currentCropperInstance || currentOrientation === "portrait") return;
+
+        currentOrientation = "portrait";
+        updateOrientationToggle();
+
+        // Update cropper aspect ratio
+        currentCropperInstance.setAspectRatio(PORTRAIT_RATIO);
+
+        // Redraw safe area
+        if (showSafeArea) {
+          drawSafeArea();
+        }
+      });
+
       // Apply the crop and move to the next image
       cropApply.addEventListener("click", function () {
         if (!currentCropperInstance) return;
 
-        // Get the cropped canvas (16:9 aspect ratio)
+        // Determine dimensions based on orientation
+        const width = currentOrientation === "landscape" ? 1067 : 600;
+        const height = currentOrientation === "landscape" ? 600 : 1067;
+
+        // Get the cropped canvas
         const croppedCanvas = currentCropperInstance.getCroppedCanvas({
-          width: 1067, // 16:9 ratio width
-          height: 600, // 16:9 ratio height
+          width: width,
+          height: height,
           fillColor: "#fff",
         });
+
+        // Save the orientation for this image
+        cropOrientations[currentCropIndex] = currentOrientation;
 
         // Convert to blob
         croppedCanvas.toBlob(function (blob) {
@@ -912,15 +1030,21 @@
         thumbnailContainers.forEach((thumbnail) => {
           // Calculate safe area dimensions
           const thumbnailImgElement = thumbnail.querySelector("img");
+          const containerWidth = thumbnail.clientWidth;
+          const containerHeight = thumbnail.clientHeight;
+          const imgWidth = thumbnailImgElement.clientWidth;
+          const imgHeight = thumbnailImgElement.clientHeight;
 
-          const safeWidth =
-            thumbnailImgElement.clientWidth * SAFE_AREA_PERCENTAGE;
-          const safeHeight =
-            thumbnailImgElement.clientHeight * SAFE_AREA_PERCENTAGE;
+          // Calculate image position within the centered container
+          const imgLeft = (containerWidth - imgWidth) / 2;
+          const imgTop = (containerHeight - imgHeight) / 2;
 
-          // Calculate position
-          const safeLeft = (safeWidth * (1 - SAFE_AREA_PERCENTAGE)) / 2;
-          const safeTop = (safeHeight * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+          const safeWidth = imgWidth * SAFE_AREA_PERCENTAGE;
+          const safeHeight = imgHeight * SAFE_AREA_PERCENTAGE;
+
+          // Calculate safe area position (centered within the image)
+          const safeLeft = imgLeft + (imgWidth - safeWidth) / 2;
+          const safeTop = imgTop + (imgHeight - safeHeight) / 2;
 
           const safeAreaDiv = document.createElement("div");
           safeAreaDiv.classList.add("safe-area-overlay");
@@ -931,7 +1055,7 @@
           safeAreaDiv.style.height = `${safeHeight}px`;
           safeAreaDiv.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
           safeAreaDiv.style.background = "transparent";
-          safeAreaDiv.style.boxShadow = `0 0 0 ${safeLeft}px rgba(0, 0, 0, 0.25)`;
+          safeAreaDiv.style.boxShadow = `0 0 0 9999px rgba(0, 0, 0, 0.25)`;
           safeAreaDiv.style.pointerEvents = "none";
           thumbnail.appendChild(safeAreaDiv);
         });
@@ -1016,9 +1140,10 @@
         console.log(`Removing file at index: ${index}`);
         if (index < 0 || index >= selectedFiles.length) return;
 
-        // Remove the file from selected files and cropped files
+        // Remove the file from selected files, cropped files, and orientations
         selectedFiles.splice(index, 1);
         croppedFiles.splice(index, 1);
+        cropOrientations.splice(index, 1);
 
         if (selectedFiles.length === 0) {
           // If no files left, reset the file input
@@ -1033,9 +1158,10 @@
       const removeAllFiles = () => {
         console.log(`Removing all files.`);
 
-        // Remove the files from selected files and cropped files
+        // Remove the files from selected files, cropped files, and orientations
         selectedFiles = [];
         croppedFiles = [];
+        cropOrientations = [];
 
         actualFileInput.value = ""; // Clear the file input
 
@@ -1194,6 +1320,20 @@
         <img id="image-to-crop" src="" alt="Image to crop" />
       </div>
       <div class="crop-controls">
+        <div class="orientation-toggle">
+          <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+            </svg>
+            Landscape
+          </button>
+          <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="2" width="12" height="20" rx="2" />
+            </svg>
+            Portrait
+          </button>
+        </div>
         <button id="crop-cancel" class="crop-button cancel">Cancel</button>
         <button id="crop-apply" class="crop-button apply">Apply Crop</button>
       </div>
