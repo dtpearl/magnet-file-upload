@@ -53,7 +53,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: #e67a07;
+      background-color: #f0e5d9;
       z-index: 1000;
     }
 
@@ -94,7 +94,7 @@
     }
 
     .crop-button.apply {
-      background-color: #4a90e2;
+      background-color: #374151;
       color: white;
     }
 
@@ -106,7 +106,7 @@
       display: flex;
       border-radius: 20px;
       overflow: hidden;
-      background-color: #1f2937;
+      background-color: #d6cec6;
       padding: 3px;
       margin-right: auto;
       gap: 2px;
@@ -120,24 +120,26 @@
       border: none;
       border-radius: 16px;
       background-color: transparent;
-      color: #9ca3af;
+      color: #7d7268;
       cursor: pointer;
       font-weight: 500;
       font-size: 13px;
-      transition: background-color 0.2s, color 0.2s;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
     }
 
     .orientation-toggle-btn:hover {
-      color: #d1d5db;
+      color: #4b5563;
     }
 
     .orientation-toggle-btn.active {
-      background-color: #374151;
+      background-color: #95887a;
       color: white;
     }
 
     .orientation-toggle-btn.active:hover {
-      background-color: #4b5563;
+      background-color: #7d7268;
     }
 
     .orientation-toggle-btn svg {
@@ -170,7 +172,7 @@
     .close-btn {
       width: 3rem;
       height: 3rem;
-      background-color: #ef4444;
+      background-color: #6b7280;
       border: none;
       border-radius: 50%;
       cursor: pointer;
@@ -179,12 +181,12 @@
       justify-content: center;
       transition: background-color 0.2s;
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 1.5rem;
+      right: 3rem;
     }
 
     .close-btn:hover {
-      background-color: #dc2626;
+      background-color: #4b5563;
     }
 
     .close-btn svg {
@@ -251,21 +253,22 @@
     }
 
     .upload-btn {
-      background-color: #ef4444;
+      background-color: #95887a;
       color: white;
       padding: 1rem 2rem;
       border: none;
       border-radius: 9999px;
+      font-family: Cardo, serif;
       font-weight: 500;
       font-size: 0.875rem;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       transition: background-color 0.2s;
     }
 
     .upload-btn:hover {
-      background-color: #dc2626;
+      background-color: #7d7268;
     }
 
     .preview-container {
@@ -276,6 +279,7 @@
       width: 100%;
       max-width: 28rem;
       margin-top: 2rem;
+      padding-right: 5rem;
     }
 
     .main-thumbnail-container {
@@ -361,7 +365,7 @@
       flex-direction: column;
       width: 100%;
       align-items: center;
-      margin-bottom: 4rem;
+      margin-bottom: 6rem;
     }
 
     .modal-footer-actions {
@@ -373,34 +377,169 @@
     }
 
     .remove-all-files-btn {
-      background-color: #ef4444;
-      color: white;
+      background-color: transparent;
+      color: #6b7280;
       padding: 0.5rem 1.5rem;
-      border: none;
+      border: 1px solid #9ca3af;
       border-radius: 0.5rem;
+      font-family: Cardo, serif;
       font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
       display: none;
     }
 
     .remove-all-files-btn:hover {
-      background-color: #dc2626;
+      background-color: #6b7280;
+      color: white;
+      border-color: #6b7280;
     }
 
     .add-to-cart-btn {
-      background-color: #d1d5db;
-      color: #374151;
+      background-color: #374151;
+      color: white;
       padding: 0.5rem 1.5rem;
       border: none;
       border-radius: 0.5rem;
+      font-family: Cardo, serif;
       font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
       cursor: pointer;
       transition: background-color 0.2s;
     }
 
     .add-to-cart-btn:hover {
+      background-color: #1f2937;
+    }
+
+    .add-to-cart-btn:disabled {
       background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .upload-progress {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 20rem;
+    }
+
+    .upload-progress.active {
+      display: flex;
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 6px;
+      background-color: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #95887a;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    .upload-complete {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: #374151;
+    }
+
+    .upload-complete.active {
+      display: flex;
+    }
+
+    .upload-complete svg {
+      width: 2.5rem;
+      height: 2.5rem;
+      color: #95887a;
+    }
+
+    .upload-complete p {
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .upload-confirm {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .upload-confirm.active {
+      display: flex;
+    }
+
+    .upload-confirm-text {
+      font-size: 0.9rem;
+      color: #374151;
+      text-align: center;
+    }
+
+    .upload-confirm-actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .confirm-upload-btn {
+      background-color: #374151;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-family: Cardo, serif;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .confirm-upload-btn:hover {
+      background-color: #1f2937;
+    }
+
+    .confirm-cancel-btn {
+      background-color: transparent;
+      color: #6b7280;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid #9ca3af;
+      border-radius: 0.5rem;
+      font-family: Cardo, serif;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .confirm-cancel-btn:hover {
+      background-color: #6b7280;
+      color: white;
+      border-color: #6b7280;
     }
 
     .thumbnail-action-buttons {
@@ -516,10 +655,28 @@
       const imageToCrop = document.getElementById("image-to-crop");
       const cropCancel = document.getElementById("crop-cancel");
       const cropApply = document.getElementById("crop-apply");
-      const orientationLandscapeBtn = document.getElementById("orientation-landscape");
-      const orientationPortraitBtn = document.getElementById("orientation-portrait");
-      const addToCartButton = document.getElementById("add-to-cart-btn");
-      // ...inside initializeImageUploader(productId)...
+      const orientationLandscapeBtn = document.getElementById(
+        "orientation-landscape",
+      );
+      const orientationPortraitBtn = document.getElementById(
+        "orientation-portrait",
+      );
+      const uploadButton = document.getElementById("upload-btn-main");
+      const uploadConfirmEl = document.getElementById("upload-confirm");
+      const confirmUploadBtn = document.getElementById("confirm-upload-btn");
+      const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+      const removeAllConfirmEl = document.getElementById("remove-all-confirm");
+      const removeAllConfirmBtn = document.getElementById(
+        "remove-all-confirm-btn",
+      );
+      const removeAllCancelBtn = document.getElementById(
+        "remove-all-cancel-btn",
+      );
+      const selectPhotosButton = document.getElementById(
+        `select-photos-button-${productId}`,
+      );
+      const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
+      const footerActionsEl = document.querySelector(".modal-footer-actions");
       const uploadArea = document.querySelector(".upload-area");
 
       // Highlight on drag over
@@ -549,6 +706,19 @@
       });
 
       removeAllFilesButton.addEventListener("click", function () {
+        // Show remove-all confirmation UI, hide footer actions
+        removeAllConfirmEl.classList.add("active");
+        footerActionsEl.style.display = "none";
+      });
+
+      removeAllCancelBtn.addEventListener("click", function () {
+        removeAllConfirmEl.classList.remove("active");
+        footerActionsEl.style.display = "flex";
+      });
+
+      removeAllConfirmBtn.addEventListener("click", function () {
+        removeAllConfirmEl.classList.remove("active");
+        footerActionsEl.style.display = "flex";
         removeAllFiles();
       });
 
@@ -577,40 +747,105 @@
         return res.json(); // contains secure_url and public_id
       };
 
-      addToCartButton.addEventListener("click", function () {
-        console.log("Add to cart button clicked");
+      const uploadProgressEl = document.getElementById("upload-progress");
+      const progressBarFill = document.getElementById("progress-bar-fill");
+      const progressText = document.getElementById("progress-text");
+      const uploadCompleteEl = document.getElementById("upload-complete");
+
+      // Upload button shows the confirmation UI
+      uploadButton.addEventListener("click", function () {
+        console.log("Upload button clicked");
         console.log({ selectedFiles, croppedFiles });
 
         if (croppedFiles.length < MAX_FILES) {
-          mediaUploadStatus.textContent = `You have ${croppedFiles.length} chosen images. Please select and crop exactly ${MAX_FILES} images before adding to cart.`;
+          mediaUploadStatus.textContent = `You have ${croppedFiles.length} chosen images. Please select exactly ${MAX_FILES} images before uploading.`;
           return;
         }
 
-        const sessionId = generateSessionId();
+        mediaUploadStatus.textContent = "";
+        // Show confirmation UI, hide the main footer actions
+        uploadConfirmEl.classList.add("active");
+        footerActionsEl.style.display = "none";
+      });
 
-        croppedFiles.forEach(async (file, index) => {
+      // "Go back" hides confirmation and restores footer actions
+      confirmCancelBtn.addEventListener("click", function () {
+        uploadConfirmEl.classList.remove("active");
+        footerActionsEl.style.display = "flex";
+      });
+
+      // "Yes, upload" starts the actual upload
+      confirmUploadBtn.addEventListener("click", async function () {
+        // Hide confirmation UI
+        uploadConfirmEl.classList.remove("active");
+
+        // Show progress
+        uploadButton.disabled = true;
+        uploadButton.textContent = "Uploading...";
+        footerActionsEl.style.display = "flex";
+        removeAllFilesButton.style.display = "none";
+        mediaUploadStatus.textContent = "";
+        uploadProgressEl.classList.add("active");
+        uploadCompleteEl.classList.remove("active");
+
+        const sessionId = generateSessionId();
+        let uploadedCount = 0;
+        let hasError = false;
+
+        for (let index = 0; index < croppedFiles.length; index++) {
+          const file = croppedFiles[index];
           try {
+            // Update progress
+            progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
+            progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
+
             const response = await uploadToCloudinary(
               file,
               `${sessionId}_${index + 1}`,
             );
             console.log(`Uploaded file ${index + 1}:`, response);
+            uploadedCount++;
 
-            // After all files are uploaded, redirect to cart with session ID
-            // if (index === croppedFiles.length - 1) {
-            //   const cartUrl = `/cart/add?product_id={{ product.id }}&quantity=1&properties[Image Session ID]=${sessionId}`;
-            //   window.location.href = cartUrl;
-            // }
+            // Update progress bar to reflect completion
+            progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
           } catch (error) {
             console.error(`Error uploading file ${index + 1}:`, error);
-            mediaUploadStatus.textContent =
-              "There was an error uploading your images. Please try again.";
+            hasError = true;
+            break;
           }
-        });
+        }
+
+        uploadProgressEl.classList.remove("active");
+
+        if (hasError) {
+          mediaUploadStatus.textContent = `Upload failed on image ${uploadedCount + 1}. Please try again.`;
+          uploadButton.disabled = false;
+          uploadButton.textContent = "Upload";
+          if (selectedFiles.length > 0) {
+            removeAllFilesButton.style.display = "block";
+          }
+        } else {
+          // Show completion state
+          uploadCompleteEl.classList.add("active");
+          uploadButton.textContent = "Done";
+          uploadButton.disabled = false;
+
+          // Update the Select Photos button text
+          selectPhotosButton.textContent = "Photos uploaded";
+
+          // Clicking "Done" closes the modal
+          uploadButton.onclick = function () {
+            closeModal(`select-photos-modal-${productId}`);
+          };
+
+          // After all files are uploaded, redirect to cart with session ID
+          // const cartUrl = `/cart/add?product_id={{ product.id }}&quantity=1&properties[Image Session ID]=${sessionId}`;
+          // window.location.href = cartUrl;
+        }
       });
 
       const addFilesToFileInput = (files) => {
-        const newFiles = files;
+        const newFiles = Array.from(files);
         // Check if adding these files would exceed the limit
         if (selectedFiles.length + newFiles.length > MAX_FILES) {
           uploadStatus.textContent = `You can only upload a maximum of ${MAX_FILES} images.`;
@@ -652,7 +887,8 @@
         currentOrientation = cropOrientations[index] || "landscape";
         updateOrientationToggle();
 
-        const aspectRatio = currentOrientation === "landscape" ? LANDSCAPE_RATIO : PORTRAIT_RATIO;
+        const aspectRatio =
+          currentOrientation === "landscape" ? LANDSCAPE_RATIO : PORTRAIT_RATIO;
 
         // Create a URL for the image
         const objectUrl = URL.createObjectURL(file);
@@ -701,7 +937,8 @@
 
       // Set orientation to landscape
       orientationLandscapeBtn.addEventListener("click", function () {
-        if (!currentCropperInstance || currentOrientation === "landscape") return;
+        if (!currentCropperInstance || currentOrientation === "landscape")
+          return;
 
         currentOrientation = "landscape";
         updateOrientationToggle();
@@ -717,7 +954,8 @@
 
       // Set orientation to portrait
       orientationPortraitBtn.addEventListener("click", function () {
-        if (!currentCropperInstance || currentOrientation === "portrait") return;
+        if (!currentCropperInstance || currentOrientation === "portrait")
+          return;
 
         currentOrientation = "portrait";
         updateOrientationToggle();
@@ -780,6 +1018,15 @@
         closeEditModal();
       });
 
+      // Close button on edit modal - also cleans up cropper
+      editModalCloseBtn.addEventListener("click", function () {
+        if (currentCropperInstance) {
+          currentCropperInstance.destroy();
+          currentCropperInstance = null;
+        }
+        closeEditModal();
+      });
+
       const closeEditModal = () => {
         const cropModal = document.getElementById("edit-photos-modal");
         cropModal.classList.remove("active");
@@ -807,9 +1054,11 @@
         if (selectedFiles.length === MAX_FILES) {
           uploadArea.style.display = "none";
           postSelectionInfo.style.display = "flex";
+          uploadButton.disabled = false;
         } else {
           uploadArea.style.display = "flex";
           postSelectionInfo.style.display = "none";
+          uploadButton.disabled = true;
         }
       };
 
@@ -819,8 +1068,9 @@
         maxWidth = 2000,
         quality = 0.7,
       ) => {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           const reader = new FileReader();
+          reader.onerror = () => reject(new Error("Failed to read file"));
           reader.onload = (e) => {
             const img = new Image();
             img.src = e.target.result;
@@ -835,55 +1085,15 @@
 
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-              // Cropping to 16:9 landscape
-              const targetRatio = 16 / 9;
-              let cropWidth, cropHeight;
-              if (canvas.width / canvas.height > targetRatio) {
-                // Image is wider than 16:9, crop width
-                cropHeight = canvas.height;
-                cropWidth = cropHeight * targetRatio;
-              } else {
-                // Image is taller than 16:9, crop height
-                cropWidth = canvas.width;
-                cropHeight = cropWidth / targetRatio;
-              }
-              const cropCanvas = document.createElement("canvas");
-              cropCanvas.width = cropWidth;
-              cropCanvas.height = cropHeight;
-              const cropCtx = cropCanvas.getContext("2d");
-              // Center crop
-              const sx = (canvas.width - cropWidth) / 2;
-              const sy = (canvas.height - cropHeight) / 2;
-              cropCtx.drawImage(
-                canvas,
-                sx,
-                sy,
-                cropWidth,
-                cropHeight,
-                0,
-                0,
-                cropWidth,
-                cropHeight,
-              );
-
-              // Save cropped version to croppedFiles array
-              cropCanvas.toBlob(
-                (croppedBlob) => {
-                  // Save cropped file (16:9) for fallback
-                  croppedFiles[index] = croppedBlob;
-
-                  // Save compressed version (original aspect ratio)
-                  canvas.toBlob(
-                    (blob) => {
-                      const orignalSizeInKB = Math.round(file.size / 1024);
-                      const blobSizeInKB = Math.round(blob.size / 1024);
-                      console.log("Original size:", orignalSizeInKB, "KB");
-                      console.log("Compressed size:", blobSizeInKB, "KB");
-                      resolve(blob);
-                    },
-                    "image/jpeg",
-                    quality,
-                  );
+              // Save compressed version (preserving original aspect ratio)
+              // The cropper modal handles the actual 16:9 or 9:16 crop
+              canvas.toBlob(
+                (blob) => {
+                  const originalSizeInKB = Math.round(file.size / 1024);
+                  const blobSizeInKB = Math.round(blob.size / 1024);
+                  console.log("Original size:", originalSizeInKB, "KB");
+                  console.log("Compressed size:", blobSizeInKB, "KB");
+                  resolve(blob);
                 },
                 "image/jpeg",
                 quality,
@@ -894,31 +1104,67 @@
         });
       };
 
+      // Create a default landscape crop from a compressed image blob
+      const createDefaultCrop = (blob) => {
+        return new Promise((resolve) => {
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            const targetRatio = LANDSCAPE_RATIO;
+            let cropWidth, cropHeight;
+            if (img.width / img.height > targetRatio) {
+              cropHeight = img.height;
+              cropWidth = cropHeight * targetRatio;
+            } else {
+              cropWidth = img.width;
+              cropHeight = cropWidth / targetRatio;
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = cropWidth;
+            canvas.height = cropHeight;
+            const ctx = canvas.getContext("2d");
+            const sx = (img.width - cropWidth) / 2;
+            const sy = (img.height - cropHeight) / 2;
+            ctx.drawImage(
+              img,
+              sx,
+              sy,
+              cropWidth,
+              cropHeight,
+              0,
+              0,
+              cropWidth,
+              cropHeight,
+            );
+            canvas.toBlob(
+              (croppedBlob) => resolve(croppedBlob),
+              "image/jpeg",
+              0.7,
+            );
+          };
+          img.src = url;
+        });
+      };
+
       const processNewFiles = async (files) => {
         console.log(`Processing new files: ${files.length} files selected`);
         if (files.length === 0) return;
 
-        // Add files to selected files array
-        let compressedCount = 1;
         const initialLength = selectedFiles.length;
-        // Track initial length so new files are added to the end of the array
         for (let i = 0; i < files.length; i++) {
-          // selectedFiles.push(files[i]);
-          // croppedFiles.push(null); // Placeholder for cropped version
-          console.log({ numberOfFiles: files.length, compressedCount });
+          console.log({ numberOfFiles: files.length, processed: i + 1 });
           const indexToInsert = initialLength + i;
-          selectedFiles[indexToInsert] = await compressImage(
-            files[i],
-            indexToInsert,
-          );
+          const compressed = await compressImage(files[i], indexToInsert);
+          selectedFiles[indexToInsert] = compressed;
 
-          // When all images are loaded, process thumbnails and update UI
-          if (compressedCount === files.length) {
-            processThumbnails();
-            updateUploadUI();
-          }
-          compressedCount++;
+          // Create a default landscape crop so thumbnails show cropped preview
+          croppedFiles[indexToInsert] = await createDefaultCrop(compressed);
+          cropOrientations[indexToInsert] = "landscape";
         }
+
+        processThumbnails();
+        updateUploadUI();
       };
 
       const processThumbnails = () => {
@@ -949,9 +1195,19 @@
         const containers = new Array(selectedFiles.length);
 
         let imagesLoaded = 0;
-        selectedFiles.forEach(async (file, index) => {
+        selectedFiles.forEach((file, index) => {
           const sourceFile = croppedFiles[index] || file;
           const reader = new FileReader();
+          reader.onerror = () => {
+            console.error(`Failed to read thumbnail for index: ${index}`);
+            imagesLoaded++;
+            // Still check if all readers completed so UI isn't stuck
+            if (imagesLoaded === selectedFiles.length) {
+              containers.forEach((container) => {
+                if (container) thumbnailContainer.appendChild(container);
+              });
+            }
+          };
           reader.onload = (e) => {
             // --- Action buttons ---
             const actionButtons = document.createElement("div");
@@ -1011,9 +1267,10 @@
 
             // Place the container at the correct index
             containers[index] = imgContainer;
+            imagesLoaded++;
 
             // When all images are loaded, append in order
-            if (containers.filter(Boolean).length === selectedFiles.length) {
+            if (imagesLoaded === selectedFiles.length) {
               containers.forEach((container) => {
                 if (container) thumbnailContainer.appendChild(container);
               });
@@ -1249,7 +1506,7 @@
       />
       <div class="upload-text">
         <h3>drag & drop</h3>
-        <h3>any files</h3>
+        <h3>your photos</h3>
         <p class="or-text">or</p>
       </div>
 
@@ -1276,7 +1533,7 @@
     </div>
     <div class="post-selection-info">
       <div>
-        Your 6 chosen images have been cropped to fit on landscape magnets.
+        Your 6 chosen images have been cropped to fit on rectangular magnets.
       </div>
       <div>
         The area outside the dotted lines will wrap around the edges of your
@@ -1290,12 +1547,55 @@
         id="media-upload-status-{{ product.id }}"
         class="upload-status"
       ></div>
+      <div id="upload-progress" class="upload-progress">
+        <div class="progress-bar-track">
+          <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        </div>
+        <span id="progress-text" class="progress-text">Uploading 0/6...</span>
+      </div>
+      <div id="upload-complete" class="upload-complete">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        <p>Images uploaded successfully!</p>
+      </div>
+      <div id="remove-all-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">
+          Remove all selected images? This cannot be undone.
+        </p>
+        <div class="upload-confirm-actions">
+          <button id="remove-all-cancel-btn" class="confirm-cancel-btn">
+            Go back
+          </button>
+          <button id="remove-all-confirm-btn" class="confirm-upload-btn">
+            Yes, remove all
+          </button>
+        </div>
+      </div>
+      <div id="upload-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">
+          Are your photos looking good? Once uploaded they cannot be changed.
+        </p>
+        <div class="upload-confirm-actions">
+          <button id="confirm-cancel-btn" class="confirm-cancel-btn">
+            Go back
+          </button>
+          <button id="confirm-upload-btn" class="confirm-upload-btn">
+            Yes, upload
+          </button>
+        </div>
+      </div>
       <div class="modal-footer-actions">
         <button id="remove-all-files-btn" class="remove-all-files-btn">
           Remove all files
         </button>
-        <button id="add-to-cart-btn" class="add-to-cart-btn">
-          Add to cart
+        <button id="upload-btn-main" class="add-to-cart-btn" disabled>
+          Upload
         </button>
       </div>
     </div>
@@ -1305,8 +1605,8 @@
       <div class="modal-title-container">
         <h2 class="modal-title">Crop your image</h2>
         <button
+          id="edit-modal-close-btn"
           class="close-btn"
-          onclick="closeModal(`edit-photos-modal`)"
           aria-label="Close modal"
           title="Close"
         >
@@ -1326,14 +1626,32 @@
       </div>
       <div class="crop-controls">
         <div class="orientation-toggle">
-          <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button
+            id="orientation-landscape"
+            class="orientation-toggle-btn active"
+            title="Landscape (16:9)"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <rect x="2" y="6" width="20" height="12" rx="2" />
             </svg>
             Landscape
           </button>
-          <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button
+            id="orientation-portrait"
+            class="orientation-toggle-btn"
+            title="Portrait (9:16)"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <rect x="6" y="2" width="12" height="20" rx="2" />
             </svg>
             Portrait
