@@ -244,7 +244,7 @@
 
     .upload-text .or-text {
       color: #9ca3af;
-      font-size: 0.875rem;
+      font-size: 1.5rem;
       margin-top: 1.5rem;
     }
 
@@ -307,7 +307,7 @@
       max-width: 200px;
       aspect-ratio: 1 / 1;
       overflow: hidden;
-      background-color: #e5e7eb;
+      background-color: #e3d9cf;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -331,7 +331,7 @@
       width: 100%;
       max-width: 400px;
       overflow: hidden;
-      background-color: #e5e7eb;
+      background-color: #e3d9cf;
       border-radius: 0.5rem;
     }
 
@@ -577,7 +577,6 @@
     }
 
     @media (max-width: 768px) {
-      /* Tablets & small laptops */
       .select-photos-modal {
         flex-direction: column;
         align-items: stretch;
@@ -603,7 +602,6 @@
   -->
   <script>
     const openModal = (modalId) => {
-      console.log(`Opening modal with ID: ${modalId}`);
       const modal = document.getElementById(modalId);
       if (modal && modal.parentNode !== document.body) {
         document.body.appendChild(modal); // Move modal to body
@@ -621,19 +619,18 @@
       const LANDSCAPE_RATIO = 16 / 9;
       const PORTRAIT_RATIO = 9 / 16;
 
-      // Print safe area configuration - adjust these values as needed
-      const SAFE_AREA_PERCENTAGE = 0.9; // 90% of the cropped area is considered "safe" for print
+      const SAFE_AREA_PERCENTAGE = 0.9;
       const SAFE_AREA_COLOR = "rgba(255, 255, 255, 0.2)";
       const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
-      let showSafeArea = true; // Default state for safe area visibility
+      let showSafeArea = true;
 
       let selectedFiles = [];
       let croppedFiles = [];
-      let cropOrientations = []; // Track orientation per image: 'landscape' or 'portrait'
+      let cropOrientations = [];
 
       let currentCropperInstance = null;
       let currentCropIndex = -1;
-      let currentOrientation = "landscape"; // Current orientation in crop modal
+      let currentOrientation = "landscape";
 
       const actualFileInput = document.getElementById(
         `actual-file-input-${productId}`,
@@ -679,19 +676,16 @@
       const footerActionsEl = document.querySelector(".modal-footer-actions");
       const uploadArea = document.querySelector(".upload-area");
 
-      // Highlight on drag over
       uploadArea.addEventListener("dragover", (e) => {
         e.preventDefault();
-        uploadArea.style.backgroundColor = "#e5e7eb"; // Optional: visual feedback
+        uploadArea.style.backgroundColor = "#e5e7eb";
       });
 
-      // Remove highlight on drag leave
       uploadArea.addEventListener("dragleave", (e) => {
         e.preventDefault();
-        uploadArea.style.backgroundColor = ""; // Reset
+        uploadArea.style.backgroundColor = "";
       });
 
-      // Handle drop
       uploadArea.addEventListener("drop", (e) => {
         e.preventDefault();
         uploadArea.style.backgroundColor = "";
@@ -700,13 +694,11 @@
           addFilesToFileInput(files);
         }
       });
-      // Trigger file input when custom button is clicked
       customUploadButton.addEventListener("click", function () {
         actualFileInput.click();
       });
 
       removeAllFilesButton.addEventListener("click", function () {
-        // Show remove-all confirmation UI, hide footer actions
         removeAllConfirmEl.classList.add("active");
         footerActionsEl.style.display = "none";
       });
@@ -722,7 +714,6 @@
         removeAllFiles();
       });
 
-      // Generates a session ID like: "20240901-1530-4821"
       const generateSessionId = () => {
         const now = new Date();
         const yyyy = now.getFullYear();
@@ -730,7 +721,7 @@
         const dd = String(now.getDate()).padStart(2, "0");
         const hh = String(now.getHours()).padStart(2, "0");
         const min = String(now.getMinutes()).padStart(2, "0");
-        const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+        const rand = Math.floor(1000 + Math.random() * 9000);
         return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
       };
 
@@ -741,10 +732,10 @@
         form.append("folder", "shopify_uploads");
         form.append("tags", "order_pending");
         form.append("public_id", fileName);
-        form.append("file", file); // this can be your client-compressed Blob
+        form.append("file", file);
         const res = await fetch(url, { method: "POST", body: form });
         if (!res.ok) throw new Error("Upload failed");
-        return res.json(); // contains secure_url and public_id
+        return res.json();
       };
 
       const uploadProgressEl = document.getElementById("upload-progress");
@@ -752,34 +743,24 @@
       const progressText = document.getElementById("progress-text");
       const uploadCompleteEl = document.getElementById("upload-complete");
 
-      // Upload button shows the confirmation UI
       uploadButton.addEventListener("click", function () {
-        console.log("Upload button clicked");
-        console.log({ selectedFiles, croppedFiles });
-
         if (croppedFiles.length < MAX_FILES) {
           mediaUploadStatus.textContent = `You have ${croppedFiles.length} chosen images. Please select exactly ${MAX_FILES} images before uploading.`;
           return;
         }
 
         mediaUploadStatus.textContent = "";
-        // Show confirmation UI, hide the main footer actions
         uploadConfirmEl.classList.add("active");
         footerActionsEl.style.display = "none";
       });
 
-      // "Go back" hides confirmation and restores footer actions
       confirmCancelBtn.addEventListener("click", function () {
         uploadConfirmEl.classList.remove("active");
         footerActionsEl.style.display = "flex";
       });
 
-      // "Yes, upload" starts the actual upload
       confirmUploadBtn.addEventListener("click", async function () {
-        // Hide confirmation UI
         uploadConfirmEl.classList.remove("active");
-
-        // Show progress
         uploadButton.disabled = true;
         uploadButton.textContent = "Uploading...";
         footerActionsEl.style.display = "flex";
@@ -795,7 +776,6 @@
         for (let index = 0; index < croppedFiles.length; index++) {
           const file = croppedFiles[index];
           try {
-            // Update progress
             progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
             progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
 
@@ -803,13 +783,10 @@
               file,
               `${sessionId}_${index + 1}`,
             );
-            console.log(`Uploaded file ${index + 1}:`, response);
             uploadedCount++;
 
-            // Update progress bar to reflect completion
             progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
           } catch (error) {
-            console.error(`Error uploading file ${index + 1}:`, error);
             hasError = true;
             break;
           }
@@ -825,43 +802,32 @@
             removeAllFilesButton.style.display = "block";
           }
         } else {
-          // Show completion state
           uploadCompleteEl.classList.add("active");
           uploadButton.textContent = "Done";
           uploadButton.disabled = false;
 
-          // Update the Select Photos button text
           selectPhotosButton.textContent = "Photos uploaded";
 
-          // Clicking "Done" closes the modal
           uploadButton.onclick = function () {
             closeModal(`select-photos-modal-${productId}`);
           };
-
-          // After all files are uploaded, redirect to cart with session ID
-          // const cartUrl = `/cart/add?product_id={{ product.id }}&quantity=1&properties[Image Session ID]=${sessionId}`;
-          // window.location.href = cartUrl;
         }
       });
 
       const addFilesToFileInput = (files) => {
         const newFiles = Array.from(files);
-        // Check if adding these files would exceed the limit
         if (selectedFiles.length + newFiles.length > MAX_FILES) {
           uploadStatus.textContent = `You can only upload a maximum of ${MAX_FILES} images.`;
           return;
         }
-        // Process and add new files
         processNewFiles(newFiles);
       };
 
-      // Handle file selection
       actualFileInput.addEventListener("change", function (e) {
         const filesToAdd = Array.from(e.target.files);
         addFilesToFileInput(filesToAdd);
       });
 
-      // Update orientation toggle UI
       const updateOrientationToggle = () => {
         if (currentOrientation === "landscape") {
           orientationLandscapeBtn.classList.add("active");
@@ -872,30 +838,19 @@
         }
       };
 
-      // Start the cropping process for a specific file index
       const startCropping = (index) => {
-        // if (index >= selectedFiles.length) {
-        //   // All files processed, display the final previews
-        //   displayImagePreviews();
-        //   return;
-        // }
-
         currentCropIndex = index;
         const file = selectedFiles[index];
 
-        // Use saved orientation or default to landscape
         currentOrientation = cropOrientations[index] || "landscape";
         updateOrientationToggle();
 
         const aspectRatio =
           currentOrientation === "landscape" ? LANDSCAPE_RATIO : PORTRAIT_RATIO;
 
-        // Create a URL for the image
         const objectUrl = URL.createObjectURL(file);
 
-        // Set the image source and prepare the cropper
         imageToCrop.onload = function () {
-          // Initialize cropper
           currentCropperInstance = new Cropper(imageToCrop, {
             aspectRatio: aspectRatio,
             viewMode: 1,
@@ -906,36 +861,21 @@
             scalable: true,
             zoomable: true,
             ready: function () {
-              // Add safe area indicator when cropper is ready
               if (showSafeArea) {
                 drawSafeArea();
               }
             },
             cropmove: function () {
-              // Remove existing safe area when moving the crop box
               if (showSafeArea) {
                 drawSafeArea();
               }
             },
           });
-          /*
-          Other methods that can be used with the cropper instance:
-          cropend: function () {
-            // Code to execute after cropping ends
-          },
-          zoom: function () {
-            // Code to execute when zooming
-          }
-          */
-
-          // Show the modal
-          // cropModal.style.display = 'flex';
         };
 
         imageToCrop.src = objectUrl;
       };
 
-      // Set orientation to landscape
       orientationLandscapeBtn.addEventListener("click", function () {
         if (!currentCropperInstance || currentOrientation === "landscape")
           return;
@@ -943,16 +883,12 @@
         currentOrientation = "landscape";
         updateOrientationToggle();
 
-        // Update cropper aspect ratio
         currentCropperInstance.setAspectRatio(LANDSCAPE_RATIO);
-
-        // Redraw safe area
         if (showSafeArea) {
           drawSafeArea();
         }
       });
 
-      // Set orientation to portrait
       orientationPortraitBtn.addEventListener("click", function () {
         if (!currentCropperInstance || currentOrientation === "portrait")
           return;
@@ -960,36 +896,27 @@
         currentOrientation = "portrait";
         updateOrientationToggle();
 
-        // Update cropper aspect ratio
         currentCropperInstance.setAspectRatio(PORTRAIT_RATIO);
-
-        // Redraw safe area
         if (showSafeArea) {
           drawSafeArea();
         }
       });
 
-      // Apply the crop and move to the next image
       cropApply.addEventListener("click", function () {
         if (!currentCropperInstance) return;
 
-        // Determine dimensions based on orientation
         const width = currentOrientation === "landscape" ? 1067 : 600;
         const height = currentOrientation === "landscape" ? 600 : 1067;
 
-        // Get the cropped canvas
         const croppedCanvas = currentCropperInstance.getCroppedCanvas({
           width: width,
           height: height,
           fillColor: "#fff",
         });
 
-        // Save the orientation for this image
         cropOrientations[currentCropIndex] = currentOrientation;
 
-        // Convert to blob
         croppedCanvas.toBlob(function (blob) {
-          // Store the cropped version
           croppedFiles[currentCropIndex] = new File(
             [blob],
             selectedFiles[currentCropIndex].name,
@@ -999,17 +926,12 @@
             },
           );
 
-          // Clean up
           currentCropperInstance.destroy();
           currentCropperInstance = null;
-
-          // Move to next image
-          // startCropping(currentCropIndex + 1);
           closeEditModal();
         }, "image/jpeg");
       });
 
-      // Cancel cropping and close the modal without saving
       cropCancel.addEventListener("click", function () {
         if (currentCropperInstance) {
           currentCropperInstance.destroy();
@@ -1018,7 +940,6 @@
         closeEditModal();
       });
 
-      // Close button on edit modal - also cleans up cropper
       editModalCloseBtn.addEventListener("click", function () {
         if (currentCropperInstance) {
           currentCropperInstance.destroy();
@@ -1030,9 +951,8 @@
       const closeEditModal = () => {
         const cropModal = document.getElementById("edit-photos-modal");
         cropModal.classList.remove("active");
-        imageToCrop.src = ""; // Clear the image source
-
-        currentCropIndex = -1; // Reset the current crop index
+        imageToCrop.src = "";
+        currentCropIndex = -1;
         closeModal("edit-photos-modal");
         processThumbnails();
       };
@@ -1085,14 +1005,8 @@
 
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-              // Save compressed version (preserving original aspect ratio)
-              // The cropper modal handles the actual 16:9 or 9:16 crop
               canvas.toBlob(
                 (blob) => {
-                  const originalSizeInKB = Math.round(file.size / 1024);
-                  const blobSizeInKB = Math.round(blob.size / 1024);
-                  console.log("Original size:", originalSizeInKB, "KB");
-                  console.log("Compressed size:", blobSizeInKB, "KB");
                   resolve(blob);
                 },
                 "image/jpeg",
@@ -1104,7 +1018,6 @@
         });
       };
 
-      // Create a default landscape crop from a compressed image blob
       const createDefaultCrop = (blob) => {
         return new Promise((resolve) => {
           const url = URL.createObjectURL(blob);
@@ -1148,17 +1061,14 @@
       };
 
       const processNewFiles = async (files) => {
-        console.log(`Processing new files: ${files.length} files selected`);
         if (files.length === 0) return;
 
         const initialLength = selectedFiles.length;
         for (let i = 0; i < files.length; i++) {
-          console.log({ numberOfFiles: files.length, processed: i + 1 });
           const indexToInsert = initialLength + i;
           const compressed = await compressImage(files[i], indexToInsert);
           selectedFiles[indexToInsert] = compressed;
 
-          // Create a default landscape crop so thumbnails show cropped preview
           croppedFiles[indexToInsert] = await createDefaultCrop(compressed);
           cropOrientations[indexToInsert] = "landscape";
         }
@@ -1168,10 +1078,6 @@
       };
 
       const processThumbnails = () => {
-        console.log(
-          `Processing thumbnails for ${selectedFiles.length} selected files`,
-        );
-
         const placeholderThumbnailContainer = document.querySelector(
           ".thumbnail-container",
         );
@@ -1179,7 +1085,6 @@
           ".main-thumbnail-container",
         );
 
-        // Clear existing thumbnails
         if (placeholderThumbnailContainer) {
           placeholderThumbnailContainer.innerHTML = "";
         }
@@ -1199,9 +1104,7 @@
           const sourceFile = croppedFiles[index] || file;
           const reader = new FileReader();
           reader.onerror = () => {
-            console.error(`Failed to read thumbnail for index: ${index}`);
             imagesLoaded++;
-            // Still check if all readers completed so UI isn't stuck
             if (imagesLoaded === selectedFiles.length) {
               containers.forEach((container) => {
                 if (container) thumbnailContainer.appendChild(container);
@@ -1209,30 +1112,25 @@
             }
           };
           reader.onload = (e) => {
-            // --- Action buttons ---
             const actionButtons = document.createElement("div");
             actionButtons.className = "thumbnail-action-buttons";
 
-            // Edit button
             const editBtn = document.createElement("button");
             editBtn.className = "thumbnail-action-btn";
             editBtn.title = "Edit";
             editBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="currentColor" stroke-width="1.5"/><path d="M14.06 6.44a1.5 1.5 0 0 0 0-2.12l-1.38-1.38a1.5 1.5 0 0 0-2.12 0l-1.06 1.06 3.5 3.5 1.06-1.06z" stroke="currentColor" stroke-width="1.5"/></svg>`;
             editBtn.onclick = (ev) => {
               ev.stopPropagation();
-              console.log(`Editing button clicked for index: ${index}`);
               openModal(`edit-photos-modal`);
               startCropping(index);
             };
 
-            // Delete button
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "thumbnail-action-btn";
             deleteBtn.title = "Remove";
             deleteBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M6 8v6m4-6v6m4-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4m5-2h-2a2 2 0 0 0-2 2v2h8V4a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
             deleteBtn.onclick = (ev) => {
               ev.stopPropagation();
-              console.log(`Delete button clicked for index: ${index}`);
               removeFile(index);
             };
 
@@ -1256,8 +1154,6 @@
             );
             imgElement.onclick = (ev) => {
               ev.stopPropagation();
-              console.log(`Thumbnail clicked for index: ${index}`);
-              console.log(`Opening edit modal for index: ${index}`);
               openModal(`edit-photos-modal`);
               startCropping(index);
             };
@@ -1265,11 +1161,9 @@
             imgContainer.appendChild(imgElement);
             imgContainer.appendChild(actionButtons);
 
-            // Place the container at the correct index
             containers[index] = imgContainer;
             imagesLoaded++;
 
-            // When all images are loaded, append in order
             if (imagesLoaded === selectedFiles.length) {
               containers.forEach((container) => {
                 if (container) thumbnailContainer.appendChild(container);
@@ -1290,21 +1184,18 @@
           ".main-thumbnail-img-container",
         );
         thumbnailContainers.forEach((thumbnail) => {
-          // Calculate safe area dimensions
           const thumbnailImgElement = thumbnail.querySelector("img");
           const containerWidth = thumbnail.clientWidth;
           const containerHeight = thumbnail.clientHeight;
           const imgWidth = thumbnailImgElement.clientWidth;
           const imgHeight = thumbnailImgElement.clientHeight;
 
-          // Calculate image position within the centered container
           const imgLeft = (containerWidth - imgWidth) / 2;
           const imgTop = (containerHeight - imgHeight) / 2;
 
           const safeWidth = imgWidth * SAFE_AREA_PERCENTAGE;
           const safeHeight = imgHeight * SAFE_AREA_PERCENTAGE;
 
-          // Calculate safe area position (centered within the image)
           const safeLeft = imgLeft + (imgWidth - safeWidth) / 2;
           const safeTop = imgTop + (imgHeight - safeHeight) / 2;
 
@@ -1333,11 +1224,9 @@
         }
       });
 
-      // Function to draw the safe area indicator
       function drawSafeArea() {
         if (!currentCropperInstance) return;
 
-        // Remove existing safe area if any
         const existingSafeAreaContainer = document.querySelector(
           ".safe-print-container",
         );
@@ -1345,18 +1234,14 @@
           existingSafeAreaContainer.remove();
         }
 
-        // Get crop box dimensions
         const cropBox = currentCropperInstance.getCropBoxData();
 
-        // Calculate safe area dimensions (smaller than the crop box)
         const safeWidth = cropBox.width * SAFE_AREA_PERCENTAGE;
         const safeHeight = cropBox.height * SAFE_AREA_PERCENTAGE;
 
-        // Calculate position (centered within crop box)
-        const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.left + (cropBox.width - safeWidth) / 2;
-        const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2; // cropBox.top + (cropBox.height - safeHeight) / 2;
+        const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+        const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2;
 
-        // Create safe area contaner element
         const safeAreaContainer = document.createElement("div");
         safeAreaContainer.className = "safe-print-container";
         safeAreaContainer.style.position = "absolute";
@@ -1379,7 +1264,6 @@
         safeArea.style.pointerEvents = "none";
         safeArea.style.zIndex = "2000";
 
-        // Add a label to explain what this area represents
         const label = document.createElement("div");
         label.textContent = "Safe Print Area";
         label.style.position = "absolute";
@@ -1393,41 +1277,30 @@
         safeAreaContainer.appendChild(label);
 
         safeAreaContainer.appendChild(safeArea);
-        // Add to the cropper container
         const cropperContainer = document.querySelector(".cropper-container");
         cropperContainer.appendChild(safeAreaContainer);
       }
 
       const removeFile = (index) => {
-        console.log(`Removing file at index: ${index}`);
         if (index < 0 || index >= selectedFiles.length) return;
 
-        // Remove the file from selected files, cropped files, and orientations
         selectedFiles.splice(index, 1);
         croppedFiles.splice(index, 1);
         cropOrientations.splice(index, 1);
 
         if (selectedFiles.length === 0) {
-          // If no files left, reset the file input
           actualFileInput.value = "";
         }
 
-        // Update the UI
         processThumbnails();
         updateUploadUI();
       };
 
       const removeAllFiles = () => {
-        console.log(`Removing all files.`);
-
-        // Remove the files from selected files, cropped files, and orientations
         selectedFiles = [];
         croppedFiles = [];
         cropOrientations = [];
-
-        actualFileInput.value = ""; // Clear the file input
-
-        // Update the UI
+        actualFileInput.value = "";
         processThumbnails();
         updateUploadUI();
       };
@@ -1436,13 +1309,10 @@
       const uploadContainers = document.querySelectorAll(
         ".file-upload-container",
       );
-      console.log({ hostName: window.location.hostname, uploadContainers });
-      // Initialize image uploader
       uploadContainers.forEach((container) => {
         const productId = container.dataset.productId;
         if (productId) {
           initializeImageUploader(productId);
-          console.log(`Initializing uploader for product ID: ${productId}`);
         }
       });
     });
@@ -1488,13 +1358,9 @@
       ></path>
     </svg>
   </button>
-  <!-- Content -->
   <div class="modal-content">
-    <div class="main-thumbnail-container">
-      <!-- Thumbnails will be dynamically added here -->
-    </div>
+    <div class="main-thumbnail-container"></div>
 
-    <!-- Drag & Drop Area -->
     <div class="upload-area">
       <input
         title="File Input"
@@ -1510,7 +1376,6 @@
         <p class="or-text">or</p>
       </div>
 
-      <!-- Upload Button -->
       <button id="custom-upload-button-{{ product.id }}" class="upload-btn">
         Upload from camera roll or PC
       </button>
@@ -1520,16 +1385,13 @@
       </div>
     </div>
   </div>
-  <!-- Header -->
   <div class="preview-container">
     <div class="modal-header">
       <div class="modal-title-container">
         <h2 class="modal-title">Selection preview</h2>
       </div>
       <p class="content-subtitle">Click pictures to resize or crop</p>
-      <div class="thumbnail-container">
-        <!-- Thumbnails will be dynamically added here -->
-      </div>
+      <div class="thumbnail-container"></div>
     </div>
     <div class="post-selection-info">
       <div>
@@ -1541,7 +1403,6 @@
       </div>
       <div>Please review before placing your order.</div>
     </div>
-    <!-- Footer -->
     <div class="modal-footer">
       <div
         id="media-upload-status-{{ product.id }}"
