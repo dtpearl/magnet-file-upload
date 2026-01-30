@@ -800,9 +800,6 @@
           const file = croppedFiles[index];
           try {
             progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
-            console.log(
-              `progress fill width ${(index / croppedFiles.length) * 100}%`,
-            );
             progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
 
             const response = await uploadToCloudinary(
