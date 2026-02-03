@@ -1,3 +1,4 @@
+{% if product.type == 'Rectangular Magnets' %}
 <div class="file-upload-container" data-product-id="{{ product.id }}">
   <link
     rel="stylesheet"
@@ -1363,6 +1364,26 @@
       uploadContainers.forEach((container) => {
         const productId = container.dataset.productId;
         if (productId) {
+          console.log("Shopify product info:", {
+            productId,
+            hostname: window.location.hostname,
+            title: "{{ product.title }}",
+            handle: "{{ product.handle }}",
+            type: "{{ product.type }}",
+            vendor: "{{ product.vendor }}",
+            price: "{{ product.price }}",
+            compareAtPrice: "{{ product.compare_at_price }}",
+            url: "{{ product.url }}",
+            available: "{{ product.available }}",
+            tags: "{{ product.tags | join: ', ' }}",
+            variantCount: "{{ product.variants.size }}",
+            selectedVariant: "{{ product.selected_or_first_available_variant.id }}",
+            selectedVariantTitle: "{{ product.selected_or_first_available_variant.title }}",
+            selectedVariantPrice: "{{ product.selected_or_first_available_variant.price }}",
+            selectedVariantSku: "{{ product.selected_or_first_available_variant.sku }}",
+            imageCount: "{{ product.images.size }}",
+            featuredImage: "{{ product.featured_image | image_url }}",
+          });
           initializeImageUploader(productId);
         }
       });
@@ -1634,3 +1655,4 @@
   </div>
   <!-- This website uses Cropper.js by Chen Fengyuan -->
 </div>
+{% endif %}
