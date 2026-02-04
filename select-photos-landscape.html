@@ -645,9 +645,7 @@
       const PORTRAIT_RATIO = 9 / 16;
 
       const SAFE_AREA_PERCENTAGE = 0.9;
-      const SAFE_AREA_COLOR = "rgba(255, 255, 255, 0.2)";
       const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
-      let showSafeArea = true;
 
       let selectedFiles = [];
       let croppedFiles = [];
@@ -887,14 +885,10 @@
             scalable: true,
             zoomable: true,
             ready: function () {
-              if (showSafeArea) {
-                drawSafeArea();
-              }
+              drawSafeArea();
             },
             cropmove: function () {
-              if (showSafeArea) {
-                drawSafeArea();
-              }
+              drawSafeArea();
             },
           });
         };
@@ -910,9 +904,7 @@
         updateOrientationToggle();
 
         currentCropperInstance.setAspectRatio(LANDSCAPE_RATIO);
-        if (showSafeArea) {
-          drawSafeArea();
-        }
+        drawSafeArea();
       });
 
       orientationPortraitBtn.addEventListener("click", function () {
@@ -923,9 +915,7 @@
         updateOrientationToggle();
 
         currentCropperInstance.setAspectRatio(PORTRAIT_RATIO);
-        if (showSafeArea) {
-          drawSafeArea();
-        }
+        drawSafeArea();
       });
 
       cropApply.addEventListener("click", function () {

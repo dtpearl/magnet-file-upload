@@ -594,7 +594,6 @@
 
       const SAFE_AREA_PERCENTAGE = 0.9;
       const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
-      let showSafeArea = true;
 
       let selectedFiles = [];
       let croppedFiles = [];
@@ -811,14 +810,10 @@
             scalable: true,
             zoomable: true,
             ready: function () {
-              if (showSafeArea) {
-                drawSafeArea();
-              }
+              drawSafeArea();
             },
             cropmove: function () {
-              if (showSafeArea) {
-                drawSafeArea();
-              }
+              drawSafeArea();
             },
           });
         };
