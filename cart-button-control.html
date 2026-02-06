@@ -1,0 +1,63 @@
+<!--
+  Cart Button Control
+  Disables Add to Cart and Buy it Now buttons until photos are uploaded.
+  Works with select-photos.html and select-photos-landscape.html via custom events.
+-->
+<script>
+  (function () {
+    const initCartButtonControl = () => {
+      // Find Add to Cart button (Shopify uses dynamic IDs)
+      const addToCartBtn = document.querySelector(
+        'button[name="add"].product-form__submit, .product-form__submit[type="submit"]',
+      );
+
+      // Find Buy it Now button
+      const buyItNowBtn = document.querySelector(
+        ".shopify-payment-button button, .shopify-payment-button__button",
+      );
+
+      // Store original button states
+      const originalAddToCartDisabled = addToCartBtn?.disabled || false;
+      const originalBuyItNowDisabled = buyItNowBtn?.disabled || false;
+
+      // Check if this product requires photo upload
+      const hasPhotoUploader = document.querySelector(".file-upload-container");
+
+      if (!hasPhotoUploader) {
+        // No photo uploader on this product, leave buttons as-is
+        return;
+      }
+
+      // Disable buttons initially
+      if (addToCartBtn) {
+        addToCartBtn.disabled = true;
+        addToCartBtn.setAttribute("data-photos-required", "true");
+      }
+
+      if (buyItNowBtn) {
+        buyItNowBtn.disabled = true;
+        buyItNowBtn.setAttribute("data-photos-required", "true");
+      }
+
+      // Listen for photos uploaded event
+      document.addEventListener("photosUploaded", function (e) {
+        if (addToCartBtn) {
+          addToCartBtn.disabled = originalAddToCartDisabled;
+          addToCartBtn.removeAttribute("data-photos-required");
+        }
+
+        if (buyItNowBtn) {
+          buyItNowBtn.disabled = originalBuyItNowDisabled;
+          buyItNowBtn.removeAttribute("data-photos-required");
+        }
+      });
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initCartButtonControl);
+    } else {
+      initCartButtonControl();
+    }
+  })();
+</script>

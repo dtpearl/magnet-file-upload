@@ -832,6 +832,9 @@
 
           selectPhotosButton.textContent = "Photos uploaded";
 
+          // Notify cart button control that photos are uploaded
+          document.dispatchEvent(new CustomEvent("photosUploaded"));
+
           uploadButton.onclick = function () {
             closeModal(`select-photos-modal-${productId}`);
           };
