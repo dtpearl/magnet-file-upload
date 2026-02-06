@@ -1246,18 +1246,38 @@
           const safeLeft = imgLeft + (imgWidth - safeWidth) / 2;
           const safeTop = imgTop + (imgHeight - safeHeight) / 2;
 
-          const safeAreaDiv = document.createElement("div");
-          safeAreaDiv.classList.add("safe-area-overlay");
-          safeAreaDiv.style.position = "absolute";
-          safeAreaDiv.style.left = `${safeLeft}px`;
-          safeAreaDiv.style.top = `${safeTop}px`;
-          safeAreaDiv.style.width = `${safeWidth}px`;
-          safeAreaDiv.style.height = `${safeHeight}px`;
-          safeAreaDiv.style.border = `2px dashed ${SAFE_AREA_BORDER}`;
-          safeAreaDiv.style.background = "transparent";
-          safeAreaDiv.style.boxShadow = `0 0 0 9999px rgba(0, 0, 0, 0.25)`;
-          safeAreaDiv.style.pointerEvents = "none";
-          thumbnail.appendChild(safeAreaDiv);
+          const overlayColor = "rgba(0, 0, 0, 0.25)";
+
+          // Create four overlay strips that work with overflow:hidden
+          // Top strip
+          const topOverlay = document.createElement("div");
+          topOverlay.classList.add("safe-area-overlay");
+          topOverlay.style.cssText = `position:absolute;top:0;left:0;right:0;height:${safeTop}px;background:${overlayColor};pointer-events:none;z-index:1;`;
+          thumbnail.appendChild(topOverlay);
+
+          // Bottom strip
+          const bottomOverlay = document.createElement("div");
+          bottomOverlay.classList.add("safe-area-overlay");
+          bottomOverlay.style.cssText = `position:absolute;bottom:0;left:0;right:0;height:${containerHeight - safeTop - safeHeight}px;background:${overlayColor};pointer-events:none;z-index:1;`;
+          thumbnail.appendChild(bottomOverlay);
+
+          // Left strip (between top and bottom)
+          const leftOverlay = document.createElement("div");
+          leftOverlay.classList.add("safe-area-overlay");
+          leftOverlay.style.cssText = `position:absolute;top:${safeTop}px;left:0;width:${safeLeft}px;height:${safeHeight}px;background:${overlayColor};pointer-events:none;z-index:1;`;
+          thumbnail.appendChild(leftOverlay);
+
+          // Right strip (between top and bottom)
+          const rightOverlay = document.createElement("div");
+          rightOverlay.classList.add("safe-area-overlay");
+          rightOverlay.style.cssText = `position:absolute;top:${safeTop}px;right:0;width:${containerWidth - safeLeft - safeWidth}px;height:${safeHeight}px;background:${overlayColor};pointer-events:none;z-index:1;`;
+          thumbnail.appendChild(rightOverlay);
+
+          // Dashed border for safe area
+          const safeBorder = document.createElement("div");
+          safeBorder.classList.add("safe-area-overlay");
+          safeBorder.style.cssText = `position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeWidth}px;height:${safeHeight}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
+          thumbnail.appendChild(safeBorder);
         });
       };
 
