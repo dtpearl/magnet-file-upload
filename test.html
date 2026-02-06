@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Upload - Local Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-header {
+      max-width: 600px;
+      margin: 0 auto 20px;
+      text-align: center;
+    }
+    .test-header h1 {
+      font-size: 24px;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .variant-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .variant-tab {
+      padding: 10px 24px;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #374151;
+      transition: all 0.2s;
+    }
+    .variant-tab:hover {
+      background: #f9fafb;
+    }
+    .variant-tab.active {
+      background: #374151;
+      color: white;
+      border-color: #374151;
+    }
+    .variant-container {
+      display: none;
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .variant-container.active {
+      display: block;
+    }
+    .variant-info {
+      background: #f0e5d9;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-header">
+    <h1>Photo Upload Local Test</h1>
+    <p>Select a variant to test the upload functionality</p>
+  </div>
+
+  <div class="variant-tabs">
+    <button class="variant-tab active" onclick="showVariant('square')">Square (9 photos)</button>
+    <button class="variant-tab" onclick="showVariant('rectangle')">Rectangle (6 photos)</button>
+  </div>
+
+  <!-- Square Variant -->
+  <div id="square-variant" class="variant-container active">
+    <div class="variant-info">
+      <strong>Square Variant:</strong> 9 photos, 1:1 aspect ratio, no orientation toggle
+    </div>
+    <div class="file-upload-container" data-product-id="square-test">
+      <button
+        class="button select-photos-button"
+        id="select-photos-button-square-test"
+        onclick="PhotoUploader.openModal('select-photos-modal-square-test')"
+      >
+        Select photos
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="upload-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="select-photos-modal-square-test" class="select-photos-modal">
+      <button class="close-btn" onclick="PhotoUploader.closeModal('select-photos-modal-square-test')" aria-label="Close modal" title="Close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="modal-content">
+        <div class="main-thumbnail-container"></div>
+        <div class="upload-area">
+          <input title="File Input" type="file" id="actual-file-input-square-test" class="hidden-file-input" accept="image/*" multiple />
+          <div class="upload-text">
+            <h3>drag & drop</h3>
+            <h3>your photos</h3>
+            <p class="or-text">or</p>
+          </div>
+          <button id="custom-upload-button-square-test" class="upload-btn">Upload from camera roll or PC</button>
+          <div id="upload-status-square-test" class="upload-status"></div>
+          <div id="file-count-display-square-test">0/9 images selected</div>
+          <div id="processing-indicator" class="processing-indicator">
+            <svg class="processing-spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#d6cec6" stroke-width="5" />
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#95887a" stroke-width="5" stroke-dasharray="31.4 94.2" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+            </svg>
+            <span class="processing-text">Processing images...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Selection preview</h2>
+          </div>
+          <p class="content-subtitle">Click pictures to resize or crop</p>
+          <div class="thumbnail-container"></div>
+        </div>
+        <div class="post-selection-info">
+          <div>Your 9 chosen images have been cropped to fit on square magnets.</div>
+          <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+          <div>Please review before placing your order.</div>
+        </div>
+        <div class="modal-footer">
+          <div id="media-upload-status-square-test" class="upload-status"></div>
+          <div id="upload-progress" class="upload-progress">
+            <div class="progress-bar-track">
+              <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+            <span id="progress-text" class="progress-text">Uploading 0/9...</span>
+          </div>
+          <div id="upload-complete" class="upload-complete">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p>Images uploaded successfully!</p>
+          </div>
+          <div id="remove-all-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Remove all selected images? This cannot be undone.</p>
+            <div class="upload-confirm-actions">
+              <button id="remove-all-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="remove-all-confirm-btn" class="confirm-upload-btn">Yes, remove all</button>
+            </div>
+          </div>
+          <div id="upload-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Are your photos looking good? Once uploaded they cannot be changed.</p>
+            <div class="upload-confirm-actions">
+              <button id="confirm-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="confirm-upload-btn" class="confirm-upload-btn">Yes, upload</button>
+            </div>
+          </div>
+          <div class="modal-footer-actions">
+            <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
+            <button id="upload-btn-main" class="add-to-cart-btn" disabled>Upload</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-photos-modal" class="edit-photos-modal">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Crop your image</h2>
+            <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <p class="content-subtitle">Click pictures to resize or crop</p>
+          <div class="crop-container">
+            <img id="image-to-crop" src="" alt="Image to crop" />
+          </div>
+          <div class="crop-controls">
+            <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+            <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+          </div>
+          <div>
+            <p>The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rectangle Variant -->
+  <div id="rectangle-variant" class="variant-container">
+    <div class="variant-info">
+      <strong>Rectangle Variant:</strong> 6 photos, 16:9/9:16 aspect ratio with orientation toggle
+    </div>
+    <div class="file-upload-container" data-product-id="rect-test">
+      <button
+        class="button select-photos-button"
+        id="select-photos-button-rect-test"
+        onclick="PhotoUploader.openModal('select-photos-modal-rect-test')"
+      >
+        Select photos
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="upload-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="select-photos-modal-rect-test" class="select-photos-modal">
+      <button class="close-btn" onclick="PhotoUploader.closeModal('select-photos-modal-rect-test')" aria-label="Close modal" title="Close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="modal-content">
+        <div class="main-thumbnail-container"></div>
+        <div class="upload-area">
+          <input title="File Input" type="file" id="actual-file-input-rect-test" class="hidden-file-input" accept="image/*" multiple />
+          <div class="upload-text">
+            <h3>drag & drop</h3>
+            <h3>your photos</h3>
+            <p class="or-text">or</p>
+          </div>
+          <button id="custom-upload-button-rect-test" class="upload-btn">Upload from camera roll or PC</button>
+          <div id="upload-status-rect-test" class="upload-status"></div>
+          <div id="file-count-display-rect-test">0/6 images selected</div>
+          <div id="processing-indicator" class="processing-indicator">
+            <svg class="processing-spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#d6cec6" stroke-width="5" />
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#95887a" stroke-width="5" stroke-dasharray="31.4 94.2" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+            </svg>
+            <span class="processing-text">Processing images...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Selection preview</h2>
+          </div>
+          <p class="content-subtitle">Click pictures to resize or crop</p>
+          <div class="thumbnail-container"></div>
+        </div>
+        <div class="post-selection-info">
+          <div>Your 6 chosen images have been cropped to fit on rectangular magnets.</div>
+          <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+          <div>Please review before placing your order.</div>
+        </div>
+        <div class="modal-footer">
+          <div id="media-upload-status-rect-test" class="upload-status"></div>
+          <div id="upload-progress" class="upload-progress">
+            <div class="progress-bar-track">
+              <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+            <span id="progress-text" class="progress-text">Uploading 0/6...</span>
+          </div>
+          <div id="upload-complete" class="upload-complete">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p>Images uploaded successfully!</p>
+          </div>
+          <div id="remove-all-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Remove all selected images? This cannot be undone.</p>
+            <div class="upload-confirm-actions">
+              <button id="remove-all-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="remove-all-confirm-btn" class="confirm-upload-btn">Yes, remove all</button>
+            </div>
+          </div>
+          <div id="upload-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Are your photos looking good? Once uploaded they cannot be changed.</p>
+            <div class="upload-confirm-actions">
+              <button id="confirm-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="confirm-upload-btn" class="confirm-upload-btn">Yes, upload</button>
+            </div>
+          </div>
+          <div class="modal-footer-actions">
+            <button id="remove-all-files-btn" class="remove-all-files-btn">Remove all files</button>
+            <button id="upload-btn-main" class="add-to-cart-btn" disabled>Upload</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-photos-modal" class="edit-photos-modal">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Crop your image</h2>
+            <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <p class="content-subtitle">Click pictures to resize or crop</p>
+          <div class="crop-container">
+            <img id="image-to-crop" src="" alt="Image to crop" />
+          </div>
+          <div class="crop-controls">
+            <div class="orientation-toggle">
+              <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="6" width="20" height="12" rx="2" />
+                </svg>
+                Landscape
+              </button>
+              <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="6" y="2" width="12" height="20" rx="2" />
+                </svg>
+                Portrait
+              </button>
+            </div>
+            <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+            <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+          </div>
+          <div>
+            <p>The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Styles (from photo-upload-styles.html) -->
+  <style>
+    .button {
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .select-photos-button {
+      font-family: Cardo, serif;
+      text-transform: uppercase;
+      letter-spacing: 0.225em;
+      background-color: #95887a;
+      opacity: 0.8;
+      width: 100%;
+      max-width: 440px;
+    }
+    .select-photos-button:hover {
+      background-color: #95887a !important;
+    }
+    .upload-icon {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+      margin-left: 1em;
+    }
+    .select-photos-modal, .edit-photos-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f0e5d9;
+      z-index: 1000;
+    }
+    .select-photos-modal.active, .edit-photos-modal.active {
+      display: flex;
+    }
+    .crop-container {
+      height: 500px;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+    #image-to-crop {
+      display: block;
+      max-width: 100%;
+    }
+    .crop-controls {
+      display: flex;
+      justify-content: flex-end;
+      padding: 15px 20px;
+      gap: 10px;
+      border-top: 1px solid #eee;
+    }
+    .crop-button {
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      border: none;
+    }
+    .crop-button.cancel {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    .crop-button.apply {
+      background-color: #374151;
+      color: white;
+    }
+    .crop-button:hover {
+      opacity: 0.9;
+    }
+    .orientation-toggle {
+      display: flex;
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #d6cec6;
+      padding: 3px;
+      margin-right: auto;
+      gap: 2px;
+    }
+    .orientation-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 16px;
+      background-color: transparent;
+      color: #7d7268;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .orientation-toggle-btn:hover {
+      color: #4b5563;
+    }
+    .orientation-toggle-btn.active {
+      background-color: #95887a;
+      color: white;
+    }
+    .orientation-toggle-btn.active:hover {
+      background-color: #7d7268;
+    }
+    .orientation-toggle-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    .modal-header {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px;
+      border-bottom: 1px solid #e5e7eb;
+      width: 100%;
+    }
+    .modal-title-container {
+      display: flex;
+      width: 100%;
+    }
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #374151;
+      display: inline-block;
+    }
+    .close-btn {
+      width: 48px;
+      height: 48px;
+      background-color: #6b7280;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+      position: absolute;
+      top: 24px;
+      right: 48px;
+    }
+    .close-btn:hover {
+      background-color: #4b5563;
+    }
+    .close-btn svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+    .modal-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px;
+      overflow: auto;
+    }
+    .content-subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .hidden-file-input {
+      opacity: 0;
+      position: absolute;
+      z-index: -1;
+    }
+    .upload-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 448px;
+      width: 100%;
+    }
+    .upload-area:hover {
+      cursor: grab;
+    }
+    .upload-text {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .upload-text h3 {
+      font-size: 36px;
+      font-weight: 300;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .upload-text .or-text {
+      color: #9ca3af;
+      font-size: 24px;
+      margin-top: 24px;
+    }
+    .upload-status {
+      color: #f00;
+    }
+    .upload-btn {
+      background-color: #95887a;
+      color: white;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 9999px;
+      font-family: Cardo, serif;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .upload-btn:hover {
+      background-color: #7d7268;
+    }
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 448px;
+      margin-top: 32px;
+      padding-right: 80px;
+    }
+    .main-thumbnail-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    .thumbnail-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+    }
+    .placeholder-thumbnail-img-container {
+      margin: 8px;
+      border-radius: 8px;
+      width: 28%;
+      max-width: 200px;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background-color: #e3d9cf;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .placeholder-thumbnail, .main-thumbnail {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .main-thumbnail-img-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+      background-color: #e3d9cf;
+      border-radius: 8px;
+    }
+    .post-selection-info {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+      color: #6b7280;
+      font-size: 16px;
+    }
+    .modal-footer {
+      padding: 24px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-direction: column;
+      width: 100%;
+      align-items: center;
+      margin-bottom: 96px;
+    }
+    .modal-footer-actions {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      justify-content: center;
+      width: 100%;
+    }
+    .remove-all-files-btn, .confirm-cancel-btn {
+      background-color: transparent;
+      color: #6b7280;
+      padding: 8px 24px;
+      border: 1px solid #9ca3af;
+      border-radius: 8px;
+      font-family: Cardo, serif;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .remove-all-files-btn { display: none; }
+    .remove-all-files-btn:hover, .confirm-cancel-btn:hover {
+      background-color: #6b7280;
+      color: white;
+      border-color: #6b7280;
+    }
+    .add-to-cart-btn, .confirm-upload-btn {
+      background-color: #374151;
+      color: white;
+      padding: 8px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: Cardo, serif;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .add-to-cart-btn:hover, .confirm-upload-btn:hover {
+      background-color: #1f2937;
+    }
+    .add-to-cart-btn:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+    .upload-progress {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .upload-progress.active {
+      display: flex;
+    }
+    .progress-bar-track {
+      width: 100%;
+      height: 6px;
+      background-color: #c9bdb0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background-color: #95887a;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .upload-complete {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #374151;
+    }
+    .upload-complete.active {
+      display: flex;
+    }
+    .upload-complete svg {
+      width: 40px;
+      height: 40px;
+      color: #95887a;
+    }
+    .upload-complete p {
+      font-size: 14px;
+      margin: 0;
+    }
+    .upload-confirm {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+    .upload-confirm.active {
+      display: flex;
+    }
+    .upload-confirm-text {
+      font-size: 14px;
+      color: #374151;
+      text-align: center;
+    }
+    .upload-confirm-actions {
+      display: flex;
+      gap: 16px;
+    }
+    .thumbnail-action-buttons {
+      position: absolute;
+      bottom: 5%;
+      right: 5%;
+      display: flex;
+      gap: 0.5em;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 2;
+    }
+    .main-thumbnail-img-container:hover .thumbnail-action-buttons,
+    .placeholder-thumbnail-img-container:hover .thumbnail-action-buttons {
+      opacity: 1;
+    }
+    .thumbnail-action-btn {
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      width: 2em;
+      height: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .thumbnail-action-btn svg {
+      width: 1em;
+      height: 1em;
+    }
+    .processing-indicator {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 32px 0;
+    }
+    .processing-indicator.active {
+      display: flex;
+    }
+    .processing-spinner {
+      width: 32px;
+      height: 32px;
+    }
+    .processing-text {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    @media (max-width: 768px) {
+      .select-photos-modal {
+        flex-direction: column;
+        align-items: stretch;
+        overflow: auto;
+      }
+      .modal-content {
+        overflow: unset;
+        padding: 16px;
+      }
+      .preview-container {
+        max-width: 100%;
+        padding-right: 0;
+      }
+      .modal-header {
+        padding: 16px;
+      }
+      .modal-title-container {
+        justify-content: center;
+        width: 100%;
+      }
+      .close-btn {
+        width: 40px;
+        height: 40px;
+        top: 16px;
+        right: 16px;
+      }
+      .close-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+      .main-thumbnail-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 0 16px;
+      }
+      .placeholder-thumbnail-img-container {
+        width: 30%;
+        margin: 4px;
+      }
+      .thumbnail-action-buttons {
+        opacity: 1;
+        gap: 8px;
+      }
+      .thumbnail-action-btn {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+      }
+      .thumbnail-action-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .upload-text h3 {
+        font-size: 28px;
+      }
+      .upload-text .or-text {
+        font-size: 18px;
+      }
+      .modal-footer {
+        padding: 16px;
+        margin-bottom: 48px;
+      }
+      .crop-container {
+        height: 350px;
+      }
+      .orientation-toggle {
+        margin-bottom: 10px;
+      }
+      .crop-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+    @media (max-width: 480px) {
+      .main-thumbnail-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+      .thumbnail-action-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+      }
+      .thumbnail-action-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .crop-container {
+        height: 280px;
+      }
+      .orientation-toggle-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+
+  <!-- Core JS (from photo-upload-core.html) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+  <script>
+    window.PhotoUploader = (function() {
+      const SAFE_AREA_PERCENTAGE = 0.9;
+      const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
+
+      function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal && modal.parentNode !== document.body) {
+          document.body.appendChild(modal);
+        }
+        modal.classList.add("active");
+      }
+
+      function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove("active");
+      }
+
+      function generateSessionId() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const hh = String(now.getHours()).padStart(2, "0");
+        const min = String(now.getMinutes()).padStart(2, "0");
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
+      }
+
+      async function uploadToCloudinary(file, fileName) {
+        const url = "https://api.cloudinary.com/v1_1/djzc7ih0g/image/upload";
+        const form = new FormData();
+        form.append("upload_preset", "shopify-magnets");
+        form.append("folder", "shopify_uploads");
+        form.append("tags", "order_pending");
+        form.append("public_id", fileName);
+        form.append("file", file);
+        const res = await fetch(url, { method: "POST", body: form });
+        if (!res.ok) throw new Error("Upload failed");
+        return res.json();
+      }
+
+      function init(config) {
+        const {
+          productId,
+          maxFiles,
+          aspectRatio,
+          landscapeRatio,
+          portraitRatio,
+          hasOrientation
+        } = config;
+
+        let selectedFiles = [];
+        let croppedFiles = [];
+        let cropOrientations = [];
+        let currentCropperInstance = null;
+        let currentCropIndex = -1;
+        let currentOrientation = "landscape";
+
+        const modal = document.getElementById(`select-photos-modal-${productId}`);
+        const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
+        const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
+        const removeAllFilesButton = modal.querySelector("#remove-all-files-btn");
+        const uploadStatus = document.getElementById(`upload-status-${productId}`);
+        const mediaUploadStatus = document.getElementById(`media-upload-status-${productId}`);
+        const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
+        const imageToCrop = modal.querySelector("#image-to-crop");
+        const cropCancel = modal.querySelector("#crop-cancel");
+        const cropApply = modal.querySelector("#crop-apply");
+        const uploadButton = modal.querySelector("#upload-btn-main");
+        const uploadConfirmEl = modal.querySelector("#upload-confirm");
+        const confirmUploadBtn = modal.querySelector("#confirm-upload-btn");
+        const confirmCancelBtn = modal.querySelector("#confirm-cancel-btn");
+        const removeAllConfirmEl = modal.querySelector("#remove-all-confirm");
+        const removeAllConfirmBtn = modal.querySelector("#remove-all-confirm-btn");
+        const removeAllCancelBtn = modal.querySelector("#remove-all-cancel-btn");
+        const selectPhotosButton = document.getElementById(`select-photos-button-${productId}`);
+        const editModalCloseBtn = modal.querySelector("#edit-modal-close-btn");
+        const footerActionsEl = modal.querySelector(".modal-footer-actions");
+        const uploadArea = modal.querySelector(".upload-area");
+        const uploadProgressEl = modal.querySelector("#upload-progress");
+        const progressBarFill = modal.querySelector("#progress-bar-fill");
+        const progressText = modal.querySelector("#progress-text");
+        const uploadCompleteEl = modal.querySelector("#upload-complete");
+        const processingIndicator = modal.querySelector("#processing-indicator");
+        const processingTextEl = processingIndicator.querySelector(".processing-text");
+
+        // Orientation elements (rectangle only)
+        const orientationLandscapeBtn = hasOrientation ? modal.querySelector("#orientation-landscape") : null;
+        const orientationPortraitBtn = hasOrientation ? modal.querySelector("#orientation-portrait") : null;
+
+        function getAspectRatio() {
+          if (hasOrientation) {
+            return currentOrientation === "landscape" ? landscapeRatio : portraitRatio;
+          }
+          return aspectRatio;
+        }
+
+        function getDefaultRatio() {
+          return hasOrientation ? landscapeRatio : aspectRatio;
+        }
+
+        // Drag and drop
+        uploadArea.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          uploadArea.style.backgroundColor = "#e5e7eb";
+        });
+        uploadArea.addEventListener("dragleave", (e) => {
+          e.preventDefault();
+          uploadArea.style.backgroundColor = "";
+        });
+        uploadArea.addEventListener("drop", (e) => {
+          e.preventDefault();
+          uploadArea.style.backgroundColor = "";
+          const files = Array.from(e.dataTransfer.files);
+          if (files.length) addFilesToFileInput(files);
+        });
+
+        customUploadButton.addEventListener("click", () => actualFileInput.click());
+
+        removeAllFilesButton.addEventListener("click", () => {
+          removeAllConfirmEl.classList.add("active");
+          footerActionsEl.style.display = "none";
+        });
+        removeAllCancelBtn.addEventListener("click", () => {
+          removeAllConfirmEl.classList.remove("active");
+          footerActionsEl.style.display = "flex";
+        });
+        removeAllConfirmBtn.addEventListener("click", () => {
+          removeAllConfirmEl.classList.remove("active");
+          footerActionsEl.style.display = "flex";
+          removeAllFiles();
+        });
+
+        uploadButton.addEventListener("click", () => {
+          if (croppedFiles.length < maxFiles) {
+            mediaUploadStatus.textContent = `You have ${croppedFiles.length} chosen images. Please select exactly ${maxFiles} images before uploading.`;
+            return;
+          }
+          mediaUploadStatus.textContent = "";
+          uploadConfirmEl.classList.add("active");
+          footerActionsEl.style.display = "none";
+        });
+
+        confirmCancelBtn.addEventListener("click", () => {
+          uploadConfirmEl.classList.remove("active");
+          footerActionsEl.style.display = "flex";
+        });
+
+        confirmUploadBtn.addEventListener("click", async () => {
+          uploadConfirmEl.classList.remove("active");
+          uploadButton.disabled = true;
+          uploadButton.textContent = "Uploading...";
+          footerActionsEl.style.display = "flex";
+          removeAllFilesButton.style.display = "none";
+          mediaUploadStatus.textContent = "";
+          uploadProgressEl.classList.add("active");
+          uploadCompleteEl.classList.remove("active");
+
+          const sessionId = generateSessionId();
+          let uploadedCount = 0;
+          let hasError = false;
+
+          for (let index = 0; index < croppedFiles.length; index++) {
+            try {
+              progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
+              progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
+              await uploadToCloudinary(croppedFiles[index], `${sessionId}_${index + 1}`);
+              uploadedCount++;
+              progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
+            } catch (error) {
+              hasError = true;
+              break;
+            }
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          uploadProgressEl.classList.remove("active");
+
+          if (hasError) {
+            mediaUploadStatus.textContent = `Upload failed on image ${uploadedCount + 1}. Please try again.`;
+            uploadButton.disabled = false;
+            uploadButton.textContent = "Upload";
+            if (selectedFiles.length > 0) removeAllFilesButton.style.display = "block";
+          } else {
+            uploadCompleteEl.classList.add("active");
+            uploadButton.textContent = "Done";
+            uploadButton.disabled = false;
+            selectPhotosButton.textContent = "Photos uploaded";
+            document.dispatchEvent(new CustomEvent("photosUploaded"));
+            uploadButton.onclick = () => closeModal(`select-photos-modal-${productId}`);
+          }
+        });
+
+        function addFilesToFileInput(files) {
+          const newFiles = Array.from(files);
+          if (selectedFiles.length + newFiles.length > maxFiles) {
+            uploadStatus.textContent = `You can only upload a maximum of ${maxFiles} images.`;
+            return;
+          }
+          processNewFiles(newFiles);
+        }
+
+        actualFileInput.addEventListener("change", (e) => {
+          addFilesToFileInput(Array.from(e.target.files));
+        });
+
+        // Orientation toggle (rectangle only)
+        function updateOrientationToggle() {
+          if (!hasOrientation) return;
+          if (currentOrientation === "landscape") {
+            orientationLandscapeBtn.classList.add("active");
+            orientationPortraitBtn.classList.remove("active");
+          } else {
+            orientationLandscapeBtn.classList.remove("active");
+            orientationPortraitBtn.classList.add("active");
+          }
+        }
+
+        if (hasOrientation && orientationLandscapeBtn) {
+          orientationLandscapeBtn.addEventListener("click", () => {
+            if (!currentCropperInstance || currentOrientation === "landscape") return;
+            currentOrientation = "landscape";
+            updateOrientationToggle();
+            currentCropperInstance.setAspectRatio(landscapeRatio);
+            drawSafeArea();
+          });
+        }
+
+        if (hasOrientation && orientationPortraitBtn) {
+          orientationPortraitBtn.addEventListener("click", () => {
+            if (!currentCropperInstance || currentOrientation === "portrait") return;
+            currentOrientation = "portrait";
+            updateOrientationToggle();
+            currentCropperInstance.setAspectRatio(portraitRatio);
+            drawSafeArea();
+          });
+        }
+
+        function startCropping(index) {
+          currentCropIndex = index;
+          const file = selectedFiles[index];
+          if (hasOrientation) {
+            currentOrientation = cropOrientations[index] || "landscape";
+            updateOrientationToggle();
+          }
+          const ratio = getAspectRatio();
+          const objectUrl = URL.createObjectURL(file);
+
+          imageToCrop.onload = function() {
+            currentCropperInstance = new Cropper(imageToCrop, {
+              aspectRatio: ratio,
+              viewMode: 1,
+              guides: true,
+              autoCropArea: 0.8,
+              movable: true,
+              rotatable: true,
+              scalable: true,
+              zoomable: true,
+              ready: () => drawSafeArea(),
+              cropmove: () => drawSafeArea(),
+            });
+          };
+          imageToCrop.src = objectUrl;
+        }
+
+        cropApply.addEventListener("click", () => {
+          if (!currentCropperInstance) return;
+          const cropData = currentCropperInstance.getData();
+          const srcW = Math.round(cropData.width);
+          const srcH = Math.round(cropData.height);
+          const shortSide = Math.min(srcW, srcH);
+          const scale = Math.min(2000 / shortSide, 1);
+          const width = Math.round(srcW * scale);
+          const height = Math.round(srcH * scale);
+
+          const croppedCanvas = currentCropperInstance.getCroppedCanvas({
+            width, height, fillColor: "#fff",
+          });
+
+          if (hasOrientation) cropOrientations[currentCropIndex] = currentOrientation;
+
+          croppedCanvas.toBlob((blob) => {
+            croppedFiles[currentCropIndex] = new File([blob], selectedFiles[currentCropIndex].name, {
+              type: "image/jpeg",
+              lastModified: new Date().getTime(),
+            });
+            currentCropperInstance.destroy();
+            currentCropperInstance = null;
+            closeEditModal();
+          }, "image/jpeg", 0.92);
+        });
+
+        cropCancel.addEventListener("click", () => {
+          if (currentCropperInstance) {
+            currentCropperInstance.destroy();
+            currentCropperInstance = null;
+          }
+          closeEditModal();
+        });
+
+        editModalCloseBtn.addEventListener("click", () => {
+          if (currentCropperInstance) {
+            currentCropperInstance.destroy();
+            currentCropperInstance = null;
+          }
+          closeEditModal();
+        });
+
+        function closeEditModal() {
+          const cropModal = modal.querySelector("#edit-photos-modal");
+          cropModal.classList.remove("active");
+          imageToCrop.src = "";
+          currentCropIndex = -1;
+          closeModal("edit-photos-modal");
+          processThumbnails();
+        }
+
+        function updateUploadUI() {
+          fileCountDisplay.textContent = `${selectedFiles.length}/${maxFiles} images selected`;
+          const removeAllFilesBtn = modal.querySelector(".remove-all-files-btn");
+          removeAllFilesBtn.style.display = selectedFiles.length === 0 ? "none" : "block";
+          if (selectedFiles.length === maxFiles) {
+            uploadArea.style.display = "none";
+            modal.querySelector(".post-selection-info").style.display = "flex";
+            uploadButton.disabled = false;
+          } else {
+            uploadArea.style.display = "flex";
+            modal.querySelector(".post-selection-info").style.display = "none";
+            uploadButton.disabled = true;
+          }
+        }
+
+        async function compressImage(file, index, minShortSide = 2000, quality = 0.92) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.onload = (e) => {
+              const img = new Image();
+              img.src = e.target.result;
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                const shortSide = Math.min(img.width, img.height);
+                const scale = Math.min(minShortSide / shortSide, 1);
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+              };
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        function createDefaultCrop(blob) {
+          return new Promise((resolve) => {
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+              URL.revokeObjectURL(url);
+              const targetRatio = getDefaultRatio();
+              let cropWidth, cropHeight;
+              if (img.width / img.height > targetRatio) {
+                cropHeight = img.height;
+                cropWidth = cropHeight * targetRatio;
+              } else {
+                cropWidth = img.width;
+                cropHeight = cropWidth / targetRatio;
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = cropWidth;
+              canvas.height = cropHeight;
+              const ctx = canvas.getContext("2d");
+              const sx = (img.width - cropWidth) / 2;
+              const sy = (img.height - cropHeight) / 2;
+              ctx.drawImage(img, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+              canvas.toBlob((croppedBlob) => resolve(croppedBlob), "image/jpeg", 0.92);
+            };
+            img.src = url;
+          });
+        }
+
+        async function processNewFiles(files) {
+          if (files.length === 0) return;
+          processingTextEl.textContent = files.length === 1
+            ? "Processing image..."
+            : `Processing image 1 of ${files.length}...`;
+          processingIndicator.classList.add("active");
+
+          const initialLength = selectedFiles.length;
+          for (let i = 0; i < files.length; i++) {
+            if (files.length > 1) {
+              processingTextEl.textContent = `Processing image ${i + 1} of ${files.length}...`;
+            }
+            const indexToInsert = initialLength + i;
+            const compressed = await compressImage(files[i], indexToInsert);
+            selectedFiles[indexToInsert] = compressed;
+            croppedFiles[indexToInsert] = await createDefaultCrop(compressed);
+            if (hasOrientation) cropOrientations[indexToInsert] = "landscape";
+          }
+
+          processingIndicator.classList.remove("active");
+          processThumbnails();
+          updateUploadUI();
+        }
+
+        function processThumbnails() {
+          const placeholderContainer = modal.querySelector(".thumbnail-container");
+          const mainContainer = modal.querySelector(".main-thumbnail-container");
+          if (placeholderContainer) placeholderContainer.innerHTML = "";
+          if (mainContainer) mainContainer.innerHTML = "";
+
+          const maxFilesAdded = selectedFiles.length === maxFiles;
+          const container = maxFilesAdded ? mainContainer : placeholderContainer;
+          const containers = new Array(selectedFiles.length);
+          let imagesLoaded = 0;
+
+          selectedFiles.forEach((file, index) => {
+            const sourceFile = croppedFiles[index] || file;
+            const reader = new FileReader();
+            reader.onerror = () => {
+              imagesLoaded++;
+              if (imagesLoaded === selectedFiles.length) {
+                containers.forEach((c) => { if (c) container.appendChild(c); });
+              }
+            };
+            reader.onload = (e) => {
+              const actionButtons = document.createElement("div");
+              actionButtons.className = "thumbnail-action-buttons";
+
+              const editBtn = document.createElement("button");
+              editBtn.className = "thumbnail-action-btn";
+              editBtn.title = "Edit";
+              editBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z" stroke="currentColor" stroke-width="1.5"/><path d="M14.06 6.44a1.5 1.5 0 0 0 0-2.12l-1.38-1.38a1.5 1.5 0 0 0-2.12 0l-1.06 1.06 3.5 3.5 1.06-1.06z" stroke="currentColor" stroke-width="1.5"/></svg>`;
+              editBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const editModal = modal.querySelector("#edit-photos-modal");
+                editModal.classList.add("active");
+                startCropping(index);
+              };
+
+              const deleteBtn = document.createElement("button");
+              deleteBtn.className = "thumbnail-action-btn";
+              deleteBtn.title = "Remove";
+              deleteBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M6 8v6m4-6v6m4-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4m5-2h-2a2 2 0 0 0-2 2v2h8V4a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+              deleteBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                removeFile(index);
+              };
+
+              actionButtons.appendChild(editBtn);
+              actionButtons.appendChild(deleteBtn);
+
+              const imgContainer = document.createElement("div");
+              imgContainer.classList.add(maxFilesAdded ? "main-thumbnail-img-container" : "placeholder-thumbnail-img-container");
+              imgContainer.style.position = "relative";
+              imgContainer.style.display = "inline-flex";
+
+              const imgElement = document.createElement("img");
+              imgElement.src = e.target.result;
+              imgElement.classList.add(maxFilesAdded ? "main-thumbnail" : "placeholder-thumbnail");
+              imgElement.onclick = (ev) => {
+                ev.stopPropagation();
+                const editModal = modal.querySelector("#edit-photos-modal");
+                editModal.classList.add("active");
+                startCropping(index);
+              };
+
+              imgContainer.appendChild(imgElement);
+              imgContainer.appendChild(actionButtons);
+              containers[index] = imgContainer;
+              imagesLoaded++;
+
+              if (imagesLoaded === selectedFiles.length) {
+                containers.forEach((c) => { if (c) container.appendChild(c); });
+                if (maxFilesAdded) {
+                  const images = container.querySelectorAll("img");
+                  let renderedCount = 0;
+                  images.forEach((img) => {
+                    if (img.complete) {
+                      renderedCount++;
+                      if (renderedCount === images.length) handleSafeAreaOverlay();
+                    } else {
+                      img.onload = () => {
+                        renderedCount++;
+                        if (renderedCount === images.length) handleSafeAreaOverlay();
+                      };
+                    }
+                  });
+                }
+              }
+            };
+            reader.readAsDataURL(sourceFile);
+          });
+        }
+
+        function handleSafeAreaOverlay() {
+          const thumbnails = modal.querySelectorAll(".main-thumbnail-img-container");
+          thumbnails.forEach((thumbnail) => {
+            const img = thumbnail.querySelector("img");
+            const cW = thumbnail.clientWidth, cH = thumbnail.clientHeight;
+            const iW = img.clientWidth, iH = img.clientHeight;
+            const imgLeft = (cW - iW) / 2, imgTop = (cH - iH) / 2;
+            const safeW = iW * SAFE_AREA_PERCENTAGE, safeH = iH * SAFE_AREA_PERCENTAGE;
+            const safeLeft = imgLeft + (iW - safeW) / 2, safeTop = imgTop + (iH - safeH) / 2;
+            const oc = "rgba(0, 0, 0, 0.25)";
+
+            const topO = document.createElement("div");
+            topO.classList.add("safe-area-overlay");
+            topO.style.cssText = `position:absolute;top:0;left:0;right:0;height:${safeTop}px;background:${oc};pointer-events:none;z-index:1;`;
+            thumbnail.appendChild(topO);
+
+            const bottomO = document.createElement("div");
+            bottomO.classList.add("safe-area-overlay");
+            bottomO.style.cssText = `position:absolute;bottom:0;left:0;right:0;height:${cH - safeTop - safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+            thumbnail.appendChild(bottomO);
+
+            const leftO = document.createElement("div");
+            leftO.classList.add("safe-area-overlay");
+            leftO.style.cssText = `position:absolute;top:${safeTop}px;left:0;width:${safeLeft}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+            thumbnail.appendChild(leftO);
+
+            const rightO = document.createElement("div");
+            rightO.classList.add("safe-area-overlay");
+            rightO.style.cssText = `position:absolute;top:${safeTop}px;right:0;width:${cW - safeLeft - safeW}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+            thumbnail.appendChild(rightO);
+
+            const border = document.createElement("div");
+            border.classList.add("safe-area-overlay");
+            border.style.cssText = `position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
+            thumbnail.appendChild(border);
+          });
+        }
+
+        window.addEventListener("resize", () => {
+          if (modal.classList.contains("active")) {
+            modal.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+            handleSafeAreaOverlay();
+          }
+        });
+
+        function drawSafeArea() {
+          if (!currentCropperInstance) return;
+          const existing = modal.querySelector(".safe-print-container");
+          if (existing) existing.remove();
+
+          const cropBox = currentCropperInstance.getCropBoxData();
+          const safeW = cropBox.width * SAFE_AREA_PERCENTAGE;
+          const safeH = cropBox.height * SAFE_AREA_PERCENTAGE;
+          const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+          const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+
+          const container = document.createElement("div");
+          container.className = "safe-print-container";
+          container.style.cssText = `position:absolute;left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;pointer-events:none;`;
+
+          const label = document.createElement("div");
+          label.textContent = "Safe Print Area";
+          label.style.cssText = "position:absolute;top:-8px;left:4px;background:rgba(0,120,255,0.8);color:white;padding:2px 6px;font-size:12px;border-radius:3px;";
+          container.appendChild(label);
+
+          const area = document.createElement("div");
+          area.className = "safe-print-area";
+          area.style.cssText = `position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,0.25);pointer-events:none;z-index:2000;`;
+          container.appendChild(area);
+
+          modal.querySelector(".cropper-container").appendChild(container);
+        }
+
+        function removeFile(index) {
+          if (index < 0 || index >= selectedFiles.length) return;
+          selectedFiles.splice(index, 1);
+          croppedFiles.splice(index, 1);
+          if (hasOrientation) cropOrientations.splice(index, 1);
+          if (selectedFiles.length === 0) actualFileInput.value = "";
+          processThumbnails();
+          updateUploadUI();
+        }
+
+        function removeAllFiles() {
+          selectedFiles = [];
+          croppedFiles = [];
+          cropOrientations = [];
+          actualFileInput.value = "";
+          processThumbnails();
+          updateUploadUI();
+        }
+      }
+
+      return { init, openModal, closeModal };
+    })();
+
+    // Variant tab switching
+    function showVariant(variant) {
+      document.querySelectorAll('.variant-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.variant-container').forEach(container => container.classList.remove('active'));
+
+      if (variant === 'square') {
+        document.querySelector('.variant-tab:first-child').classList.add('active');
+        document.getElementById('square-variant').classList.add('active');
+      } else {
+        document.querySelector('.variant-tab:last-child').classList.add('active');
+        document.getElementById('rectangle-variant').classList.add('active');
+      }
+    }
+
+    // Initialize both variants
+    document.addEventListener("DOMContentLoaded", function() {
+      PhotoUploader.init({
+        productId: 'square-test',
+        maxFiles: 9,
+        aspectRatio: 1,
+        hasOrientation: false
+      });
+
+      PhotoUploader.init({
+        productId: 'rect-test',
+        maxFiles: 6,
+        landscapeRatio: 16 / 9,
+        portraitRatio: 9 / 16,
+        hasOrientation: true
+      });
+    });
+  </script>
+</body>
+</html>
