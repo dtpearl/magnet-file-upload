@@ -1055,13 +1055,18 @@
 
         confirmUploadBtn.addEventListener("click", async () => {
           uploadConfirmEl.classList.remove("active");
+          uploadConfirmEl.style.display = "none";
           uploadButton.disabled = true;
           uploadButton.textContent = "Uploading...";
           footerActionsEl.style.display = "flex";
           removeAllFilesButton.style.display = "none";
           mediaUploadStatus.textContent = "";
           uploadProgressEl.classList.add("active");
+          uploadProgressEl.style.display = "flex";
+          progressBarFill.style.display = "block";
+          progressBarFill.style.width = "0%";
           uploadCompleteEl.classList.remove("active");
+          uploadCompleteEl.style.display = "none";
 
           const sessionId = generateSessionId();
           let uploadedCount = 0;
@@ -1082,6 +1087,7 @@
 
           await new Promise((resolve) => setTimeout(resolve, 1000));
           uploadProgressEl.classList.remove("active");
+          uploadProgressEl.style.display = "none";
 
           if (hasError) {
             mediaUploadStatus.textContent = `Upload failed on image ${uploadedCount + 1}. Please try again.`;
@@ -1090,6 +1096,7 @@
             if (selectedFiles.length > 0) removeAllFilesButton.style.display = "block";
           } else {
             uploadCompleteEl.classList.add("active");
+            uploadCompleteEl.style.display = "flex";
             uploadButton.textContent = "Done";
             uploadButton.disabled = false;
             selectPhotosButton.textContent = "Photos uploaded";
@@ -1414,27 +1421,27 @@
 
             const topO = document.createElement("div");
             topO.classList.add("safe-area-overlay");
-            topO.style.cssText = `position:absolute;top:0;left:0;right:0;height:${safeTop}px;background:${oc};pointer-events:none;z-index:1;`;
+            topO.style.cssText = `display:block;position:absolute;top:0;left:0;right:0;height:${safeTop}px;background:${oc};pointer-events:none;z-index:1;`;
             thumbnail.appendChild(topO);
 
             const bottomO = document.createElement("div");
             bottomO.classList.add("safe-area-overlay");
-            bottomO.style.cssText = `position:absolute;bottom:0;left:0;right:0;height:${cH - safeTop - safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+            bottomO.style.cssText = `display:block;position:absolute;bottom:0;left:0;right:0;height:${cH - safeTop - safeH}px;background:${oc};pointer-events:none;z-index:1;`;
             thumbnail.appendChild(bottomO);
 
             const leftO = document.createElement("div");
             leftO.classList.add("safe-area-overlay");
-            leftO.style.cssText = `position:absolute;top:${safeTop}px;left:0;width:${safeLeft}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+            leftO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:0;width:${safeLeft}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
             thumbnail.appendChild(leftO);
 
             const rightO = document.createElement("div");
             rightO.classList.add("safe-area-overlay");
-            rightO.style.cssText = `position:absolute;top:${safeTop}px;right:0;width:${cW - safeLeft - safeW}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+            rightO.style.cssText = `display:block;position:absolute;top:${safeTop}px;right:0;width:${cW - safeLeft - safeW}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
             thumbnail.appendChild(rightO);
 
             const border = document.createElement("div");
             border.classList.add("safe-area-overlay");
-            border.style.cssText = `position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
+            border.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
             thumbnail.appendChild(border);
           });
         }
@@ -1459,16 +1466,16 @@
 
           const container = document.createElement("div");
           container.className = "safe-print-container";
-          container.style.cssText = `position:absolute;left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;pointer-events:none;`;
+          container.style.cssText = `display:block;position:absolute;left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;pointer-events:none;`;
 
           const label = document.createElement("div");
           label.textContent = "Safe Print Area";
-          label.style.cssText = "position:absolute;top:-8px;left:4px;background:rgba(0,120,255,0.8);color:white;padding:2px 6px;font-size:12px;border-radius:3px;";
+          label.style.cssText = "display:block;position:absolute;top:-8px;left:4px;background:rgba(0,120,255,0.8);color:white;padding:2px 6px;font-size:12px;border-radius:3px;";
           container.appendChild(label);
 
           const area = document.createElement("div");
           area.className = "safe-print-area";
-          area.style.cssText = `position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,0.25);pointer-events:none;z-index:2000;`;
+          area.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,0.25);pointer-events:none;z-index:2000;`;
           container.appendChild(area);
 
           modal.querySelector(".cropper-container").appendChild(container);
