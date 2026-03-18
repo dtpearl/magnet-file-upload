@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Shared CSS for photo upload components (square and rectangle variants).
+  Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
 <style>
@@ -236,6 +236,10 @@
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 32px;
+  }
+  .main-thumbnail-container.single-image {
+    grid-template-columns: 1fr;
+    max-width: 400px;
   }
   .thumbnail-container {
     display: flex;

@@ -79,8 +79,10 @@
   </div>
 
   <div class="variant-tabs">
-    <button class="variant-tab active" onclick="showVariant('square')">Square (9 photos)</button>
-    <button class="variant-tab" onclick="showVariant('rectangle')">Rectangle (6 photos)</button>
+    <button class="variant-tab active" data-variant="square" onclick="showVariant('square')">Square (9 photos)</button>
+    <button class="variant-tab" data-variant="rectangle" onclick="showVariant('rectangle')">Rectangle (6 photos)</button>
+    <button class="variant-tab" data-variant="bulk-square" onclick="showVariant('bulk-square')">Bulk Square (1 photo)</button>
+    <button class="variant-tab" data-variant="bulk-rectangle" onclick="showVariant('bulk-rectangle')">Bulk Rectangle (1 photo)</button>
   </div>
 
   <!-- Square Variant -->
@@ -314,6 +316,266 @@
             </button>
           </div>
           <p class="content-subtitle">Click pictures to resize or crop</p>
+          <div class="crop-container">
+            <img id="image-to-crop" src="" alt="Image to crop" />
+          </div>
+          <div class="crop-controls">
+            <div class="orientation-toggle">
+              <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="6" width="20" height="12" rx="2" />
+                </svg>
+                Landscape
+              </button>
+              <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="6" y="2" width="12" height="20" rx="2" />
+                </svg>
+                Portrait
+              </button>
+            </div>
+            <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+            <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+          </div>
+          <div>
+            <p>The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Square Variant -->
+  <div id="bulk-square-variant" class="variant-container">
+    <div class="variant-info">
+      <strong>Bulk Square Variant:</strong> 1 photo, 1:1 aspect ratio, no orientation toggle
+    </div>
+    <div class="file-upload-container" data-product-id="bulk-sq-test">
+      <button
+        class="button select-photos-button"
+        id="select-photos-button-bulk-sq-test"
+        onclick="PhotoUploader.openModal('select-photos-modal-bulk-sq-test')"
+      >
+        Select photo
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="upload-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="select-photos-modal-bulk-sq-test" class="select-photos-modal">
+      <button class="close-btn" onclick="PhotoUploader.closeModal('select-photos-modal-bulk-sq-test')" aria-label="Close modal" title="Close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="modal-content">
+        <div class="main-thumbnail-container single-image"></div>
+        <div class="upload-area">
+          <input title="File Input" type="file" id="actual-file-input-bulk-sq-test" class="hidden-file-input" accept="image/*" />
+          <div class="upload-text">
+            <h3>drag & drop</h3>
+            <h3>your photo</h3>
+            <p class="or-text">or</p>
+          </div>
+          <button id="custom-upload-button-bulk-sq-test" class="upload-btn">Upload from camera roll or PC</button>
+          <div id="upload-status-bulk-sq-test" class="upload-status"></div>
+          <div id="file-count-display-bulk-sq-test"></div>
+          <div id="processing-indicator" class="processing-indicator">
+            <svg class="processing-spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#d6cec6" stroke-width="5" />
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#95887a" stroke-width="5" stroke-dasharray="31.4 94.2" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+            </svg>
+            <span class="processing-text">Processing image...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Image preview</h2>
+          </div>
+          <p class="content-subtitle">Click image to resize or crop</p>
+          <div class="thumbnail-container"></div>
+        </div>
+        <div class="post-selection-info">
+          <div>Your chosen image has been cropped to fit on square magnets.</div>
+          <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+          <div>Please review before placing your order.</div>
+        </div>
+        <div class="modal-footer">
+          <div id="media-upload-status-bulk-sq-test" class="upload-status"></div>
+          <div id="upload-progress" class="upload-progress">
+            <div class="progress-bar-track">
+              <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+            <span id="progress-text" class="progress-text">Uploading...</span>
+          </div>
+          <div id="upload-complete" class="upload-complete">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p>Image uploaded successfully!</p>
+          </div>
+          <div id="remove-all-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Remove selected image? This cannot be undone.</p>
+            <div class="upload-confirm-actions">
+              <button id="remove-all-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="remove-all-confirm-btn" class="confirm-upload-btn">Yes, remove</button>
+            </div>
+          </div>
+          <div id="upload-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Is your photo looking good? Once uploaded it cannot be changed.</p>
+            <div class="upload-confirm-actions">
+              <button id="confirm-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="confirm-upload-btn" class="confirm-upload-btn">Yes, upload</button>
+            </div>
+          </div>
+          <div class="modal-footer-actions">
+            <button id="remove-all-files-btn" class="remove-all-files-btn">Remove image</button>
+            <button id="upload-btn-main" class="add-to-cart-btn" disabled>Upload</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-photos-modal" class="edit-photos-modal">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Crop your image</h2>
+            <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <p class="content-subtitle">Adjust the crop area for your image</p>
+          <div class="crop-container">
+            <img id="image-to-crop" src="" alt="Image to crop" />
+          </div>
+          <div class="crop-controls">
+            <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+            <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+          </div>
+          <div>
+            <p>The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Rectangle Variant -->
+  <div id="bulk-rectangle-variant" class="variant-container">
+    <div class="variant-info">
+      <strong>Bulk Rectangle Variant:</strong> 1 photo, 16:9/9:16 aspect ratio with orientation toggle
+    </div>
+    <div class="file-upload-container" data-product-id="bulk-rect-test">
+      <button
+        class="button select-photos-button"
+        id="select-photos-button-bulk-rect-test"
+        onclick="PhotoUploader.openModal('select-photos-modal-bulk-rect-test')"
+      >
+        Select photo
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="upload-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="select-photos-modal-bulk-rect-test" class="select-photos-modal">
+      <button class="close-btn" onclick="PhotoUploader.closeModal('select-photos-modal-bulk-rect-test')" aria-label="Close modal" title="Close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="modal-content">
+        <div class="main-thumbnail-container single-image"></div>
+        <div class="upload-area">
+          <input title="File Input" type="file" id="actual-file-input-bulk-rect-test" class="hidden-file-input" accept="image/*" />
+          <div class="upload-text">
+            <h3>drag & drop</h3>
+            <h3>your photo</h3>
+            <p class="or-text">or</p>
+          </div>
+          <button id="custom-upload-button-bulk-rect-test" class="upload-btn">Upload from camera roll or PC</button>
+          <div id="upload-status-bulk-rect-test" class="upload-status"></div>
+          <div id="file-count-display-bulk-rect-test"></div>
+          <div id="processing-indicator" class="processing-indicator">
+            <svg class="processing-spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#d6cec6" stroke-width="5" />
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#95887a" stroke-width="5" stroke-dasharray="31.4 94.2" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+            </svg>
+            <span class="processing-text">Processing image...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Image preview</h2>
+          </div>
+          <p class="content-subtitle">Click image to resize or crop</p>
+          <div class="thumbnail-container"></div>
+        </div>
+        <div class="post-selection-info">
+          <div>Your chosen image has been cropped to fit on rectangular magnets.</div>
+          <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+          <div>Please review before placing your order.</div>
+        </div>
+        <div class="modal-footer">
+          <div id="media-upload-status-bulk-rect-test" class="upload-status"></div>
+          <div id="upload-progress" class="upload-progress">
+            <div class="progress-bar-track">
+              <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+            <span id="progress-text" class="progress-text">Uploading...</span>
+          </div>
+          <div id="upload-complete" class="upload-complete">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p>Image uploaded successfully!</p>
+          </div>
+          <div id="remove-all-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Remove selected image? This cannot be undone.</p>
+            <div class="upload-confirm-actions">
+              <button id="remove-all-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="remove-all-confirm-btn" class="confirm-upload-btn">Yes, remove</button>
+            </div>
+          </div>
+          <div id="upload-confirm" class="upload-confirm">
+            <p class="upload-confirm-text">Is your photo looking good? Once uploaded it cannot be changed.</p>
+            <div class="upload-confirm-actions">
+              <button id="confirm-cancel-btn" class="confirm-cancel-btn">Go back</button>
+              <button id="confirm-upload-btn" class="confirm-upload-btn">Yes, upload</button>
+            </div>
+          </div>
+          <div class="modal-footer-actions">
+            <button id="remove-all-files-btn" class="remove-all-files-btn">Remove image</button>
+            <button id="upload-btn-main" class="add-to-cart-btn" disabled>Upload</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="edit-photos-modal" class="edit-photos-modal">
+        <div class="modal-header">
+          <div class="modal-title-container">
+            <h2 class="modal-title">Crop your image</h2>
+            <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <p class="content-subtitle">Adjust the crop area for your image</p>
           <div class="crop-container">
             <img id="image-to-crop" src="" alt="Image to crop" />
           </div>
@@ -577,6 +839,10 @@
       max-width: 1280px;
       margin: 0 auto;
       padding: 0 32px;
+    }
+    .main-thumbnail-container.single-image {
+      grid-template-columns: 1fr;
+      max-width: 400px;
     }
     .thumbnail-container {
       display: flex;
@@ -1508,17 +1774,11 @@
     function showVariant(variant) {
       document.querySelectorAll('.variant-tab').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.variant-container').forEach(container => container.classList.remove('active'));
-
-      if (variant === 'square') {
-        document.querySelector('.variant-tab:first-child').classList.add('active');
-        document.getElementById('square-variant').classList.add('active');
-      } else {
-        document.querySelector('.variant-tab:last-child').classList.add('active');
-        document.getElementById('rectangle-variant').classList.add('active');
-      }
+      document.getElementById(variant + '-variant').classList.add('active');
+      document.querySelector(`.variant-tab[data-variant="${variant}"]`).classList.add('active');
     }
 
-    // Initialize both variants
+    // Initialize all variants
     document.addEventListener("DOMContentLoaded", function() {
       PhotoUploader.init({
         productId: 'square-test',
@@ -1530,6 +1790,21 @@
       PhotoUploader.init({
         productId: 'rect-test',
         maxFiles: 6,
+        landscapeRatio: 16 / 9,
+        portraitRatio: 9 / 16,
+        hasOrientation: true
+      });
+
+      PhotoUploader.init({
+        productId: 'bulk-sq-test',
+        maxFiles: 1,
+        aspectRatio: 1,
+        hasOrientation: false
+      });
+
+      PhotoUploader.init({
+        productId: 'bulk-rect-test',
+        maxFiles: 1,
         landscapeRatio: 16 / 9,
         portraitRatio: 9 / 16,
         hasOrientation: true

@@ -1,0 +1,134 @@
+{% if product.metafields.custom.image_uploader_shape == 'bulk_square' %}
+<!--
+  Photo Upload - Bulk Square Variant
+  1 photo, 1:1 aspect ratio
+  Requires: photo-upload-styles.html, photo-upload-core.html
+-->
+<div class="file-upload-container" data-product-id="{{ product.id }}">
+  <button
+    class="button select-photos-button"
+    id="select-photos-button-{{ product.id }}"
+    onclick="PhotoUploader.openModal('select-photos-modal-{{ product.id }}')"
+  >
+    Select photo
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="upload-icon">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5" />
+    </svg>
+  </button>
+</div>
+
+<div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
+  <button class="close-btn" onclick="PhotoUploader.closeModal('select-photos-modal-{{ product.id }}')" aria-label="Close modal" title="Close">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
+
+  <div class="modal-content">
+    <div class="main-thumbnail-container single-image"></div>
+    <div class="upload-area">
+      <input title="File Input" type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" />
+      <div class="upload-text">
+        <h3>drag & drop</h3>
+        <h3>your photo</h3>
+        <p class="or-text">or</p>
+      </div>
+      <button id="custom-upload-button-{{ product.id }}" class="upload-btn">Upload from camera roll or PC</button>
+      <div id="upload-status-{{ product.id }}" class="upload-status"></div>
+      <div id="file-count-display-{{ product.id }}"></div>
+      <div id="processing-indicator" class="processing-indicator">
+        <svg class="processing-spinner" viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="#d6cec6" stroke-width="5" />
+          <circle cx="25" cy="25" r="20" fill="none" stroke="#95887a" stroke-width="5" stroke-dasharray="31.4 94.2" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+        <span class="processing-text">Processing image...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-container">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Image preview</h2>
+      </div>
+      <p class="content-subtitle">Click image to resize or crop</p>
+      <div class="thumbnail-container"></div>
+    </div>
+    <div class="post-selection-info">
+      <div>Your chosen image has been cropped to fit on square magnets.</div>
+      <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
+      <div>Please review before placing your order.</div>
+    </div>
+    <div class="modal-footer">
+      <div id="media-upload-status-{{ product.id }}" class="upload-status"></div>
+      <div id="upload-progress" class="upload-progress">
+        <div class="progress-bar-track">
+          <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        </div>
+        <span id="progress-text" class="progress-text">Uploading...</span>
+      </div>
+      <div id="upload-complete" class="upload-complete">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p>Image uploaded successfully!</p>
+      </div>
+      <div id="remove-all-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">Remove selected image? This cannot be undone.</p>
+        <div class="upload-confirm-actions">
+          <button id="remove-all-cancel-btn" class="confirm-cancel-btn">Go back</button>
+          <button id="remove-all-confirm-btn" class="confirm-upload-btn">Yes, remove</button>
+        </div>
+      </div>
+      <div id="upload-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">Is your photo looking good? Once uploaded it cannot be changed.</p>
+        <div class="upload-confirm-actions">
+          <button id="confirm-cancel-btn" class="confirm-cancel-btn">Go back</button>
+          <button id="confirm-upload-btn" class="confirm-upload-btn">Yes, upload</button>
+        </div>
+      </div>
+      <div class="modal-footer-actions">
+        <button id="remove-all-files-btn" class="remove-all-files-btn">Remove image</button>
+        <button id="upload-btn-main" class="add-to-cart-btn" disabled>Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="edit-photos-modal" class="edit-photos-modal">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Crop your image</h2>
+        <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <p class="content-subtitle">Adjust the crop area for your image</p>
+      <div class="crop-container">
+        <img id="image-to-crop" src="" alt="Image to crop" />
+      </div>
+      <div class="crop-controls">
+        <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+        <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+      </div>
+      <div>
+        <p>The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    PhotoUploader.init({
+      productId: '{{ product.id }}',
+      maxFiles: 1,
+      aspectRatio: 1,
+      hasOrientation: false
+    });
+  });
+</script>
+{% endif %}
