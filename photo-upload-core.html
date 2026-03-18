@@ -38,13 +38,12 @@
       return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
     }
 
-    async function uploadToCloudinary(file, fileName) {
+    async function uploadToCloudinary(file, fileName, sessionId) {
       const url = "https://api.cloudinary.com/v1_1/djzc7ih0g/image/upload";
       const form = new FormData();
       form.append("upload_preset", "shopify-magnets");
-      form.append("folder", "shopify_uploads");
       form.append("tags", "order_pending");
-      form.append("public_id", fileName);
+      form.append("public_id", `shopify_uploads/${sessionId}/${fileName}`);
       form.append("file", file);
       const res = await fetch(url, { method: "POST", body: form });
       if (!res.ok) throw new Error("Upload failed");
@@ -180,7 +179,7 @@
           try {
             progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
             progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
-            await uploadToCloudinary(croppedFiles[index], `${sessionId}_${index + 1}`);
+            await uploadToCloudinary(croppedFiles[index], `${index + 1}`, sessionId);
             uploadedCount++;
             progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
           } catch (error) {
@@ -337,13 +336,16 @@
         fileCountDisplay.textContent = `${selectedFiles.length}/${maxFiles} images selected`;
         const removeAllFilesBtn = document.querySelector(".remove-all-files-btn");
         removeAllFilesBtn.style.display = selectedFiles.length === 0 ? "none" : "block";
+        const bulkClickInstruction = document.querySelector(".bulk-click-instruction");
         if (selectedFiles.length === maxFiles) {
           uploadArea.style.display = "none";
           document.querySelector(".post-selection-info").style.display = "flex";
+          if (bulkClickInstruction) bulkClickInstruction.style.display = "block";
           uploadButton.disabled = false;
         } else {
           uploadArea.style.display = "flex";
           document.querySelector(".post-selection-info").style.display = "none";
+          if (bulkClickInstruction) bulkClickInstruction.style.display = "none";
           uploadButton.disabled = true;
         }
       }

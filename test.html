@@ -370,7 +370,7 @@
         </svg>
       </button>
 
-      <div class="modal-content">
+      <div class="modal-content bulk-modal-content">
         <div class="main-thumbnail-container single-image"></div>
         <div class="upload-area">
           <input title="File Input" type="file" id="actual-file-input-bulk-sq-test" class="hidden-file-input" accept="image/*" />
@@ -392,16 +392,7 @@
             <span class="processing-text">Processing image...</span>
           </div>
         </div>
-      </div>
-
-      <div class="preview-container">
-        <div class="modal-header">
-          <div class="modal-title-container">
-            <h2 class="modal-title">Image preview</h2>
-          </div>
-          <p class="content-subtitle">Click image to resize or crop</p>
-          <div class="thumbnail-container"></div>
-        </div>
+        <p class="content-subtitle bulk-click-instruction">Click image to resize or crop</p>
         <div class="post-selection-info">
           <div>Your chosen image has been cropped to fit on square magnets.</div>
           <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
@@ -493,7 +484,7 @@
         </svg>
       </button>
 
-      <div class="modal-content">
+      <div class="modal-content bulk-modal-content">
         <div class="main-thumbnail-container single-image"></div>
         <div class="upload-area">
           <input title="File Input" type="file" id="actual-file-input-bulk-rect-test" class="hidden-file-input" accept="image/*" />
@@ -515,16 +506,7 @@
             <span class="processing-text">Processing image...</span>
           </div>
         </div>
-      </div>
-
-      <div class="preview-container">
-        <div class="modal-header">
-          <div class="modal-title-container">
-            <h2 class="modal-title">Image preview</h2>
-          </div>
-          <p class="content-subtitle">Click image to resize or crop</p>
-          <div class="thumbnail-container"></div>
-        </div>
+        <p class="content-subtitle bulk-click-instruction">Click image to resize or crop</p>
         <div class="post-selection-info">
           <div>Your chosen image has been cropped to fit on rectangular magnets.</div>
           <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
@@ -891,6 +873,22 @@
       color: #6b7280;
       font-size: 16px;
     }
+    .bulk-modal-content {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .bulk-click-instruction {
+      display: none;
+      margin-top: 16px;
+      margin-bottom: 24px;
+    }
+    .bulk-modal-content .post-selection-info {
+      margin-bottom: 24px;
+    }
+    .bulk-modal-content .modal-footer {
+      border-top: none;
+      padding-top: 0;
+    }
     .modal-footer {
       padding: 24px;
       border-top: 1px solid #e5e7eb;
@@ -1199,13 +1197,12 @@
         return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
       }
 
-      async function uploadToCloudinary(file, fileName) {
+      async function uploadToCloudinary(file, fileName, sessionId) {
         const url = "https://api.cloudinary.com/v1_1/djzc7ih0g/image/upload";
         const form = new FormData();
         form.append("upload_preset", "shopify-magnets");
-        form.append("folder", "shopify_uploads");
         form.append("tags", "order_pending");
-        form.append("public_id", fileName);
+        form.append("public_id", `shopify_uploads/${sessionId}/${fileName}`);
         form.append("file", file);
         const res = await fetch(url, { method: "POST", body: form });
         if (!res.ok) throw new Error("Upload failed");
@@ -1342,7 +1339,7 @@
             try {
               progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
               progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
-              await uploadToCloudinary(croppedFiles[index], `${sessionId}_${index + 1}`);
+              await uploadToCloudinary(croppedFiles[index], `${index + 1}`, sessionId);
               uploadedCount++;
               progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
             } catch (error) {
@@ -1499,13 +1496,16 @@
           fileCountDisplay.textContent = `${selectedFiles.length}/${maxFiles} images selected`;
           const removeAllFilesBtn = modal.querySelector(".remove-all-files-btn");
           removeAllFilesBtn.style.display = selectedFiles.length === 0 ? "none" : "block";
+          const bulkClickInstruction = modal.querySelector(".bulk-click-instruction");
           if (selectedFiles.length === maxFiles) {
             uploadArea.style.display = "none";
             modal.querySelector(".post-selection-info").style.display = "flex";
+            if (bulkClickInstruction) bulkClickInstruction.style.display = "block";
             uploadButton.disabled = false;
           } else {
             uploadArea.style.display = "flex";
             modal.querySelector(".post-selection-info").style.display = "none";
+            if (bulkClickInstruction) bulkClickInstruction.style.display = "none";
             uploadButton.disabled = true;
           }
         }

@@ -24,7 +24,7 @@
     </svg>
   </button>
 
-  <div class="modal-content">
+  <div class="modal-content bulk-modal-content">
     <div class="main-thumbnail-container single-image"></div>
     <div class="upload-area">
       <input title="File Input" type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" />
@@ -46,16 +46,7 @@
         <span class="processing-text">Processing image...</span>
       </div>
     </div>
-  </div>
-
-  <div class="preview-container">
-    <div class="modal-header">
-      <div class="modal-title-container">
-        <h2 class="modal-title">Image preview</h2>
-      </div>
-      <p class="content-subtitle">Click image to resize or crop</p>
-      <div class="thumbnail-container"></div>
-    </div>
+    <p class="content-subtitle bulk-click-instruction">Click image to resize or crop</p>
     <div class="post-selection-info">
       <div>Your chosen image has been cropped to fit on square magnets.</div>
       <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
