@@ -4,9 +4,6 @@
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
-  Liquid sync targets — update these when this file changes:
-    - TODO: <path/to/snippet.liquid> — <what it mirrors>
-    - TODO: <path/to/section.liquid> — <what it mirrors>
 -->
 <style>
   /* Visual styling for disabled cart buttons */
@@ -73,9 +70,12 @@
         }
 
         const sessionId = e.detail?.sessionId;
-        const productForm = addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
+        const productForm =
+          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
         if (sessionId && productForm) {
-          let input = productForm.querySelector('input[name="properties[_session_id]"]');
+          let input = productForm.querySelector(
+            'input[name="properties[_session_id]"]',
+          );
           if (!input) {
             input = document.createElement("input");
             input.type = "hidden";

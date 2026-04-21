@@ -8,15 +8,15 @@
   Copyright 2015-present Chen Fengyuan
   Released under the MIT License
 
-  Liquid sync targets — update these when this file changes:
-    - TODO: <path/to/snippet.liquid> — <what it mirrors>
-    - TODO: <path/to/section.liquid> — <what it mirrors>
 -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
   console.log("[photo-upload-core] v2026-04-21.1");
-  window.PhotoUploader = (function() {
+  window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
 
@@ -63,7 +63,7 @@
         aspectRatio,
         landscapeRatio,
         portraitRatio,
-        hasOrientation
+        hasOrientation,
       } = config;
 
       let selectedFiles = [];
@@ -73,12 +73,24 @@
       let currentCropIndex = -1;
       let currentOrientation = "landscape";
 
-      const actualFileInput = document.getElementById(`actual-file-input-${productId}`);
-      const customUploadButton = document.getElementById(`custom-upload-button-${productId}`);
-      const removeAllFilesButton = document.getElementById("remove-all-files-btn");
-      const uploadStatus = document.getElementById(`upload-status-${productId}`);
-      const mediaUploadStatus = document.getElementById(`media-upload-status-${productId}`);
-      const fileCountDisplay = document.getElementById(`file-count-display-${productId}`);
+      const actualFileInput = document.getElementById(
+        `actual-file-input-${productId}`,
+      );
+      const customUploadButton = document.getElementById(
+        `custom-upload-button-${productId}`,
+      );
+      const removeAllFilesButton = document.getElementById(
+        "remove-all-files-btn",
+      );
+      const uploadStatus = document.getElementById(
+        `upload-status-${productId}`,
+      );
+      const mediaUploadStatus = document.getElementById(
+        `media-upload-status-${productId}`,
+      );
+      const fileCountDisplay = document.getElementById(
+        `file-count-display-${productId}`,
+      );
       const imageToCrop = document.getElementById("image-to-crop");
       const cropCancel = document.getElementById("crop-cancel");
       const cropApply = document.getElementById("crop-apply");
@@ -87,9 +99,15 @@
       const confirmUploadBtn = document.getElementById("confirm-upload-btn");
       const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
       const removeAllConfirmEl = document.getElementById("remove-all-confirm");
-      const removeAllConfirmBtn = document.getElementById("remove-all-confirm-btn");
-      const removeAllCancelBtn = document.getElementById("remove-all-cancel-btn");
-      const selectPhotosButton = document.getElementById(`select-photos-button-${productId}`);
+      const removeAllConfirmBtn = document.getElementById(
+        "remove-all-confirm-btn",
+      );
+      const removeAllCancelBtn = document.getElementById(
+        "remove-all-cancel-btn",
+      );
+      const selectPhotosButton = document.getElementById(
+        `select-photos-button-${productId}`,
+      );
       const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
       const footerActionsEl = document.querySelector(".modal-footer-actions");
       const uploadArea = document.querySelector(".upload-area");
@@ -97,16 +115,25 @@
       const progressBarFill = document.getElementById("progress-bar-fill");
       const progressText = document.getElementById("progress-text");
       const uploadCompleteEl = document.getElementById("upload-complete");
-      const processingIndicator = document.getElementById("processing-indicator");
-      const processingTextEl = processingIndicator.querySelector(".processing-text");
+      const processingIndicator = document.getElementById(
+        "processing-indicator",
+      );
+      const processingTextEl =
+        processingIndicator.querySelector(".processing-text");
 
       // Orientation elements (rectangle only)
-      const orientationLandscapeBtn = hasOrientation ? document.getElementById("orientation-landscape") : null;
-      const orientationPortraitBtn = hasOrientation ? document.getElementById("orientation-portrait") : null;
+      const orientationLandscapeBtn = hasOrientation
+        ? document.getElementById("orientation-landscape")
+        : null;
+      const orientationPortraitBtn = hasOrientation
+        ? document.getElementById("orientation-portrait")
+        : null;
 
       function getAspectRatio() {
         if (hasOrientation) {
-          return currentOrientation === "landscape" ? landscapeRatio : portraitRatio;
+          return currentOrientation === "landscape"
+            ? landscapeRatio
+            : portraitRatio;
         }
         return aspectRatio;
       }
@@ -131,7 +158,9 @@
         if (files.length) addFilesToFileInput(files);
       });
 
-      customUploadButton.addEventListener("click", () => actualFileInput.click());
+      customUploadButton.addEventListener("click", () =>
+        actualFileInput.click(),
+      );
 
       removeAllFilesButton.addEventListener("click", () => {
         removeAllConfirmEl.classList.add("active");
@@ -186,7 +215,9 @@
             progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
             progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
             const paddedIndex = String(index + 1).padStart(2, "0");
-            const orientationPart = hasOrientation ? `-${cropOrientations[index] || "landscape"}` : "";
+            const orientationPart = hasOrientation
+              ? `-${cropOrientations[index] || "landscape"}`
+              : "";
             const fileName = `${productId}${orientationPart}-${paddedIndex}`;
             await uploadToCloudinary(croppedFiles[index], fileName, sessionId);
             uploadedCount++;
@@ -205,15 +236,21 @@
           mediaUploadStatus.textContent = `Upload failed on image ${uploadedCount + 1}. Please try again.`;
           uploadButton.disabled = false;
           uploadButton.textContent = "Upload";
-          if (selectedFiles.length > 0) removeAllFilesButton.style.display = "block";
+          if (selectedFiles.length > 0)
+            removeAllFilesButton.style.display = "block";
         } else {
           uploadCompleteEl.classList.add("active");
           uploadCompleteEl.style.display = "flex";
           uploadButton.textContent = "Done";
           uploadButton.disabled = false;
           selectPhotosButton.textContent = "Photos uploaded";
-          document.dispatchEvent(new CustomEvent("photosUploaded", { detail: { sessionId, productId } }));
-          uploadButton.onclick = () => closeModal(`select-photos-modal-${productId}`);
+          document.dispatchEvent(
+            new CustomEvent("photosUploaded", {
+              detail: { sessionId, productId },
+            }),
+          );
+          uploadButton.onclick = () =>
+            closeModal(`select-photos-modal-${productId}`);
         }
       });
 
@@ -244,7 +281,8 @@
 
       if (hasOrientation && orientationLandscapeBtn) {
         orientationLandscapeBtn.addEventListener("click", () => {
-          if (!currentCropperInstance || currentOrientation === "landscape") return;
+          if (!currentCropperInstance || currentOrientation === "landscape")
+            return;
           currentOrientation = "landscape";
           updateOrientationToggle();
           currentCropperInstance.setAspectRatio(landscapeRatio);
@@ -254,7 +292,8 @@
 
       if (hasOrientation && orientationPortraitBtn) {
         orientationPortraitBtn.addEventListener("click", () => {
-          if (!currentCropperInstance || currentOrientation === "portrait") return;
+          if (!currentCropperInstance || currentOrientation === "portrait")
+            return;
           currentOrientation = "portrait";
           updateOrientationToggle();
           currentCropperInstance.setAspectRatio(portraitRatio);
@@ -272,7 +311,7 @@
         const ratio = getAspectRatio();
         const objectUrl = URL.createObjectURL(file);
 
-        imageToCrop.onload = function() {
+        imageToCrop.onload = function () {
           currentCropperInstance = new Cropper(imageToCrop, {
             aspectRatio: ratio,
             viewMode: 1,
@@ -300,20 +339,31 @@
         const height = Math.round(srcH * scale);
 
         const croppedCanvas = currentCropperInstance.getCroppedCanvas({
-          width, height, fillColor: "#fff",
+          width,
+          height,
+          fillColor: "#fff",
         });
 
-        if (hasOrientation) cropOrientations[currentCropIndex] = currentOrientation;
+        if (hasOrientation)
+          cropOrientations[currentCropIndex] = currentOrientation;
 
-        croppedCanvas.toBlob((blob) => {
-          croppedFiles[currentCropIndex] = new File([blob], selectedFiles[currentCropIndex].name, {
-            type: "image/jpeg",
-            lastModified: new Date().getTime(),
-          });
-          currentCropperInstance.destroy();
-          currentCropperInstance = null;
-          closeEditModal();
-        }, "image/jpeg", 0.92);
+        croppedCanvas.toBlob(
+          (blob) => {
+            croppedFiles[currentCropIndex] = new File(
+              [blob],
+              selectedFiles[currentCropIndex].name,
+              {
+                type: "image/jpeg",
+                lastModified: new Date().getTime(),
+              },
+            );
+            currentCropperInstance.destroy();
+            currentCropperInstance = null;
+            closeEditModal();
+          },
+          "image/jpeg",
+          0.92,
+        );
       });
 
       cropCancel.addEventListener("click", () => {
@@ -343,13 +393,19 @@
 
       function updateUploadUI() {
         fileCountDisplay.textContent = `${selectedFiles.length}/${maxFiles} images selected`;
-        const removeAllFilesBtn = document.querySelector(".remove-all-files-btn");
-        removeAllFilesBtn.style.display = selectedFiles.length === 0 ? "none" : "block";
-        const bulkClickInstruction = document.querySelector(".bulk-click-instruction");
+        const removeAllFilesBtn = document.querySelector(
+          ".remove-all-files-btn",
+        );
+        removeAllFilesBtn.style.display =
+          selectedFiles.length === 0 ? "none" : "block";
+        const bulkClickInstruction = document.querySelector(
+          ".bulk-click-instruction",
+        );
         if (selectedFiles.length === maxFiles) {
           uploadArea.style.display = "none";
           document.querySelector(".post-selection-info").style.display = "flex";
-          if (bulkClickInstruction) bulkClickInstruction.style.display = "block";
+          if (bulkClickInstruction)
+            bulkClickInstruction.style.display = "block";
           uploadButton.disabled = false;
         } else {
           uploadArea.style.display = "flex";
@@ -359,7 +415,12 @@
         }
       }
 
-      async function compressImage(file, index, minShortSide = 2000, quality = 0.92) {
+      async function compressImage(
+        file,
+        index,
+        minShortSide = 2000,
+        quality = 0.92,
+      ) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onerror = () => reject(new Error("Failed to read file"));
@@ -402,8 +463,22 @@
             const ctx = canvas.getContext("2d");
             const sx = (img.width - cropWidth) / 2;
             const sy = (img.height - cropHeight) / 2;
-            ctx.drawImage(img, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-            canvas.toBlob((croppedBlob) => resolve(croppedBlob), "image/jpeg", 0.92);
+            ctx.drawImage(
+              img,
+              sx,
+              sy,
+              cropWidth,
+              cropHeight,
+              0,
+              0,
+              cropWidth,
+              cropHeight,
+            );
+            canvas.toBlob(
+              (croppedBlob) => resolve(croppedBlob),
+              "image/jpeg",
+              0.92,
+            );
           };
           img.src = url;
         });
@@ -411,9 +486,10 @@
 
       async function processNewFiles(files) {
         if (files.length === 0) return;
-        processingTextEl.textContent = files.length === 1
-          ? "Processing image..."
-          : `Processing image 1 of ${files.length}...`;
+        processingTextEl.textContent =
+          files.length === 1
+            ? "Processing image..."
+            : `Processing image 1 of ${files.length}...`;
         processingIndicator.classList.add("active");
 
         const initialLength = selectedFiles.length;
@@ -434,8 +510,12 @@
       }
 
       function processThumbnails() {
-        const placeholderContainer = document.querySelector(".thumbnail-container");
-        const mainContainer = document.querySelector(".main-thumbnail-container");
+        const placeholderContainer = document.querySelector(
+          ".thumbnail-container",
+        );
+        const mainContainer = document.querySelector(
+          ".main-thumbnail-container",
+        );
         if (placeholderContainer) placeholderContainer.innerHTML = "";
         if (mainContainer) mainContainer.innerHTML = "";
 
@@ -450,7 +530,9 @@
           reader.onerror = () => {
             imagesLoaded++;
             if (imagesLoaded === selectedFiles.length) {
-              containers.forEach((c) => { if (c) container.appendChild(c); });
+              containers.forEach((c) => {
+                if (c) container.appendChild(c);
+              });
             }
           };
           reader.onload = (e) => {
@@ -480,13 +562,19 @@
             actionButtons.appendChild(deleteBtn);
 
             const imgContainer = document.createElement("div");
-            imgContainer.classList.add(maxFilesAdded ? "main-thumbnail-img-container" : "placeholder-thumbnail-img-container");
+            imgContainer.classList.add(
+              maxFilesAdded
+                ? "main-thumbnail-img-container"
+                : "placeholder-thumbnail-img-container",
+            );
             imgContainer.style.position = "relative";
             imgContainer.style.display = "inline-flex";
 
             const imgElement = document.createElement("img");
             imgElement.src = e.target.result;
-            imgElement.classList.add(maxFilesAdded ? "main-thumbnail" : "placeholder-thumbnail");
+            imgElement.classList.add(
+              maxFilesAdded ? "main-thumbnail" : "placeholder-thumbnail",
+            );
             imgElement.onclick = (ev) => {
               ev.stopPropagation();
               openModal("edit-photos-modal");
@@ -499,18 +587,22 @@
             imagesLoaded++;
 
             if (imagesLoaded === selectedFiles.length) {
-              containers.forEach((c) => { if (c) container.appendChild(c); });
+              containers.forEach((c) => {
+                if (c) container.appendChild(c);
+              });
               if (maxFilesAdded) {
                 const images = container.querySelectorAll("img");
                 let renderedCount = 0;
                 images.forEach((img) => {
                   if (img.complete) {
                     renderedCount++;
-                    if (renderedCount === images.length) handleSafeAreaOverlay();
+                    if (renderedCount === images.length)
+                      handleSafeAreaOverlay();
                   } else {
                     img.onload = () => {
                       renderedCount++;
-                      if (renderedCount === images.length) handleSafeAreaOverlay();
+                      if (renderedCount === images.length)
+                        handleSafeAreaOverlay();
                     };
                   }
                 });
@@ -522,14 +614,21 @@
       }
 
       function handleSafeAreaOverlay() {
-        const thumbnails = document.querySelectorAll(".main-thumbnail-img-container");
+        const thumbnails = document.querySelectorAll(
+          ".main-thumbnail-img-container",
+        );
         thumbnails.forEach((thumbnail) => {
           const img = thumbnail.querySelector("img");
-          const cW = thumbnail.clientWidth, cH = thumbnail.clientHeight;
-          const iW = img.clientWidth, iH = img.clientHeight;
-          const imgLeft = (cW - iW) / 2, imgTop = (cH - iH) / 2;
-          const safeW = iW * SAFE_AREA_PERCENTAGE, safeH = iH * SAFE_AREA_PERCENTAGE;
-          const safeLeft = imgLeft + (iW - safeW) / 2, safeTop = imgTop + (iH - safeH) / 2;
+          const cW = thumbnail.clientWidth,
+            cH = thumbnail.clientHeight;
+          const iW = img.clientWidth,
+            iH = img.clientHeight;
+          const imgLeft = (cW - iW) / 2,
+            imgTop = (cH - iH) / 2;
+          const safeW = iW * SAFE_AREA_PERCENTAGE,
+            safeH = iH * SAFE_AREA_PERCENTAGE;
+          const safeLeft = imgLeft + (iW - safeW) / 2,
+            safeTop = imgTop + (iH - safeH) / 2;
           const oc = "rgba(0, 0, 0, 0.25)";
 
           const topO = document.createElement("div");
@@ -562,7 +661,9 @@
       window.addEventListener("resize", () => {
         const modal = document.querySelector(".select-photos-modal.active");
         if (modal) {
-          document.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+          document
+            .querySelectorAll(".safe-area-overlay")
+            .forEach((el) => el.remove());
           handleSafeAreaOverlay();
         }
       });
@@ -584,7 +685,8 @@
 
         const label = document.createElement("div");
         label.textContent = "Safe Print Area";
-        label.style.cssText = "display:block;position:absolute;top:-8px;left:4px;background:rgba(0,120,255,0.8);color:white;padding:2px 6px;font-size:12px;border-radius:3px;";
+        label.style.cssText =
+          "display:block;position:absolute;top:-8px;left:4px;background:rgba(0,120,255,0.8);color:white;padding:2px 6px;font-size:12px;border-radius:3px;";
         container.appendChild(label);
 
         const area = document.createElement("div");
