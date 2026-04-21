@@ -1,6 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_rectangle' %}
 <!--
   Photo Upload - Bulk Rectangle Variant
+  Version: 2026-04-21.1
   1 photo, 16:9/9:16 aspect ratio with orientation toggle
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -128,6 +129,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
+    console.log("[photo-upload-bulk-rectangle] v2026-04-21.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,

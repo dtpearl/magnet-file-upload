@@ -1339,7 +1339,10 @@
             try {
               progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
               progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
-              await uploadToCloudinary(croppedFiles[index], `${index + 1}`, sessionId);
+              const paddedIndex = String(index + 1).padStart(2, "0");
+              const orientationPart = hasOrientation ? `-${cropOrientations[index] || "landscape"}` : "";
+              const fileName = `${productId}${orientationPart}-${paddedIndex}`;
+              await uploadToCloudinary(croppedFiles[index], fileName, sessionId);
               uploadedCount++;
               progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
             } catch (error) {
@@ -1363,7 +1366,7 @@
             uploadButton.textContent = "Done";
             uploadButton.disabled = false;
             selectPhotosButton.textContent = "Photos uploaded";
-            document.dispatchEvent(new CustomEvent("photosUploaded"));
+            document.dispatchEvent(new CustomEvent("photosUploaded", { detail: { sessionId, productId } }));
             uploadButton.onclick = () => closeModal(`select-photos-modal-${productId}`);
           }
         });
