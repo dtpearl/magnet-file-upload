@@ -1,6 +1,6 @@
 <!--
   Cart Button Control
-  Version: 2026-04-21.1
+  Version: 2026-04-21.2
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
@@ -14,7 +14,7 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-04-21.1");
+    console.log("[cart-button-control] v2026-04-21.2");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
 
     const initCartButtonControl = () => {
@@ -70,21 +70,27 @@
         }
 
         const sessionId = e.detail?.sessionId;
+        const productId = e.detail?.productId;
+        console.log("[cart-button-control] _product_id:", productId);
         const productForm =
           addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
-        if (sessionId && productForm) {
-          let input = productForm.querySelector(
-            'input[name="properties[_session_id]"]',
-          );
-          if (!input) {
-            input = document.createElement("input");
-            input.type = "hidden";
-            input.name = "properties[_session_id]";
-            productForm.appendChild(input);
-          }
-          input.value = sessionId;
+        if (productForm) {
+          setHiddenProperty(productForm, "_session_id", sessionId);
+          setHiddenProperty(productForm, "_product_id", productId);
         }
       });
+    };
+
+    function setHiddenProperty(form, name, value) {
+      if (!value) return;
+      let input = form.querySelector(`input[name="properties[${name}]"]`);
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "hidden";
+        input.name = `properties[${name}]`;
+        form.appendChild(input);
+      }
+      input.value = value;
     };
 
     // Initialize when DOM is ready

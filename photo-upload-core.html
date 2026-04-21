@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-04-21.1
+  Version: 2026-04-21.2
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-04-21.1");
+  console.log("[photo-upload-core] v2026-04-21.2");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
@@ -717,6 +717,321 @@
       }
     }
 
-    return { init, openModal, closeModal };
+    function initReplacement(config) {
+      const {
+        order,
+        session,
+        productId,
+        maxFiles,
+        aspectRatio,
+        landscapeRatio,
+        portraitRatio,
+        hasOrientation,
+      } = config;
+
+      const CLOUDINARY_BASE = "https://res.cloudinary.com/djzc7ih0g/image/upload";
+
+      const slots = Array.from({ length: maxFiles }, (_, i) => ({
+        index: i,
+        status: "loading",
+        originalUrl: null,
+        originalOrientation: null,
+        replacedBlob: null,
+        replacedOrientation: null,
+        previewUrl: null,
+      }));
+
+      const gridEl = document.getElementById("replacement-grid");
+      const uploadBtn = document.getElementById("replacement-upload-btn");
+      const statusEl = document.getElementById("replacement-status");
+      const progressEl = document.getElementById("replacement-progress");
+      const progressFillEl = document.getElementById("replacement-progress-fill");
+      const progressTextEl = document.getElementById("replacement-progress-text");
+      const completeEl = document.getElementById("replacement-complete");
+
+      const imageToCrop = document.getElementById("image-to-crop");
+      const cropCancel = document.getElementById("crop-cancel");
+      const cropApply = document.getElementById("crop-apply");
+      const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
+      const orientationLandscapeBtn = hasOrientation
+        ? document.getElementById("orientation-landscape")
+        : null;
+      const orientationPortraitBtn = hasOrientation
+        ? document.getElementById("orientation-portrait")
+        : null;
+
+      let currentCropperInstance = null;
+      let currentCropSlot = -1;
+      let currentOrientation = "landscape";
+
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.style.display = "none";
+      document.body.appendChild(fileInput);
+
+      function tryLoad(url, orientation) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ url, orientation });
+          img.onerror = () => resolve(null);
+          img.src = url;
+        });
+      }
+
+      async function fetchOriginal(i) {
+        const paddedIndex = String(i + 1).padStart(2, "0");
+        const base = `${CLOUDINARY_BASE}/shopify_uploads/${session}`;
+        if (hasOrientation) {
+          const [landscape, portrait] = await Promise.all([
+            tryLoad(`${base}/${productId}-landscape-${paddedIndex}.jpg`, "landscape"),
+            tryLoad(`${base}/${productId}-portrait-${paddedIndex}.jpg`, "portrait"),
+          ]);
+          return landscape || portrait;
+        }
+        return await tryLoad(`${base}/${productId}-${paddedIndex}.jpg`, null);
+      }
+
+      function getRatio(orientation) {
+        if (hasOrientation) {
+          return orientation === "portrait" ? portraitRatio : landscapeRatio;
+        }
+        return aspectRatio;
+      }
+
+      function updateOrientationToggle() {
+        if (!hasOrientation) return;
+        if (currentOrientation === "landscape") {
+          orientationLandscapeBtn.classList.add("active");
+          orientationPortraitBtn.classList.remove("active");
+        } else {
+          orientationLandscapeBtn.classList.remove("active");
+          orientationPortraitBtn.classList.add("active");
+        }
+      }
+
+      function renderSlot(slot) {
+        const existing = gridEl.querySelector(`[data-slot="${slot.index}"]`);
+        if (existing) existing.remove();
+
+        const el = document.createElement("div");
+        el.className = `replacement-slot replacement-slot-${slot.status}`;
+        el.dataset.slot = slot.index;
+
+        if (slot.status === "loading") {
+          el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.index + 1}…</div>`;
+        } else if (slot.status === "missing") {
+          el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.index + 1}: original not found</div>`;
+          const replaceBtn = document.createElement("button");
+          replaceBtn.className = "replacement-slot-action";
+          replaceBtn.textContent = "Upload photo";
+          replaceBtn.onclick = () => pickFile(slot.index);
+          el.appendChild(replaceBtn);
+        } else {
+          const img = document.createElement("img");
+          img.src = slot.previewUrl || slot.originalUrl;
+          img.className = "replacement-slot-img";
+          el.appendChild(img);
+
+          const badge = document.createElement("div");
+          badge.className = `replacement-slot-badge replacement-slot-badge-${slot.status}`;
+          badge.textContent = slot.status === "replaced" ? "Replaced" : "Keep";
+          el.appendChild(badge);
+
+          const actionBtn = document.createElement("button");
+          actionBtn.className = "replacement-slot-action";
+          if (slot.status === "replaced") {
+            actionBtn.textContent = "Undo";
+            actionBtn.onclick = () => {
+              if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+              slot.status = "kept";
+              slot.replacedBlob = null;
+              slot.replacedOrientation = null;
+              slot.previewUrl = null;
+              renderSlot(slot);
+              updateReadiness();
+            };
+          } else {
+            actionBtn.textContent = "Replace";
+            actionBtn.onclick = () => pickFile(slot.index);
+          }
+          el.appendChild(actionBtn);
+        }
+
+        gridEl.appendChild(el);
+      }
+
+      function pickFile(slotIndex) {
+        fileInput.value = "";
+        fileInput.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          openCropModal(slotIndex, file);
+        };
+        fileInput.click();
+      }
+
+      function openCropModal(slotIndex, file) {
+        currentCropSlot = slotIndex;
+        const slot = slots[slotIndex];
+        if (hasOrientation) {
+          currentOrientation =
+            slot.replacedOrientation || slot.originalOrientation || "landscape";
+          updateOrientationToggle();
+        }
+        const ratio = getRatio(currentOrientation);
+        const objectUrl = URL.createObjectURL(file);
+
+        imageToCrop.onload = function () {
+          currentCropperInstance = new Cropper(imageToCrop, {
+            aspectRatio: ratio,
+            viewMode: 1,
+            guides: true,
+            autoCropArea: 0.8,
+            movable: true,
+            rotatable: true,
+            scalable: true,
+            zoomable: true,
+          });
+        };
+        imageToCrop.src = objectUrl;
+        openModal("edit-photos-modal");
+      }
+
+      function closeCropModal() {
+        if (currentCropperInstance) {
+          currentCropperInstance.destroy();
+          currentCropperInstance = null;
+        }
+        imageToCrop.src = "";
+        currentCropSlot = -1;
+        closeModal("edit-photos-modal");
+      }
+
+      if (cropApply) {
+        cropApply.addEventListener("click", () => {
+          if (!currentCropperInstance) return;
+          const cropData = currentCropperInstance.getData();
+          const srcW = Math.round(cropData.width);
+          const srcH = Math.round(cropData.height);
+          const shortSide = Math.min(srcW, srcH);
+          const scale = Math.min(2000 / shortSide, 1);
+          const width = Math.round(srcW * scale);
+          const height = Math.round(srcH * scale);
+
+          const croppedCanvas = currentCropperInstance.getCroppedCanvas({
+            width,
+            height,
+            fillColor: "#fff",
+          });
+
+          const slotIndex = currentCropSlot;
+          croppedCanvas.toBlob(
+            (blob) => {
+              const slot = slots[slotIndex];
+              if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+              slot.status = "replaced";
+              slot.replacedBlob = blob;
+              slot.replacedOrientation = hasOrientation ? currentOrientation : null;
+              slot.previewUrl = URL.createObjectURL(blob);
+              closeCropModal();
+              renderSlot(slot);
+              updateReadiness();
+            },
+            "image/jpeg",
+            0.92,
+          );
+        });
+      }
+
+      if (cropCancel) cropCancel.addEventListener("click", closeCropModal);
+      if (editModalCloseBtn) editModalCloseBtn.addEventListener("click", closeCropModal);
+
+      if (hasOrientation && orientationLandscapeBtn) {
+        orientationLandscapeBtn.addEventListener("click", () => {
+          if (!currentCropperInstance || currentOrientation === "landscape") return;
+          currentOrientation = "landscape";
+          updateOrientationToggle();
+          currentCropperInstance.setAspectRatio(landscapeRatio);
+        });
+      }
+      if (hasOrientation && orientationPortraitBtn) {
+        orientationPortraitBtn.addEventListener("click", () => {
+          if (!currentCropperInstance || currentOrientation === "portrait") return;
+          currentOrientation = "portrait";
+          updateOrientationToggle();
+          currentCropperInstance.setAspectRatio(portraitRatio);
+        });
+      }
+
+      function updateReadiness() {
+        const anyLoading = slots.some((s) => s.status === "loading");
+        const anyMissing = slots.some((s) => s.status === "missing");
+        const anyReplaced = slots.some((s) => s.status === "replaced");
+        uploadBtn.disabled = anyLoading || anyMissing || !anyReplaced;
+      }
+
+      uploadBtn.addEventListener("click", async () => {
+        uploadBtn.disabled = true;
+        statusEl.textContent = "";
+        progressEl.style.display = "flex";
+        progressFillEl.style.width = "0%";
+
+        try {
+          for (let i = 0; i < slots.length; i++) {
+            const slot = slots[i];
+            progressTextEl.textContent = `Uploading ${i + 1} of ${slots.length}…`;
+            progressFillEl.style.width = `${(i / slots.length) * 100}%`;
+
+            let blob;
+            let orientation;
+            if (slot.status === "replaced") {
+              blob = slot.replacedBlob;
+              orientation = slot.replacedOrientation;
+            } else if (slot.status === "kept") {
+              const res = await fetch(slot.originalUrl);
+              if (!res.ok) throw new Error(`Could not fetch original ${i + 1}`);
+              blob = await res.blob();
+              orientation = slot.originalOrientation;
+            } else {
+              throw new Error(`Slot ${i + 1} has no photo`);
+            }
+
+            const paddedIndex = String(i + 1).padStart(2, "0");
+            const orientationPart =
+              hasOrientation && orientation ? `-${orientation}` : "";
+            const fileName = `replacements/order-${order}${orientationPart}-${paddedIndex}`;
+            await uploadToCloudinary(blob, fileName, session);
+          }
+          progressFillEl.style.width = "100%";
+          await new Promise((r) => setTimeout(r, 300));
+          progressEl.style.display = "none";
+          gridEl.style.display = "none";
+          uploadBtn.style.display = "none";
+          completeEl.style.display = "block";
+        } catch (err) {
+          progressEl.style.display = "none";
+          statusEl.textContent = "Upload failed. Please try again.";
+          uploadBtn.disabled = false;
+        }
+      });
+
+      slots.forEach((slot) => renderSlot(slot));
+      slots.forEach(async (slot) => {
+        const result = await fetchOriginal(slot.index);
+        if (result) {
+          slot.status = "kept";
+          slot.originalUrl = result.url;
+          slot.originalOrientation = result.orientation;
+        } else {
+          slot.status = "missing";
+        }
+        renderSlot(slot);
+        updateReadiness();
+      });
+      updateReadiness();
+    }
+
+    return { init, initReplacement, openModal, closeModal };
   })();
 </script>

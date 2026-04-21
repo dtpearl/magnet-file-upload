@@ -1,0 +1,263 @@
+<!--
+  Photo Upload - Replacement
+  Version: 2026-04-21.2
+  Self-service page for replacing photos on an existing order.
+  Requires URL params: order, session, variant, product. Redirects to / if any are missing/invalid.
+  Requires: photo-upload-styles.html, photo-upload-core.html
+
+  Paste this into a Custom Liquid element on the /pages/upload-your-photos page,
+  together with photo-upload-styles and photo-upload-core.
+-->
+<script>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const validVariants = ["square", "rectangle", "bulk-square", "bulk-rectangle"];
+    if (
+      !params.get("order") ||
+      !params.get("session") ||
+      !params.get("product") ||
+      !validVariants.includes(params.get("variant"))
+    ) {
+      window.location.replace("/");
+    }
+  })();
+</script>
+
+<style>
+  .replacement-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    text-align: center;
+  }
+  .replacement-title {
+    font-size: 1.75rem;
+    margin: 0 0 8px;
+  }
+  .replacement-subtitle {
+    color: #555;
+    margin: 0 0 24px;
+  }
+  .replacement-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) {
+    .replacement-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .replacement-slot {
+    position: relative;
+    background: #f5f5f5;
+    border-radius: 8px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .replacement-slot-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff;
+  }
+  .replacement-slot-loading,
+  .replacement-slot-missing {
+    color: #666;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  .replacement-slot-missing {
+    color: #a33;
+  }
+  .replacement-slot-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+  .replacement-slot-badge-replaced {
+    background: rgba(0, 120, 255, 0.85);
+  }
+  .replacement-slot-action {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  .replacement-slot-action:hover {
+    background: #eee;
+  }
+  .replacement-slot-missing + .replacement-slot-action {
+    position: static;
+    margin-top: 12px;
+  }
+  .replacement-progress {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .replacement-status {
+    color: #a33;
+    min-height: 1.2em;
+    margin-bottom: 8px;
+  }
+  .replacement-complete {
+    padding: 32px;
+    background: #f5f5f5;
+    border-radius: 8px;
+  }
+  #replacement-upload-btn {
+    padding: 12px 32px;
+    font-size: 1rem;
+  }
+  #replacement-upload-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<div class="replacement-container file-upload-container" data-replacement="true">
+  <h2 class="replacement-title">Upload your photos</h2>
+  <p class="replacement-subtitle">
+    Click <strong>Replace</strong> on any photo you want to swap. Photos marked
+    <strong>Keep</strong> stay exactly as they were.
+  </p>
+  <div id="replacement-grid" class="replacement-grid"></div>
+  <div id="replacement-status" class="replacement-status"></div>
+  <div id="replacement-progress" class="replacement-progress">
+    <div class="progress-bar-track" style="flex: 1;">
+      <div id="replacement-progress-fill" class="progress-bar-fill"></div>
+    </div>
+    <span id="replacement-progress-text" class="progress-text"></span>
+  </div>
+  <button id="replacement-upload-btn" class="add-to-cart-btn" disabled>
+    Upload photos
+  </button>
+  <div id="replacement-complete" class="replacement-complete" style="display: none;">
+    <h2>Thanks — your photos have been uploaded.</h2>
+    <p>We'll use these when preparing your order. You can close this page.</p>
+  </div>
+</div>
+
+<div id="edit-photos-modal" class="edit-photos-modal">
+  <div class="modal-header">
+    <div class="modal-title-container">
+      <h2 class="modal-title">Crop your image</h2>
+      <button
+        id="edit-modal-close-btn"
+        class="close-btn"
+        aria-label="Close modal"
+        title="Close"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+      </button>
+    </div>
+    <p class="content-subtitle">Position your image to get the perfect shot</p>
+    <div class="crop-container">
+      <img id="image-to-crop" src="" alt="Image to crop" />
+    </div>
+    <div class="crop-controls">
+      <div
+        id="replacement-orientation-toggle"
+        class="orientation-toggle"
+        style="display: none;"
+      >
+        <button
+          id="orientation-landscape"
+          class="orientation-toggle-btn active"
+          title="Landscape (16:9)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+          </svg>
+          Landscape
+        </button>
+        <button
+          id="orientation-portrait"
+          class="orientation-toggle-btn"
+          title="Portrait (9:16)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="2" width="12" height="20" rx="2" />
+          </svg>
+          Portrait
+        </button>
+      </div>
+      <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+      <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+    </div>
+    <div>
+      <p>
+        The dashed blue box indicates the safe print area. Content outside this area
+        may be trimmed during printing.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  console.log("[photo-upload-replacement] v2026-04-21.2");
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const order = params.get("order");
+    const session = params.get("session");
+    const productId = params.get("product");
+    const variant = params.get("variant");
+
+    const configs = {
+      square: { maxFiles: 9, aspectRatio: 1, hasOrientation: false },
+      rectangle: {
+        maxFiles: 6,
+        landscapeRatio: 16 / 9,
+        portraitRatio: 9 / 16,
+        hasOrientation: true,
+      },
+      "bulk-square": { maxFiles: 1, aspectRatio: 1, hasOrientation: false },
+      "bulk-rectangle": {
+        maxFiles: 1,
+        landscapeRatio: 16 / 9,
+        portraitRatio: 9 / 16,
+        hasOrientation: true,
+      },
+    };
+    const cfg = configs[variant];
+    if (!cfg) return;
+
+    if (cfg.hasOrientation) {
+      document.getElementById("replacement-orientation-toggle").style.display = "flex";
+    }
+
+    PhotoUploader.initReplacement({
+      order,
+      session,
+      productId,
+      ...cfg,
+    });
+  });
+</script>
