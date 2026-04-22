@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-04-22.1
+  Version: 2026-04-22.2
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-04-22.1");
+  console.log("[photo-upload-core] v2026-04-22.2");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
@@ -851,12 +851,8 @@
         if (slot.status === "loading") {
           el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.index + 1}…</div>`;
         } else if (slot.status === "missing") {
-          el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.index + 1}: original not found</div>`;
-          const replaceBtn = document.createElement("button");
-          replaceBtn.className = "replacement-slot-action";
-          replaceBtn.textContent = "Upload photo";
-          replaceBtn.onclick = () => pickFile(slot.index);
-          el.appendChild(replaceBtn);
+          el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.index + 1}: original not found<span class="replacement-slot-cta">Click to upload a replacement</span></div>`;
+          el.addEventListener("click", () => pickFile(slot.index));
         } else {
           const img = document.createElement("img");
           img.src = slot.previewUrl || slot.originalUrl;
@@ -874,11 +870,16 @@
           badge.textContent = slot.status === "replaced" ? "Replaced" : "Keep";
           el.appendChild(badge);
 
-          const actionBtn = document.createElement("button");
-          actionBtn.className = "replacement-slot-action";
+          // Whole slot click = open file picker (replace this slot).
+          el.addEventListener("click", () => pickFile(slot.index));
+
           if (slot.status === "replaced") {
-            actionBtn.textContent = "Undo";
-            actionBtn.onclick = () => {
+            const undoBtn = document.createElement("button");
+            undoBtn.className = "replacement-slot-undo";
+            undoBtn.textContent = "Undo";
+            undoBtn.title = "Restore the original photo";
+            undoBtn.addEventListener("click", (ev) => {
+              ev.stopPropagation();
               if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
               slot.status = "kept";
               slot.replacedBlob = null;
@@ -886,12 +887,9 @@
               slot.previewUrl = null;
               renderSlot(slot);
               updateReadiness();
-            };
-          } else {
-            actionBtn.textContent = "Replace";
-            actionBtn.onclick = () => pickFile(slot.index);
+            });
+            el.appendChild(undoBtn);
           }
-          el.appendChild(actionBtn);
         }
 
         gridEl.appendChild(el);
@@ -1011,6 +1009,7 @@
         uploadBtn.disabled = true;
         statusEl.textContent = "";
         progressEl.style.display = "flex";
+        progressFillEl.style.display = "block";
         progressFillEl.style.width = "0%";
 
         try {
@@ -1044,6 +1043,9 @@
           progressEl.style.display = "none";
           gridEl.style.display = "none";
           uploadBtn.style.display = "none";
+          document
+            .querySelectorAll(".replacement-title, .replacement-subtitle")
+            .forEach((el) => (el.style.display = "none"));
           completeEl.style.display = "block";
         } catch (err) {
           progressEl.style.display = "none";

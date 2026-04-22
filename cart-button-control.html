@@ -1,6 +1,6 @@
 <!--
   Cart Button Control
-  Version: 2026-04-22.1
+  Version: 2026-04-22.2
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
@@ -14,7 +14,7 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-04-22.1");
+    console.log("[cart-button-control] v2026-04-22.2");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
 
     const initCartButtonControl = () => {
@@ -72,16 +72,14 @@
         const sessionId = e.detail?.sessionId;
         const productId = e.detail?.productId;
         const variant = e.detail?.variant;
+        const replacementUrl = buildReplacementUrl(sessionId, productId, variant);
         console.log("[cart-button-control] _product_id:", productId);
+        console.log("[cart-button-control] _replacement_url:", replacementUrl);
         const productForm =
           addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
         if (productForm) {
           setHiddenProperty(productForm, "_session_id", sessionId);
-          setHiddenProperty(
-            productForm,
-            "_replacement_url",
-            buildReplacementUrl(sessionId, productId, variant),
-          );
+          setHiddenProperty(productForm, "_replacement_url", replacementUrl);
         }
       });
     };

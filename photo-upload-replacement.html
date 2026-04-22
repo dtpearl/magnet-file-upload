@@ -1,15 +1,36 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-04-22.1
+  Version: 2026-04-22.2
   Self-service page for replacing photos on an existing order.
-  Requires URL params: order, session, variant, product. Redirects to / if any are missing/invalid.
-  Requires: photo-upload-styles.html, photo-upload-core.html
 
-  Paste this into a Custom Liquid element on the /pages/upload-your-photos page,
-  together with photo-upload-styles and photo-upload-core.
+  URL params (all required): session, product, variant.
+  Redirects to / if any are missing or the variant is not one of
+  square | rectangle | bulk-square | bulk-rectangle.
+
+  Production URL: https://luxmagnetco.myshopify.com/pages/upload-your-photos
+
+  SETUP — Shopify admin:
+    1. Online Store > Pages > Add page. Title: "Upload your photos".
+       Handle: upload-your-photos (so the URL path is /pages/upload-your-photos).
+    2. Theme customizer > Pages > "Upload your photos". Add three Custom Liquid
+       sections in this order:
+         a. photo-upload-styles.html
+         b. photo-upload-core.html
+         c. photo-upload-replacement.html  (this file)
+    3. Save. No metafield or product wiring needed; the page reads everything
+       from the URL query string. Opening the page without valid params will
+       redirect to /.
+
+  The URL to send to a customer lives on the order's line item under
+  properties[_replacement_url] and is also logged to the browser console
+  during upload (cart-button-control.html logs "[cart-button-control]
+  _replacement_url: ..." when the photosUploaded event fires).
 -->
 <script>
   (function () {
+    // Don't redirect in the Shopify theme editor (designMode), otherwise the
+    // editor can't open the page without URL params and gets kicked to /.
+    if (window.Shopify && window.Shopify.designMode) return;
     const params = new URLSearchParams(window.location.search);
     const validVariants = ["square", "rectangle", "bulk-square", "bulk-rectangle"];
     if (
@@ -26,11 +47,11 @@
   .replacement-container {
     max-width: 960px;
     margin: 0 auto;
-    padding: 24px 16px;
+    padding: 48px 32px;
     text-align: center;
   }
   .replacement-title {
-    font-size: 1.75rem;
+    font-size: 28px;
     margin: 0 0 8px;
   }
   .replacement-subtitle {
@@ -57,6 +78,16 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    cursor: pointer;
+    transition: outline 0.15s;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  .replacement-slot:hover {
+    outline-color: #2563eb;
+  }
+  .replacement-slot-loading {
+    cursor: default;
   }
   .replacement-slot-img {
     max-width: 100%;
@@ -67,7 +98,7 @@
   .replacement-slot-missing {
     color: #666;
     padding: 12px;
-    font-size: 0.9rem;
+    font-size: 14px;
   }
   .replacement-slot-missing {
     color: #a33;
@@ -78,34 +109,39 @@
     left: 8px;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 600;
     color: #fff;
     background: rgba(0, 0, 0, 0.5);
     pointer-events: none;
+    z-index: 2;
   }
   .replacement-slot-badge-replaced {
     background: rgba(0, 120, 255, 0.85);
   }
-  .replacement-slot-action {
+  .replacement-slot-undo {
     position: absolute;
-    bottom: 8px;
+    top: 8px;
     right: 8px;
-    padding: 6px 12px;
+    padding: 4px 10px;
     border: none;
     border-radius: 4px;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.95);
     color: #333;
-    font-size: 0.85rem;
+    font-size: 12px;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    z-index: 2;
   }
-  .replacement-slot-action:hover {
-    background: #eee;
+  .replacement-slot-undo:hover {
+    background: #fff;
   }
-  .replacement-slot-missing + .replacement-slot-action {
-    position: static;
-    margin-top: 12px;
+  .replacement-slot-cta {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #555;
+    text-decoration: underline;
   }
   .replacement-progress {
     display: none;
@@ -119,13 +155,25 @@
     margin-bottom: 8px;
   }
   .replacement-complete {
-    padding: 32px;
+    padding: 80px 48px;
     background: #f5f5f5;
-    border-radius: 8px;
+    border-radius: 12px;
+    margin: 32px auto;
+    max-width: 720px;
+  }
+  .replacement-complete h2 {
+    font-size: 32px;
+    margin: 0 0 20px;
+  }
+  .replacement-complete p {
+    font-size: 18px;
+    line-height: 1.5;
+    margin: 0;
+    color: #444;
   }
   #replacement-upload-btn {
     padding: 12px 32px;
-    font-size: 1rem;
+    font-size: 16px;
   }
   #replacement-upload-btn:disabled {
     opacity: 0.5;
@@ -136,8 +184,9 @@
 <div class="replacement-container file-upload-container" data-replacement="true">
   <h2 class="replacement-title">Upload your photos</h2>
   <p class="replacement-subtitle">
-    Click <strong>Replace</strong> on any photo you want to swap. Photos marked
-    <strong>Keep</strong> stay exactly as they were.
+    Click a photo to replace it. Photos marked <strong>Keep</strong> stay as
+    they are. Click <strong>Undo</strong> on a replaced photo to restore the
+    original.
   </p>
   <div id="replacement-grid" class="replacement-grid"></div>
   <div id="replacement-status" class="replacement-status"></div>
@@ -220,7 +269,7 @@
 </div>
 
 <script>
-  console.log("[photo-upload-replacement] v2026-04-22.1");
+  console.log("[photo-upload-replacement] v2026-04-22.2");
   document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const session = params.get("session");
