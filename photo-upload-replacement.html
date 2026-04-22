@@ -1,6 +1,6 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-04-21.2
+  Version: 2026-04-22.1
   Self-service page for replacing photos on an existing order.
   Requires URL params: order, session, variant, product. Redirects to / if any are missing/invalid.
   Requires: photo-upload-styles.html, photo-upload-core.html
@@ -13,7 +13,6 @@
     const params = new URLSearchParams(window.location.search);
     const validVariants = ["square", "rectangle", "bulk-square", "bulk-rectangle"];
     if (
-      !params.get("order") ||
       !params.get("session") ||
       !params.get("product") ||
       !validVariants.includes(params.get("variant"))
@@ -60,10 +59,9 @@
     overflow: hidden;
   }
   .replacement-slot-img {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
-    background: #fff;
   }
   .replacement-slot-loading,
   .replacement-slot-missing {
@@ -191,7 +189,7 @@
         <button
           id="orientation-landscape"
           class="orientation-toggle-btn active"
-          title="Landscape (16:9)"
+          title="Landscape"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="2" y="6" width="20" height="12" rx="2" />
@@ -201,7 +199,7 @@
         <button
           id="orientation-portrait"
           class="orientation-toggle-btn"
-          title="Portrait (9:16)"
+          title="Portrait"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="6" y="2" width="12" height="20" rx="2" />
@@ -222,10 +220,9 @@
 </div>
 
 <script>
-  console.log("[photo-upload-replacement] v2026-04-21.2");
+  console.log("[photo-upload-replacement] v2026-04-22.1");
   document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
-    const order = params.get("order");
     const session = params.get("session");
     const productId = params.get("product");
     const variant = params.get("variant");
@@ -234,15 +231,15 @@
       square: { maxFiles: 9, aspectRatio: 1, hasOrientation: false },
       rectangle: {
         maxFiles: 6,
-        landscapeRatio: 16 / 9,
-        portraitRatio: 9 / 16,
+        landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+        portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
         hasOrientation: true,
       },
       "bulk-square": { maxFiles: 1, aspectRatio: 1, hasOrientation: false },
       "bulk-rectangle": {
         maxFiles: 1,
-        landscapeRatio: 16 / 9,
-        portraitRatio: 9 / 16,
+        landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+        portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
         hasOrientation: true,
       },
     };
@@ -254,7 +251,6 @@
     }
 
     PhotoUploader.initReplacement({
-      order,
       session,
       productId,
       ...cfg,

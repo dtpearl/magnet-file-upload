@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Upload Replacement — Local Test</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+      }
+      .test-banner {
+        background: #fff7e0;
+        border-bottom: 1px solid #f0d59b;
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #805400;
+        text-align: center;
+      }
+      .test-banner a {
+        color: #805400;
+      }
+      .loader-msg {
+        padding: 48px 16px;
+        text-align: center;
+        color: #555;
+      }
+      .loader-error {
+        color: #a33;
+      }
+      .loader-error code {
+        background: #fdecec;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-banner">
+      Local replacement-flow test harness — uploads hit real Cloudinary.
+      <a href="test.html">Back to test.html</a>
+    </div>
+    <div id="loader-msg" class="loader-msg">Loading…</div>
+
+    <script>
+      (async function () {
+        const loaderEl = document.getElementById("loader-msg");
+        const params = new URLSearchParams(window.location.search);
+        const validVariants = [
+          "square",
+          "rectangle",
+          "bulk-square",
+          "bulk-rectangle",
+        ];
+        if (
+          !params.get("session") ||
+          !params.get("product") ||
+          !validVariants.includes(params.get("variant"))
+        ) {
+          loaderEl.innerHTML =
+            '<h2>Missing or invalid URL parameters.</h2>' +
+            '<p>Need <code>session</code>, <code>product</code>, and <code>variant</code>.</p>' +
+            '<p><a href="test.html">Back to test.html</a></p>';
+          return;
+        }
+
+        // Fetch an HTML partial and inject its styles/scripts/content so the
+        // embedded IIFE runs as if it were inline. Returns when all async
+        // scripts (e.g. the Cropper.js CDN) have loaded.
+        async function loadPartial(url) {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("Failed to load " + url + ": " + res.status);
+          const html = await res.text();
+          const tpl = document.createElement("template");
+          tpl.innerHTML = html;
+
+          const asyncWaits = [];
+          for (const node of Array.from(tpl.content.childNodes)) {
+            if (node.nodeType !== 1) continue;
+            const tag = node.tagName;
+            if (tag === "LINK" || tag === "STYLE") {
+              document.head.appendChild(node.cloneNode(true));
+            } else if (tag === "SCRIPT") {
+              const s = document.createElement("script");
+              for (const a of node.attributes) s.setAttribute(a.name, a.value);
+              if (node.src) {
+                asyncWaits.push(
+                  new Promise((resolve) => {
+                    s.onload = resolve;
+                    s.onerror = resolve;
+                  }),
+                );
+              } else {
+                s.textContent = node.textContent;
+              }
+              document.body.appendChild(s);
+            } else {
+              document.body.appendChild(node.cloneNode(true));
+            }
+          }
+          await Promise.all(asyncWaits);
+        }
+
+        try {
+          await loadPartial("photo-upload-styles.html");
+          await loadPartial("photo-upload-core.html");
+          await loadPartial("photo-upload-replacement.html");
+          loaderEl.remove();
+          // photo-upload-replacement.html binds its init inside a
+          // DOMContentLoaded listener, which has already fired by the time we
+          // inject. Re-dispatch so it runs.
+          document.dispatchEvent(new Event("DOMContentLoaded"));
+        } catch (err) {
+          loaderEl.className = "loader-msg loader-error";
+          loaderEl.innerHTML =
+            '<h2>Failed to load partials.</h2>' +
+            "<p>fetch doesn't work over <code>file://</code>. Run a local HTTP server in this folder, e.g.:</p>" +
+            '<pre><code>python3 -m http.server 8000</code></pre>' +
+            '<p>then open <code>http://localhost:8000/test-replacement.html?...</code></p>' +
+            '<p style="font-size:12px;color:#888">' +
+            (err && err.message ? err.message : "") +
+            "</p>";
+        }
+      })();
+    </script>
+  </body>
+</html>

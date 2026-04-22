@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-04-21.2
+  Version: 2026-04-22.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,10 +15,67 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-04-21.2");
+  console.log("[photo-upload-core] v2026-04-22.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
+    const OUTPUT_MIN_SHORT_SIDE = 2000;
+    // Rectangle magnet aspect ratio (wider:narrower). Update this one value
+    // to retune all rectangle variants + the replacement page.
+    const RECTANGLE_RATIO = 16 / 9;
+
+    // Draws the safe-print-area overlay over the image inside the given
+    // container. The container must be position:relative and contain an <img>
+    // with object-fit:contain. Removes any existing overlays first so this can
+    // be called repeatedly (e.g. on resize).
+    function drawSafeAreaOverlay(container) {
+      container
+        .querySelectorAll(".safe-area-overlay")
+        .forEach((el) => el.remove());
+      const img = container.querySelector("img");
+      if (!img || !img.complete || !img.naturalWidth) return;
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const iW = img.clientWidth;
+      const iH = img.clientHeight;
+      if (!iW || !iH) return;
+      const imgLeft = (cW - iW) / 2;
+      const imgTop = (cH - iH) / 2;
+      const safeW = iW * SAFE_AREA_PERCENTAGE;
+      const safeH = iH * SAFE_AREA_PERCENTAGE;
+      const marginX = (iW - safeW) / 2;
+      const marginY = (iH - safeH) / 2;
+      const safeLeft = imgLeft + marginX;
+      const safeTop = imgTop + marginY;
+      const oc = "rgba(0, 0, 0, 0.25)";
+
+      // Dimming overlays are constrained to the image bounds so the
+      // letterbox/background space around the image stays undimmed.
+      const topO = document.createElement("div");
+      topO.classList.add("safe-area-overlay");
+      topO.style.cssText = `display:block;position:absolute;top:${imgTop}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;background:${oc};pointer-events:none;z-index:1;`;
+      container.appendChild(topO);
+
+      const bottomO = document.createElement("div");
+      bottomO.classList.add("safe-area-overlay");
+      bottomO.style.cssText = `display:block;position:absolute;top:${imgTop + iH - marginY}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;background:${oc};pointer-events:none;z-index:1;`;
+      container.appendChild(bottomO);
+
+      const leftO = document.createElement("div");
+      leftO.classList.add("safe-area-overlay");
+      leftO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:${imgLeft}px;width:${marginX}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+      container.appendChild(leftO);
+
+      const rightO = document.createElement("div");
+      rightO.classList.add("safe-area-overlay");
+      rightO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:${imgLeft + iW - marginX}px;width:${marginX}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+      container.appendChild(rightO);
+
+      const border = document.createElement("div");
+      border.classList.add("safe-area-overlay");
+      border.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
+      container.appendChild(border);
+    }
 
     function openModal(modalId) {
       const modal = document.getElementById(modalId);
@@ -64,7 +121,16 @@
         landscapeRatio,
         portraitRatio,
         hasOrientation,
+        variant,
       } = config;
+
+      // Keep enough pre-crop resolution so the worst-case crop still yields
+      // OUTPUT_MIN_SHORT_SIDE on its short side. maxRatio is the most extreme
+      // crop aspect the user can pick (furthest from square).
+      const maxRatio = hasOrientation
+        ? Math.max(landscapeRatio, 1 / portraitRatio)
+        : aspectRatio;
+      const compressionTarget = Math.ceil(OUTPUT_MIN_SHORT_SIDE * maxRatio);
 
       let selectedFiles = [];
       let croppedFiles = [];
@@ -246,7 +312,7 @@
           selectPhotosButton.textContent = "Photos uploaded";
           document.dispatchEvent(
             new CustomEvent("photosUploaded", {
-              detail: { sessionId, productId },
+              detail: { sessionId, productId, variant },
             }),
           );
           uploadButton.onclick = () =>
@@ -334,7 +400,7 @@
         const srcW = Math.round(cropData.width);
         const srcH = Math.round(cropData.height);
         const shortSide = Math.min(srcW, srcH);
-        const scale = Math.min(2000 / shortSide, 1);
+        const scale = Math.min(OUTPUT_MIN_SHORT_SIDE / shortSide, 1);
         const width = Math.round(srcW * scale);
         const height = Math.round(srcH * scale);
 
@@ -498,7 +564,11 @@
             processingTextEl.textContent = `Processing image ${i + 1} of ${files.length}...`;
           }
           const indexToInsert = initialLength + i;
-          const compressed = await compressImage(files[i], indexToInsert);
+          const compressed = await compressImage(
+            files[i],
+            indexToInsert,
+            compressionTarget,
+          );
           selectedFiles[indexToInsert] = compressed;
           croppedFiles[indexToInsert] = await createDefaultCrop(compressed);
           if (hasOrientation) cropOrientations[indexToInsert] = "landscape";
@@ -614,48 +684,9 @@
       }
 
       function handleSafeAreaOverlay() {
-        const thumbnails = document.querySelectorAll(
-          ".main-thumbnail-img-container",
-        );
-        thumbnails.forEach((thumbnail) => {
-          const img = thumbnail.querySelector("img");
-          const cW = thumbnail.clientWidth,
-            cH = thumbnail.clientHeight;
-          const iW = img.clientWidth,
-            iH = img.clientHeight;
-          const imgLeft = (cW - iW) / 2,
-            imgTop = (cH - iH) / 2;
-          const safeW = iW * SAFE_AREA_PERCENTAGE,
-            safeH = iH * SAFE_AREA_PERCENTAGE;
-          const safeLeft = imgLeft + (iW - safeW) / 2,
-            safeTop = imgTop + (iH - safeH) / 2;
-          const oc = "rgba(0, 0, 0, 0.25)";
-
-          const topO = document.createElement("div");
-          topO.classList.add("safe-area-overlay");
-          topO.style.cssText = `display:block;position:absolute;top:0;left:0;right:0;height:${safeTop}px;background:${oc};pointer-events:none;z-index:1;`;
-          thumbnail.appendChild(topO);
-
-          const bottomO = document.createElement("div");
-          bottomO.classList.add("safe-area-overlay");
-          bottomO.style.cssText = `display:block;position:absolute;bottom:0;left:0;right:0;height:${cH - safeTop - safeH}px;background:${oc};pointer-events:none;z-index:1;`;
-          thumbnail.appendChild(bottomO);
-
-          const leftO = document.createElement("div");
-          leftO.classList.add("safe-area-overlay");
-          leftO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:0;width:${safeLeft}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
-          thumbnail.appendChild(leftO);
-
-          const rightO = document.createElement("div");
-          rightO.classList.add("safe-area-overlay");
-          rightO.style.cssText = `display:block;position:absolute;top:${safeTop}px;right:0;width:${cW - safeLeft - safeW}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
-          thumbnail.appendChild(rightO);
-
-          const border = document.createElement("div");
-          border.classList.add("safe-area-overlay");
-          border.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
-          thumbnail.appendChild(border);
-        });
+        document
+          .querySelectorAll(".main-thumbnail-img-container")
+          .forEach(drawSafeAreaOverlay);
       }
 
       window.addEventListener("resize", () => {
@@ -719,7 +750,6 @@
 
     function initReplacement(config) {
       const {
-        order,
         session,
         productId,
         maxFiles,
@@ -831,6 +861,12 @@
           const img = document.createElement("img");
           img.src = slot.previewUrl || slot.originalUrl;
           img.className = "replacement-slot-img";
+          const redraw = () => drawSafeAreaOverlay(el);
+          if (img.complete && img.naturalWidth) {
+            requestAnimationFrame(redraw);
+          } else {
+            img.addEventListener("load", redraw);
+          }
           el.appendChild(img);
 
           const badge = document.createElement("div");
@@ -915,7 +951,7 @@
           const srcW = Math.round(cropData.width);
           const srcH = Math.round(cropData.height);
           const shortSide = Math.min(srcW, srcH);
-          const scale = Math.min(2000 / shortSide, 1);
+          const scale = Math.min(OUTPUT_MIN_SHORT_SIDE / shortSide, 1);
           const width = Math.round(srcW * scale);
           const height = Math.round(srcH * scale);
 
@@ -999,8 +1035,8 @@
 
             const paddedIndex = String(i + 1).padStart(2, "0");
             const orientationPart =
-              hasOrientation && orientation ? `-${orientation}` : "";
-            const fileName = `replacements/order-${order}${orientationPart}-${paddedIndex}`;
+              hasOrientation && orientation ? `${orientation}-` : "";
+            const fileName = `replacements/${orientationPart}${paddedIndex}`;
             await uploadToCloudinary(blob, fileName, session);
           }
           progressFillEl.style.width = "100%";
@@ -1030,8 +1066,20 @@
         updateReadiness();
       });
       updateReadiness();
+
+      window.addEventListener("resize", () => {
+        gridEl
+          .querySelectorAll(".replacement-slot")
+          .forEach(drawSafeAreaOverlay);
+      });
     }
 
-    return { init, initReplacement, openModal, closeModal };
+    return {
+      init,
+      initReplacement,
+      openModal,
+      closeModal,
+      RECTANGLE_RATIO,
+    };
   })();
 </script>

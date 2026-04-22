@@ -70,12 +70,86 @@
       font-size: 13px;
       color: #6b7280;
     }
+    .replacement-url-panel {
+      max-width: 600px;
+      margin: 0 auto 20px;
+      background: white;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      font-size: 13px;
+    }
+    .replacement-url-panel .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .replacement-url-panel .panel-header strong {
+      color: #374151;
+      font-size: 14px;
+    }
+    .replacement-url-panel .panel-clear {
+      padding: 4px 10px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .replacement-url-panel .panel-clear:hover {
+      background: #e5e7eb;
+    }
+    .replacement-url-panel ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .replacement-url-panel li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .replacement-url-panel li:last-child {
+      border-bottom: none;
+    }
+    .replacement-url-panel .url-meta {
+      color: #6b7280;
+      font-size: 11px;
+    }
+    .replacement-url-panel .url-link {
+      color: #2563eb;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .replacement-url-panel .url-link:hover {
+      text-decoration: underline;
+    }
+    .replacement-url-empty {
+      color: #9ca3af;
+      font-style: italic;
+      padding: 4px 0;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   <div class="test-header">
     <h1>Photo Upload Local Test</h1>
     <p>Select a variant to test the upload functionality</p>
+  </div>
+
+  <div class="replacement-url-panel">
+    <div class="panel-header">
+      <strong>Saved replacement URLs</strong>
+      <button class="panel-clear" onclick="clearReplacementUrls()">Clear</button>
+    </div>
+    <ul id="replacement-url-list"></ul>
+    <p class="replacement-url-empty" id="replacement-url-empty">No URLs saved yet. Upload photos in any variant to generate one.</p>
   </div>
 
   <div class="variant-tabs">
@@ -211,7 +285,7 @@
   <!-- Rectangle Variant -->
   <div id="rectangle-variant" class="variant-container">
     <div class="variant-info">
-      <strong>Rectangle Variant:</strong> 6 photos, 16:9/9:16 aspect ratio with orientation toggle
+      <strong>Rectangle Variant:</strong> 6 photos, rectangular with orientation toggle
     </div>
     <div class="file-upload-container" data-product-id="rect-test">
       <button
@@ -321,13 +395,13 @@
           </div>
           <div class="crop-controls">
             <div class="orientation-toggle">
-              <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
+              <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="2" y="6" width="20" height="12" rx="2" />
                 </svg>
                 Landscape
               </button>
-              <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
+              <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="6" y="2" width="12" height="20" rx="2" />
                 </svg>
@@ -462,7 +536,7 @@
   <!-- Bulk Rectangle Variant -->
   <div id="bulk-rectangle-variant" class="variant-container">
     <div class="variant-info">
-      <strong>Bulk Rectangle Variant:</strong> 1 photo, 16:9/9:16 aspect ratio with orientation toggle
+      <strong>Bulk Rectangle Variant:</strong> 1 photo, rectangular with orientation toggle
     </div>
     <div class="file-upload-container" data-product-id="bulk-rect-test">
       <button
@@ -563,13 +637,13 @@
           </div>
           <div class="crop-controls">
             <div class="orientation-toggle">
-              <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
+              <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="2" y="6" width="20" height="12" rx="2" />
                 </svg>
                 Landscape
               </button>
-              <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
+              <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="6" y="2" width="12" height="20" rx="2" />
                 </svg>
@@ -1172,6 +1246,47 @@
     window.PhotoUploader = (function() {
       const SAFE_AREA_PERCENTAGE = 0.9;
       const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
+      const OUTPUT_MIN_SHORT_SIDE = 2000;
+      const RECTANGLE_RATIO = 16 / 9;
+
+      function drawSafeAreaOverlay(container) {
+        container.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+        const img = container.querySelector("img");
+        if (!img || !img.complete || !img.naturalWidth) return;
+        const cW = container.clientWidth, cH = container.clientHeight;
+        const iW = img.clientWidth, iH = img.clientHeight;
+        if (!iW || !iH) return;
+        const imgLeft = (cW - iW) / 2, imgTop = (cH - iH) / 2;
+        const safeW = iW * SAFE_AREA_PERCENTAGE, safeH = iH * SAFE_AREA_PERCENTAGE;
+        const marginX = (iW - safeW) / 2, marginY = (iH - safeH) / 2;
+        const safeLeft = imgLeft + marginX, safeTop = imgTop + marginY;
+        const oc = "rgba(0, 0, 0, 0.25)";
+
+        const topO = document.createElement("div");
+        topO.classList.add("safe-area-overlay");
+        topO.style.cssText = `display:block;position:absolute;top:${imgTop}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;background:${oc};pointer-events:none;z-index:1;`;
+        container.appendChild(topO);
+
+        const bottomO = document.createElement("div");
+        bottomO.classList.add("safe-area-overlay");
+        bottomO.style.cssText = `display:block;position:absolute;top:${imgTop + iH - marginY}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;background:${oc};pointer-events:none;z-index:1;`;
+        container.appendChild(bottomO);
+
+        const leftO = document.createElement("div");
+        leftO.classList.add("safe-area-overlay");
+        leftO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:${imgLeft}px;width:${marginX}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+        container.appendChild(leftO);
+
+        const rightO = document.createElement("div");
+        rightO.classList.add("safe-area-overlay");
+        rightO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:${imgLeft + iW - marginX}px;width:${marginX}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+        container.appendChild(rightO);
+
+        const border = document.createElement("div");
+        border.classList.add("safe-area-overlay");
+        border.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
+        container.appendChild(border);
+      }
 
       function openModal(modalId) {
         const modal = document.getElementById(modalId);
@@ -1216,8 +1331,16 @@
           aspectRatio,
           landscapeRatio,
           portraitRatio,
-          hasOrientation
+          hasOrientation,
+          variant
         } = config;
+
+        // Keep enough pre-crop resolution so the worst-case crop still yields
+        // OUTPUT_MIN_SHORT_SIDE on its short side.
+        const maxRatio = hasOrientation
+          ? Math.max(landscapeRatio, 1 / portraitRatio)
+          : aspectRatio;
+        const compressionTarget = Math.ceil(OUTPUT_MIN_SHORT_SIDE * maxRatio);
 
         let selectedFiles = [];
         let croppedFiles = [];
@@ -1366,7 +1489,7 @@
             uploadButton.textContent = "Done";
             uploadButton.disabled = false;
             selectPhotosButton.textContent = "Photos uploaded";
-            document.dispatchEvent(new CustomEvent("photosUploaded", { detail: { sessionId, productId } }));
+            document.dispatchEvent(new CustomEvent("photosUploaded", { detail: { sessionId, productId, variant } }));
             uploadButton.onclick = () => closeModal(`select-photos-modal-${productId}`);
           }
         });
@@ -1449,7 +1572,7 @@
           const srcW = Math.round(cropData.width);
           const srcH = Math.round(cropData.height);
           const shortSide = Math.min(srcW, srcH);
-          const scale = Math.min(2000 / shortSide, 1);
+          const scale = Math.min(OUTPUT_MIN_SHORT_SIDE / shortSide, 1);
           const width = Math.round(srcW * scale);
           const height = Math.round(srcH * scale);
 
@@ -1576,7 +1699,7 @@
               processingTextEl.textContent = `Processing image ${i + 1} of ${files.length}...`;
             }
             const indexToInsert = initialLength + i;
-            const compressed = await compressImage(files[i], indexToInsert);
+            const compressed = await compressImage(files[i], indexToInsert, compressionTarget);
             selectedFiles[indexToInsert] = compressed;
             croppedFiles[indexToInsert] = await createDefaultCrop(compressed);
             if (hasOrientation) cropOrientations[indexToInsert] = "landscape";
@@ -1678,41 +1801,7 @@
         }
 
         function handleSafeAreaOverlay() {
-          const thumbnails = modal.querySelectorAll(".main-thumbnail-img-container");
-          thumbnails.forEach((thumbnail) => {
-            const img = thumbnail.querySelector("img");
-            const cW = thumbnail.clientWidth, cH = thumbnail.clientHeight;
-            const iW = img.clientWidth, iH = img.clientHeight;
-            const imgLeft = (cW - iW) / 2, imgTop = (cH - iH) / 2;
-            const safeW = iW * SAFE_AREA_PERCENTAGE, safeH = iH * SAFE_AREA_PERCENTAGE;
-            const safeLeft = imgLeft + (iW - safeW) / 2, safeTop = imgTop + (iH - safeH) / 2;
-            const oc = "rgba(0, 0, 0, 0.25)";
-
-            const topO = document.createElement("div");
-            topO.classList.add("safe-area-overlay");
-            topO.style.cssText = `display:block;position:absolute;top:0;left:0;right:0;height:${safeTop}px;background:${oc};pointer-events:none;z-index:1;`;
-            thumbnail.appendChild(topO);
-
-            const bottomO = document.createElement("div");
-            bottomO.classList.add("safe-area-overlay");
-            bottomO.style.cssText = `display:block;position:absolute;bottom:0;left:0;right:0;height:${cH - safeTop - safeH}px;background:${oc};pointer-events:none;z-index:1;`;
-            thumbnail.appendChild(bottomO);
-
-            const leftO = document.createElement("div");
-            leftO.classList.add("safe-area-overlay");
-            leftO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:0;width:${safeLeft}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
-            thumbnail.appendChild(leftO);
-
-            const rightO = document.createElement("div");
-            rightO.classList.add("safe-area-overlay");
-            rightO.style.cssText = `display:block;position:absolute;top:${safeTop}px;right:0;width:${cW - safeLeft - safeW}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
-            thumbnail.appendChild(rightO);
-
-            const border = document.createElement("div");
-            border.classList.add("safe-area-overlay");
-            border.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
-            thumbnail.appendChild(border);
-          });
+          modal.querySelectorAll(".main-thumbnail-img-container").forEach(drawSafeAreaOverlay);
         }
 
         window.addEventListener("resize", () => {
@@ -1770,7 +1859,7 @@
         }
       }
 
-      return { init, openModal, closeModal };
+      return { init, openModal, closeModal, RECTANGLE_RATIO };
     })();
 
     // Variant tab switching
@@ -1787,30 +1876,107 @@
         productId: 'square-test',
         maxFiles: 9,
         aspectRatio: 1,
-        hasOrientation: false
+        hasOrientation: false,
+        variant: 'square'
       });
 
       PhotoUploader.init({
         productId: 'rect-test',
         maxFiles: 6,
-        landscapeRatio: 16 / 9,
-        portraitRatio: 9 / 16,
-        hasOrientation: true
+        landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+        portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
+        hasOrientation: true,
+        variant: 'rectangle'
       });
 
       PhotoUploader.init({
         productId: 'bulk-sq-test',
         maxFiles: 1,
         aspectRatio: 1,
-        hasOrientation: false
+        hasOrientation: false,
+        variant: 'bulk-square'
       });
 
       PhotoUploader.init({
         productId: 'bulk-rect-test',
         maxFiles: 1,
-        landscapeRatio: 16 / 9,
-        portraitRatio: 9 / 16,
-        hasOrientation: true
+        landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+        portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
+        hasOrientation: true,
+        variant: 'bulk-rectangle'
+      });
+
+      renderReplacementUrls();
+    });
+
+    // --- Replacement URL panel ---
+    const REPLACEMENT_URL_KEY = "pu_test_replacement_urls";
+    const REPLACEMENT_URL_MAX = 20;
+
+    function getReplacementUrls() {
+      try {
+        return JSON.parse(localStorage.getItem(REPLACEMENT_URL_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveReplacementUrl(entry) {
+      const urls = getReplacementUrls();
+      urls.unshift(entry);
+      localStorage.setItem(
+        REPLACEMENT_URL_KEY,
+        JSON.stringify(urls.slice(0, REPLACEMENT_URL_MAX)),
+      );
+      renderReplacementUrls();
+    }
+
+    function clearReplacementUrls() {
+      localStorage.removeItem(REPLACEMENT_URL_KEY);
+      renderReplacementUrls();
+    }
+
+    function renderReplacementUrls() {
+      const urls = getReplacementUrls();
+      const listEl = document.getElementById("replacement-url-list");
+      const emptyEl = document.getElementById("replacement-url-empty");
+      if (!listEl || !emptyEl) return;
+      listEl.innerHTML = "";
+      if (urls.length === 0) {
+        emptyEl.style.display = "block";
+        return;
+      }
+      emptyEl.style.display = "none";
+      for (const entry of urls) {
+        const li = document.createElement("li");
+        const when = new Date(entry.timestamp).toLocaleString();
+        const meta = document.createElement("span");
+        meta.className = "url-meta";
+        meta.textContent = `${entry.variant} · ${when}`;
+        const a = document.createElement("a");
+        a.className = "url-link";
+        a.href = entry.url;
+        a.target = "_blank";
+        a.textContent = entry.url;
+        li.appendChild(meta);
+        li.appendChild(a);
+        listEl.appendChild(li);
+      }
+    }
+
+    document.addEventListener("photosUploaded", (e) => {
+      const d = e.detail || {};
+      if (!d.sessionId || !d.productId || !d.variant) return;
+      const url = new URL("test-replacement.html", window.location.href);
+      url.searchParams.set("session", d.sessionId);
+      url.searchParams.set("product", d.productId);
+      url.searchParams.set("variant", d.variant);
+      saveReplacementUrl({
+        url: url.toString(),
+        variant: d.variant,
+        sessionId: d.sessionId,
+        productId: d.productId,
+        timestamp: Date.now(),
       });
     });
   </script>

@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'square' %}
 <!--
   Photo Upload - Square Variant
-  Version: 2026-04-21.1
+  Version: 2026-04-22.1
   9 photos, 1:1 aspect ratio
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -124,12 +124,13 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-square] v2026-04-21.1");
+    console.log("[photo-upload-square] v2026-04-22.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 9,
       aspectRatio: 1,
-      hasOrientation: false
+      hasOrientation: false,
+      variant: 'square'
     });
   });
 </script>

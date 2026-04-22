@@ -1,8 +1,8 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_rectangle' %}
 <!--
   Photo Upload - Bulk Rectangle Variant
-  Version: 2026-04-21.1
-  1 photo, 16:9/9:16 aspect ratio with orientation toggle
+  Version: 2026-04-22.1
+  1 photo, rectangular with orientation toggle
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
 <div class="file-upload-container" data-product-id="{{ product.id }}">
@@ -104,13 +104,13 @@
       </div>
       <div class="crop-controls">
         <div class="orientation-toggle">
-          <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape (16:9)">
+          <button id="orientation-landscape" class="orientation-toggle-btn active" title="Landscape">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="6" width="20" height="12" rx="2" />
             </svg>
             Landscape
           </button>
-          <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait (9:16)">
+          <button id="orientation-portrait" class="orientation-toggle-btn" title="Portrait">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="6" y="2" width="12" height="20" rx="2" />
             </svg>
@@ -129,13 +129,14 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-bulk-rectangle] v2026-04-21.1");
+    console.log("[photo-upload-bulk-rectangle] v2026-04-22.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,
-      landscapeRatio: 16 / 9,
-      portraitRatio: 9 / 16,
-      hasOrientation: true
+      landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+      portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
+      hasOrientation: true,
+      variant: 'bulk-rectangle'
     });
   });
 </script>

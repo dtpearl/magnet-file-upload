@@ -1,6 +1,6 @@
 <!--
   Cart Button Control
-  Version: 2026-04-21.2
+  Version: 2026-04-22.1
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
@@ -14,7 +14,7 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-04-21.2");
+    console.log("[cart-button-control] v2026-04-22.1");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
 
     const initCartButtonControl = () => {
@@ -71,15 +71,32 @@
 
         const sessionId = e.detail?.sessionId;
         const productId = e.detail?.productId;
+        const variant = e.detail?.variant;
         console.log("[cart-button-control] _product_id:", productId);
         const productForm =
           addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
         if (productForm) {
           setHiddenProperty(productForm, "_session_id", sessionId);
-          setHiddenProperty(productForm, "_product_id", productId);
+          setHiddenProperty(
+            productForm,
+            "_replacement_url",
+            buildReplacementUrl(sessionId, productId, variant),
+          );
         }
       });
     };
+
+    function buildReplacementUrl(sessionId, productId, variant) {
+      if (!sessionId || !productId || !variant) return null;
+      const url = new URL(
+        "/pages/upload-your-photos",
+        window.location.origin,
+      );
+      url.searchParams.set("session", sessionId);
+      url.searchParams.set("product", productId);
+      url.searchParams.set("variant", variant);
+      return url.toString();
+    }
 
     function setHiddenProperty(form, name, value) {
       if (!value) return;
