@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-05.1
+  Version: 2026-05-05.2
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-05.1");
+  console.log("[photo-upload-core] v2026-05-05.2");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
@@ -276,6 +276,7 @@
       );
 
       removeAllFilesButton.addEventListener("click", () => {
+        uploadStatus.textContent = "";
         removeAllConfirmEl.classList.add("active");
         footerActionsEl.style.display = "none";
       });
@@ -290,6 +291,7 @@
       });
 
       uploadButton.addEventListener("click", () => {
+        uploadStatus.textContent = "";
         if (croppedFiles.length < maxFiles) {
           mediaUploadStatus.textContent = `You have ${croppedFiles.length} chosen images. Please select exactly ${maxFiles} images before uploading.`;
           return;
@@ -415,6 +417,7 @@
       }
 
       function startCropping(index) {
+        uploadStatus.textContent = "";
         currentCropIndex = index;
         const file = selectedFiles[index];
         if (hasOrientation) {
@@ -641,8 +644,9 @@
           const list = skipped.map((n) => `"${n}"`).join(", ");
           uploadStatus.textContent =
             `Couldn't process ${skipped.length} file${skipped.length === 1 ? "" : "s"} (${list}). ` +
-            "The format may not be supported — HEIC iPhone photos and RAW files don't always work in browsers. " +
-            "Please convert to JPEG or PNG and try again.";
+            "Some image formats don't load in browsers — most often unusual HEIC variants or RAW files (from cameras). " +
+            "Other formats may also fail. " +
+            "Please save as JPEG or PNG and try again.";
         }
         processThumbnails();
         updateUploadUI();
@@ -799,6 +803,7 @@
 
       function removeFile(index) {
         if (index < 0 || index >= selectedFiles.length) return;
+        uploadStatus.textContent = "";
         selectedFiles.splice(index, 1);
         croppedFiles.splice(index, 1);
         if (hasOrientation) cropOrientations.splice(index, 1);

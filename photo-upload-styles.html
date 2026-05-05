@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-04-21.1
+  Version: 2026-05-05.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -200,7 +200,16 @@
     margin-top: 24px;
   }
   .upload-status {
-    color: #f00;
+    color: #a33;
+    padding: 14px 16px;
+    margin: 20px 0;
+    line-height: 1.5;
+    max-width: 480px;
+    text-align: center;
+  }
+  .upload-status:empty {
+    padding: 0;
+    margin: 0;
   }
   .upload-btn {
     background-color: #95887a;
