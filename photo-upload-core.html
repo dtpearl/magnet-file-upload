@@ -112,8 +112,7 @@
         const script = document.createElement("script");
         script.src = HEIC2ANY_URL;
         script.onload = () => {
-          if (typeof window.heic2any === "function")
-            resolve(window.heic2any);
+          if (typeof window.heic2any === "function") resolve(window.heic2any);
           else reject(new Error("heic2any did not initialise"));
         };
         script.onerror = () => {
@@ -542,8 +541,7 @@
           reader.onerror = () => reject(new Error("Failed to read file"));
           reader.onload = (e) => {
             const img = new Image();
-            img.onerror = () =>
-              reject(new Error("Image format not supported"));
+            img.onerror = () => reject(new Error("Image format not supported"));
             img.onload = () => {
               const canvas = document.createElement("canvas");
               const ctx = canvas.getContext("2d");
@@ -644,7 +642,7 @@
           const list = skipped.map((n) => `"${n}"`).join(", ");
           uploadStatus.textContent =
             `Couldn't process ${skipped.length} file${skipped.length === 1 ? "" : "s"} (${list}). ` +
-            "Some image formats don't load in browsers — most often unusual HEIC variants or RAW files (from cameras). " +
+            "Some image formats don't load in browsers - most often unusual HEIC variants or RAW files (from cameras). " +
             "Other formats may also fail. " +
             "Please save as JPEG or PNG and try again.";
         }
@@ -833,7 +831,8 @@
         hasOrientation,
       } = config;
 
-      const CLOUDINARY_BASE = "https://res.cloudinary.com/djzc7ih0g/image/upload";
+      const CLOUDINARY_BASE =
+        "https://res.cloudinary.com/djzc7ih0g/image/upload";
 
       const slots = Array.from({ length: maxFiles }, (_, i) => ({
         index: i,
@@ -849,8 +848,12 @@
       const uploadBtn = document.getElementById("replacement-upload-btn");
       const statusEl = document.getElementById("replacement-status");
       const progressEl = document.getElementById("replacement-progress");
-      const progressFillEl = document.getElementById("replacement-progress-fill");
-      const progressTextEl = document.getElementById("replacement-progress-text");
+      const progressFillEl = document.getElementById(
+        "replacement-progress-fill",
+      );
+      const progressTextEl = document.getElementById(
+        "replacement-progress-text",
+      );
       const completeEl = document.getElementById("replacement-complete");
 
       const imageToCrop = document.getElementById("image-to-crop");
@@ -888,8 +891,14 @@
         const base = `${CLOUDINARY_BASE}/shopify_uploads/${session}`;
         if (hasOrientation) {
           const [landscape, portrait] = await Promise.all([
-            tryLoad(`${base}/${productId}-landscape-${paddedIndex}.jpg`, "landscape"),
-            tryLoad(`${base}/${productId}-portrait-${paddedIndex}.jpg`, "portrait"),
+            tryLoad(
+              `${base}/${productId}-landscape-${paddedIndex}.jpg`,
+              "landscape",
+            ),
+            tryLoad(
+              `${base}/${productId}-portrait-${paddedIndex}.jpg`,
+              "portrait",
+            ),
           ]);
           return landscape || portrait;
         }
@@ -1047,7 +1056,9 @@
               if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
               slot.status = "replaced";
               slot.replacedBlob = blob;
-              slot.replacedOrientation = hasOrientation ? currentOrientation : null;
+              slot.replacedOrientation = hasOrientation
+                ? currentOrientation
+                : null;
               slot.previewUrl = URL.createObjectURL(blob);
               closeCropModal();
               renderSlot(slot);
@@ -1060,11 +1071,13 @@
       }
 
       if (cropCancel) cropCancel.addEventListener("click", closeCropModal);
-      if (editModalCloseBtn) editModalCloseBtn.addEventListener("click", closeCropModal);
+      if (editModalCloseBtn)
+        editModalCloseBtn.addEventListener("click", closeCropModal);
 
       if (hasOrientation && orientationLandscapeBtn) {
         orientationLandscapeBtn.addEventListener("click", () => {
-          if (!currentCropperInstance || currentOrientation === "landscape") return;
+          if (!currentCropperInstance || currentOrientation === "landscape")
+            return;
           currentOrientation = "landscape";
           updateOrientationToggle();
           currentCropperInstance.setAspectRatio(landscapeRatio);
@@ -1072,7 +1085,8 @@
       }
       if (hasOrientation && orientationPortraitBtn) {
         orientationPortraitBtn.addEventListener("click", () => {
-          if (!currentCropperInstance || currentOrientation === "portrait") return;
+          if (!currentCropperInstance || currentOrientation === "portrait")
+            return;
           currentOrientation = "portrait";
           updateOrientationToggle();
           currentCropperInstance.setAspectRatio(portraitRatio);
