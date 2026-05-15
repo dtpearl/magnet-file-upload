@@ -1383,16 +1383,14 @@
       }
       .main-thumbnail-container {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, auto);
+        justify-content: center;
         gap: 16px;
-        width: 100%;
-        max-width: 1280px;
         margin: 0 auto;
         padding: 0 32px;
       }
       .main-thumbnail-container.single-image {
-        grid-template-columns: 1fr;
-        max-width: 400px;
+        grid-template-columns: auto;
       }
       .thumbnail-container {
         display: flex;
@@ -1404,9 +1402,6 @@
       .placeholder-thumbnail-img-container {
         margin: 8px;
         border-radius: 8px;
-        width: 28%;
-        max-width: 200px;
-        aspect-ratio: 1 / 1;
         overflow: hidden;
         background-color: #e3d9cf;
         display: flex;
@@ -1415,25 +1410,72 @@
       }
       .placeholder-thumbnail,
       .main-thumbnail {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        cursor: pointer;
-        transition:
-          transform 0.2s,
-          box-shadow 0.2s;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: zoom-in;
+        transition: transform 0.2s;
       }
       .main-thumbnail-img-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        aspect-ratio: 1 / 1;
-        width: 100%;
-        max-width: 400px;
         overflow: hidden;
         background-color: #e3d9cf;
         border-radius: 8px;
+        transition: box-shadow 0.2s;
       }
+      .variant-square .main-thumbnail-img-container,
+      .variant-square .placeholder-thumbnail-img-container {
+        width: 82.5mm;
+        height: 82.5mm;
+      }
+      .variant-rectangle .main-thumbnail-img-container,
+      .variant-rectangle .placeholder-thumbnail-img-container {
+        width: 124.5mm;
+        height: 88.5mm;
+      }
+      .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
+      .variant-rectangle .placeholder-thumbnail-img-container[data-orientation="portrait"] {
+        width: 88.5mm;
+        height: 124.5mm;
+      }
+      @media (hover: hover) {
+        .main-thumbnail-img-container:hover,
+        .placeholder-thumbnail-img-container:hover {
+          box-shadow: 0 0 0 2px rgba(149, 136, 122, 0.6), 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+        .main-thumbnail-img-container:hover .main-thumbnail,
+        .placeholder-thumbnail-img-container:hover .placeholder-thumbnail {
+          transform: scale(1.03);
+        }
+      }
+      /* === Print-quality lightbox === */
+      .pq-lightbox { display: none; position: fixed; inset: 0; z-index: 2000; align-items: center; justify-content: center; }
+      .pq-lightbox.active { display: flex; }
+      .pq-lb-backdrop { position: absolute; inset: 0; background: rgba(20, 14, 8, 0.88); }
+      .pq-lb-body { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 48px 0 24px; max-height: 100vh; box-sizing: border-box; }
+      .pq-lb-close { position: absolute; top: 8px; right: -8px; background: rgba(255,255,255,0.15); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 1; }
+      .pq-lb-close:hover { background: rgba(255,255,255,0.3); }
+      .pq-lb-stage { display: flex; align-items: center; gap: 12px; }
+      .pq-lb-nav { background: rgba(255,255,255,0.15); border: none; color: white; width: 40px; height: 40px; min-width: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
+      .pq-lb-nav:hover { background: rgba(255,255,255,0.3); }
+      .pq-lb-nav:disabled { opacity: 0.25; cursor: default; }
+      .pq-lb-scroll { overflow: hidden; }
+      .pq-lb-scroll.pq-lb-pan { overflow: auto; -webkit-overflow-scrolling: touch; max-width: 92vw; max-height: calc(90vh - 140px); }
+      .pq-lb-frame { position: relative; background: #e3d9cf; flex-shrink: 0; }
+      .pq-lb-frame.pq-lb-fit { width: min(88vw, calc((90vh - 160px) * var(--lb-ar))); aspect-ratio: var(--lb-ar); height: auto; }
+      .pq-lightbox.variant-square .pq-lb-frame:not(.pq-lb-fit) { width: 55mm; height: 55mm; }
+      .pq-lightbox.variant-rectangle .pq-lb-frame:not(.pq-lb-fit) { width: 83mm; height: 59mm; }
+      .pq-lightbox.variant-rectangle .pq-lb-frame[data-orientation="portrait"]:not(.pq-lb-fit) { width: 59mm; height: 83mm; }
+      .pq-lb-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .pq-lb-footer { display: flex; flex-direction: column; align-items: center; gap: 4px; color: white; text-align: center; }
+      .pq-lb-label { font-size: 20px; font-weight: 600; letter-spacing: 0.02em; }
+      .pq-lb-disc { font-size: 15px; opacity: 0.6; }
+      .pq-lb-size-btn { display: none; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 24px; border-radius: 20px; cursor: pointer; font-size: 16px; margin-top: 6px; transition: background 0.2s; }
+      .pq-lb-size-btn:hover { background: rgba(255,255,255,0.3); }
+      @media (max-width: 768px) { .pq-lb-size-btn { display: inline-block; } .pq-lb-stage { gap: 8px; } .pq-lb-nav { width: 36px; height: 36px; min-width: 36px; } }
+      /* === End print-quality lightbox === */
       .post-selection-info {
         display: none;
         flex-direction: column;
@@ -1612,8 +1654,8 @@
         border: none;
         border-radius: 50%;
         color: #fff;
-        width: 2em;
-        height: 2em;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1621,8 +1663,8 @@
         padding: 0;
       }
       .thumbnail-action-btn svg {
-        width: 1em;
-        height: 1em;
+        width: 16px;
+        height: 16px;
       }
       .processing-indicator {
         display: none;
@@ -1675,12 +1717,31 @@
         }
         .main-thumbnail-container {
           grid-template-columns: repeat(3, 1fr);
+          justify-content: unset;
           gap: 8px;
           padding: 0 16px;
+        }
+        .main-thumbnail-img-container,
+        .placeholder-thumbnail-img-container {
+          width: 100%;
+          height: auto;
+        }
+        .variant-square .main-thumbnail-img-container,
+        .variant-square .placeholder-thumbnail-img-container {
+          aspect-ratio: 1 / 1;
+        }
+        .variant-rectangle .main-thumbnail-img-container,
+        .variant-rectangle .placeholder-thumbnail-img-container {
+          aspect-ratio: 83 / 59;
+        }
+        .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
+        .variant-rectangle .placeholder-thumbnail-img-container[data-orientation="portrait"] {
+          aspect-ratio: 59 / 83;
         }
         .placeholder-thumbnail-img-container {
           width: 30%;
           margin: 4px;
+          height: auto;
         }
         .thumbnail-action-buttons {
           opacity: 1;
@@ -1722,6 +1783,14 @@
           grid-template-columns: repeat(2, 1fr);
           gap: 6px;
         }
+        .variant-rectangle .main-thumbnail-img-container,
+        .variant-rectangle .placeholder-thumbnail-img-container {
+          aspect-ratio: 83 / 59;
+        }
+        .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
+        .variant-rectangle .placeholder-thumbnail-img-container[data-orientation="portrait"] {
+          aspect-ratio: 59 / 83;
+        }
         .thumbnail-action-btn {
           width: 32px;
           height: 32px;
@@ -1753,9 +1822,11 @@
         const SAFE_AREA_PERCENTAGE = 0.9;
         const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
         const OUTPUT_MIN_SHORT_SIDE = 2000;
-        const RECTANGLE_RATIO = 16 / 9;
+        const RECTANGLE_RATIO = 83 / 59;
 
-        function drawSafeAreaOverlay(container) {
+        function drawSafeAreaOverlay(container, safeXFrac, safeYFrac) {
+          safeXFrac = safeXFrac !== undefined ? safeXFrac : SAFE_AREA_PERCENTAGE;
+          safeYFrac = safeYFrac !== undefined ? safeYFrac : SAFE_AREA_PERCENTAGE;
           container
             .querySelectorAll(".safe-area-overlay")
             .forEach((el) => el.remove());
@@ -1768,8 +1839,8 @@
           if (!iW || !iH) return;
           const imgLeft = (cW - iW) / 2,
             imgTop = (cH - iH) / 2;
-          const safeW = iW * SAFE_AREA_PERCENTAGE,
-            safeH = iH * SAFE_AREA_PERCENTAGE;
+          const safeW = iW * safeXFrac,
+            safeH = iH * safeYFrac;
           const marginX = (iW - safeW) / 2,
             marginY = (iH - safeH) / 2;
           const safeLeft = imgLeft + marginX,
@@ -1961,6 +2032,8 @@
           );
           const processingTextEl =
             processingIndicator.querySelector(".processing-text");
+
+          modal.classList.add(`variant-${variant}`);
 
           // Orientation elements (rectangle only)
           const orientationLandscapeBtn = hasOrientation
@@ -2450,6 +2523,8 @@
                 );
                 imgContainer.style.position = "relative";
                 imgContainer.style.display = "inline-flex";
+                imgContainer.dataset.orientation =
+                  cropOrientations[index] || "landscape";
 
                 const imgElement = document.createElement("img");
                 imgElement.src = e.target.result;
@@ -2458,9 +2533,7 @@
                 );
                 imgElement.onclick = (ev) => {
                   ev.stopPropagation();
-                  const editModal = modal.querySelector("#edit-photos-modal");
-                  editModal.classList.add("active");
-                  startCropping(index);
+                  openLightbox(index);
                 };
 
                 imgContainer.appendChild(imgElement);
@@ -2495,10 +2568,16 @@
             });
           }
 
+          function safeAreaFracs(orient) {
+            if (variant === "square") return [50 / 55, 50 / 55];
+            return orient === "portrait" ? [54 / 59, 78 / 83] : [78 / 83, 54 / 59];
+          }
+
           function handleSafeAreaOverlay() {
-            modal
-              .querySelectorAll(".main-thumbnail-img-container")
-              .forEach(drawSafeAreaOverlay);
+            modal.querySelectorAll(".main-thumbnail-img-container").forEach((c) => {
+              const [x, y] = safeAreaFracs(c.dataset.orientation || "landscape");
+              drawSafeAreaOverlay(c, x, y);
+            });
           }
 
           window.addEventListener("resize", () => {
@@ -2558,6 +2637,119 @@
             processThumbnails();
             updateUploadUI();
           }
+
+          // --- Lightbox ---
+          const _lb = document.createElement("div");
+          _lb.className = `pq-lightbox variant-${variant}`;
+          _lb.innerHTML = `
+            <div class="pq-lb-backdrop"></div>
+            <div class="pq-lb-body">
+              <button class="pq-lb-close" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+              <div class="pq-lb-stage">
+                <button class="pq-lb-nav pq-lb-prev" aria-label="Previous image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div class="pq-lb-scroll"><div class="pq-lb-frame"><img class="pq-lb-img" src="" alt="Print preview"/></div></div>
+                <button class="pq-lb-nav pq-lb-next" aria-label="Next image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+              <div class="pq-lb-footer">
+                <span class="pq-lb-label"></span>
+                <span class="pq-lb-disc">Shown close to actual magnet size. May vary slightly by screen.</span>
+                <button class="pq-lb-size-btn">See 1:1</button>
+              </div>
+            </div>`;
+          document.body.appendChild(_lb);
+          const lbBackdrop = _lb.querySelector(".pq-lb-backdrop");
+          const lbFrame    = _lb.querySelector(".pq-lb-frame");
+          const lbScroll   = _lb.querySelector(".pq-lb-scroll");
+          const lbImg      = _lb.querySelector(".pq-lb-img");
+          const lbPrev     = _lb.querySelector(".pq-lb-prev");
+          const lbNext     = _lb.querySelector(".pq-lb-next");
+          const lbClose    = _lb.querySelector(".pq-lb-close");
+          const lbLabel    = _lb.querySelector(".pq-lb-label");
+          const lbSizeBtn  = _lb.querySelector(".pq-lb-size-btn");
+          let lbIndex = -1;
+          let lbFitMode = true;
+
+          function lbPrintDims(index) {
+            if (variant === "square") return { label: "50 × 50mm", ar: 1, orient: "landscape" };
+            const o = cropOrientations[index] || "landscape";
+            return o === "portrait"
+              ? { label: "54 × 78mm", ar: 59 / 83, orient: "portrait" }
+              : { label: "78 × 54mm", ar: 83 / 59, orient: "landscape" };
+          }
+          function applyLbMode() {
+            lbFrame.classList.toggle("pq-lb-fit", lbFitMode);
+            lbScroll.classList.toggle("pq-lb-pan", !lbFitMode);
+            lbSizeBtn.textContent = lbFitMode ? "See 1:1" : "Fit to screen";
+          }
+          function updateLightbox() {
+            const file = croppedFiles[lbIndex];
+            if (!file) return;
+            const dims = lbPrintDims(lbIndex);
+            lbFrame.dataset.orientation = dims.orient;
+            lbFrame.style.setProperty("--lb-ar", dims.ar);
+            lbLabel.textContent = `Actual magnet size: ${dims.label}`;
+            lbPrev.disabled = lbIndex <= 0;
+            lbNext.disabled = lbIndex >= selectedFiles.length - 1;
+            const url = URL.createObjectURL(file);
+            lbImg.onload = () => {
+              URL.revokeObjectURL(url);
+              requestAnimationFrame(() => {
+                lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+                const [x, y] = safeAreaFracs(dims.orient);
+                drawSafeAreaOverlay(lbFrame, x, y);
+              });
+            };
+            lbImg.src = url;
+          }
+          function openLightbox(index) {
+            lbIndex = index;
+            lbFitMode = window.innerWidth <= 768;
+            applyLbMode();
+            updateLightbox();
+            _lb.classList.add("active");
+            document.addEventListener("keydown", lbKeyHandler);
+          }
+          function closeLightbox() {
+            _lb.classList.remove("active");
+            lbImg.src = "";
+            lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+            document.removeEventListener("keydown", lbKeyHandler);
+          }
+          function lbKeyHandler(e) {
+            if (e.key === "Escape") { closeLightbox(); return; }
+            if (e.key === "ArrowLeft" && lbIndex > 0) { lbIndex--; updateLightbox(); }
+            if (e.key === "ArrowRight" && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
+          }
+          lbClose.addEventListener("click", closeLightbox);
+          lbBackdrop.addEventListener("click", closeLightbox);
+          lbPrev.addEventListener("click", () => { if (lbIndex > 0) { lbIndex--; updateLightbox(); } });
+          lbNext.addEventListener("click", () => { if (lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); } });
+          lbSizeBtn.addEventListener("click", () => {
+            lbFitMode = !lbFitMode;
+            applyLbMode();
+            requestAnimationFrame(() => {
+              lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+              const [x, y] = safeAreaFracs(lbFrame.dataset.orientation || "landscape");
+              drawSafeAreaOverlay(lbFrame, x, y);
+            });
+          });
+          let lbTouchY = 0, lbTouchX = 0;
+          _lb.addEventListener("touchstart", (e) => { lbTouchY = e.touches[0].clientY; lbTouchX = e.touches[0].clientX; }, { passive: true });
+          _lb.addEventListener("touchend", (e) => {
+            const dy = e.changedTouches[0].clientY - lbTouchY;
+            const dx = e.changedTouches[0].clientX - lbTouchX;
+            if (Math.abs(dy) > Math.abs(dx) && dy > 80) { closeLightbox(); }
+            else if (lbFitMode && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+              if (dx > 0 && lbIndex > 0) { lbIndex--; updateLightbox(); }
+              else if (dx < 0 && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
+            }
+          }, { passive: true });
         }
 
         return { init, openModal, closeModal, RECTANGLE_RATIO };

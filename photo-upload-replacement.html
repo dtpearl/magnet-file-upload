@@ -1,6 +1,6 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-04-22.2
+  Version: 2026-05-15.1
   Self-service page for replacing photos on an existing order.
 
   URL params (all required): session, product, variant.
@@ -269,7 +269,7 @@
 </div>
 
 <script>
-  console.log("[photo-upload-replacement] v2026-04-22.2");
+  console.log("[photo-upload-replacement] v2026-05-15.1");
   document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const session = params.get("session");
@@ -302,6 +302,7 @@
     PhotoUploader.initReplacement({
       session,
       productId,
+      variant,
       ...cfg,
     });
   });

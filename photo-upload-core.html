@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-05.2
+  Version: 2026-05-15.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,20 +15,23 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-05.2");
+  console.log("[photo-upload-core] v2026-05-15.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
     const OUTPUT_MIN_SHORT_SIDE = 2000;
     // Rectangle magnet aspect ratio (wider:narrower). Update this one value
     // to retune all rectangle variants + the replacement page.
-    const RECTANGLE_RATIO = 16 / 9;
+    // 83mm × 59mm = physical print size including wrap (54×78mm product + ~5mm wrap all sides).
+    const RECTANGLE_RATIO = 83 / 59;
 
     // Draws the safe-print-area overlay over the image inside the given
     // container. The container must be position:relative and contain an <img>
     // with object-fit:contain. Removes any existing overlays first so this can
     // be called repeatedly (e.g. on resize).
-    function drawSafeAreaOverlay(container) {
+    function drawSafeAreaOverlay(container, safeXFrac, safeYFrac) {
+      safeXFrac = safeXFrac !== undefined ? safeXFrac : SAFE_AREA_PERCENTAGE;
+      safeYFrac = safeYFrac !== undefined ? safeYFrac : SAFE_AREA_PERCENTAGE;
       container
         .querySelectorAll(".safe-area-overlay")
         .forEach((el) => el.remove());
@@ -41,8 +44,8 @@
       if (!iW || !iH) return;
       const imgLeft = (cW - iW) / 2;
       const imgTop = (cH - iH) / 2;
-      const safeW = iW * SAFE_AREA_PERCENTAGE;
-      const safeH = iH * SAFE_AREA_PERCENTAGE;
+      const safeW = iW * safeXFrac;
+      const safeH = iH * safeYFrac;
       const marginX = (iW - safeW) / 2;
       const marginY = (iH - safeH) / 2;
       const safeLeft = imgLeft + marginX;
@@ -232,6 +235,57 @@
       );
       const processingTextEl =
         processingIndicator.querySelector(".processing-text");
+
+      document
+        .getElementById(`select-photos-modal-${productId}`)
+        .classList.add(`variant-${variant}`);
+
+      // Print-quality lightbox
+      const _lb = document.createElement("div");
+      _lb.className = `pq-lightbox variant-${variant}`;
+      _lb.innerHTML = `
+        <div class="pq-lb-backdrop"></div>
+        <div class="pq-lb-body">
+          <button class="pq-lb-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+          <div class="pq-lb-stage">
+            <button class="pq-lb-nav pq-lb-prev" aria-label="Previous image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <div class="pq-lb-scroll">
+              <div class="pq-lb-frame">
+                <img class="pq-lb-img" src="" alt="Print preview"/>
+              </div>
+            </div>
+            <button class="pq-lb-nav pq-lb-next" aria-label="Next image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+          <div class="pq-lb-footer">
+            <span class="pq-lb-label"></span>
+            <span class="pq-lb-disc">Shown close to actual magnet size. May vary slightly by screen.</span>
+            <button class="pq-lb-size-btn">See 1:1</button>
+          </div>
+        </div>`;
+      document.body.appendChild(_lb);
+      const lbBackdrop = _lb.querySelector(".pq-lb-backdrop");
+      const lbFrame    = _lb.querySelector(".pq-lb-frame");
+      const lbScroll   = _lb.querySelector(".pq-lb-scroll");
+      const lbImg      = _lb.querySelector(".pq-lb-img");
+      const lbPrev     = _lb.querySelector(".pq-lb-prev");
+      const lbNext     = _lb.querySelector(".pq-lb-next");
+      const lbClose    = _lb.querySelector(".pq-lb-close");
+      const lbLabel    = _lb.querySelector(".pq-lb-label");
+      const lbSizeBtn  = _lb.querySelector(".pq-lb-size-btn");
+      let lbIndex = -1;
+      let lbFitMode = true;
 
       // Orientation elements (rectangle only)
       const orientationLandscapeBtn = hasOrientation
@@ -710,6 +764,8 @@
             );
             imgContainer.style.position = "relative";
             imgContainer.style.display = "inline-flex";
+            imgContainer.dataset.orientation =
+              cropOrientations[index] || "landscape";
 
             const imgElement = document.createElement("img");
             imgElement.src = e.target.result;
@@ -718,8 +774,7 @@
             );
             imgElement.onclick = (ev) => {
               ev.stopPropagation();
-              openModal("edit-photos-modal");
-              startCropping(index);
+              openLightbox(index);
             };
 
             imgContainer.appendChild(imgElement);
@@ -754,10 +809,16 @@
         });
       }
 
+      function safeAreaFracs(orient) {
+        if (variant === "square") return [50 / 55, 50 / 55];
+        return orient === "portrait" ? [54 / 59, 78 / 83] : [78 / 83, 54 / 59];
+      }
+
       function handleSafeAreaOverlay() {
-        document
-          .querySelectorAll(".main-thumbnail-img-container")
-          .forEach(drawSafeAreaOverlay);
+        document.querySelectorAll(".main-thumbnail-img-container").forEach((c) => {
+          const [x, y] = safeAreaFracs(c.dataset.orientation || "landscape");
+          drawSafeAreaOverlay(c, x, y);
+        });
       }
 
       window.addEventListener("resize", () => {
@@ -818,6 +879,96 @@
         processThumbnails();
         updateUploadUI();
       }
+
+      // --- Lightbox functions ---
+
+      function lbPrintDims(index) {
+        if (variant === "square") return { label: "50 × 50mm", ar: 1, orient: "landscape" };
+        const o = cropOrientations[index] || "landscape";
+        return o === "portrait"
+          ? { label: "54 × 78mm", ar: 59 / 83, orient: "portrait" }
+          : { label: "78 × 54mm", ar: 83 / 59, orient: "landscape" };
+      }
+
+      function applyLbMode() {
+        lbFrame.classList.toggle("pq-lb-fit", lbFitMode);
+        lbScroll.classList.toggle("pq-lb-pan", !lbFitMode);
+        lbSizeBtn.textContent = lbFitMode ? "See 1:1" : "Fit to screen";
+      }
+
+      function updateLightbox() {
+        const file = croppedFiles[lbIndex];
+        if (!file) return;
+        const dims = lbPrintDims(lbIndex);
+        lbFrame.dataset.orientation = dims.orient;
+        lbFrame.style.setProperty("--lb-ar", dims.ar);
+        lbLabel.textContent = `Actual magnet size: ${dims.label}`;
+        lbPrev.disabled = lbIndex <= 0;
+        lbNext.disabled = lbIndex >= selectedFiles.length - 1;
+        const url = URL.createObjectURL(file);
+        lbImg.onload = () => {
+          URL.revokeObjectURL(url);
+          requestAnimationFrame(() => {
+            lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+            const [x, y] = safeAreaFracs(dims.orient);
+            drawSafeAreaOverlay(lbFrame, x, y);
+          });
+        };
+        lbImg.src = url;
+      }
+
+      function openLightbox(index) {
+        lbIndex = index;
+        lbFitMode = window.innerWidth <= 768;
+        applyLbMode();
+        updateLightbox();
+        _lb.classList.add("active");
+        document.addEventListener("keydown", lbKeyHandler);
+      }
+
+      function closeLightbox() {
+        _lb.classList.remove("active");
+        lbImg.src = "";
+        lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+        document.removeEventListener("keydown", lbKeyHandler);
+      }
+
+      function lbKeyHandler(e) {
+        if (e.key === "Escape") { closeLightbox(); return; }
+        if (e.key === "ArrowLeft" && lbIndex > 0) { lbIndex--; updateLightbox(); }
+        if (e.key === "ArrowRight" && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
+      }
+
+      lbClose.addEventListener("click", closeLightbox);
+      lbBackdrop.addEventListener("click", closeLightbox);
+      lbPrev.addEventListener("click", () => { if (lbIndex > 0) { lbIndex--; updateLightbox(); } });
+      lbNext.addEventListener("click", () => { if (lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); } });
+      lbSizeBtn.addEventListener("click", () => {
+        lbFitMode = !lbFitMode;
+        applyLbMode();
+        requestAnimationFrame(() => {
+          lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
+          const [x, y] = safeAreaFracs(lbFrame.dataset.orientation || "landscape");
+          drawSafeAreaOverlay(lbFrame, x, y);
+        });
+      });
+
+      // Swipe down to close; swipe left/right to navigate (fit mode only)
+      let lbTouchY = 0, lbTouchX = 0;
+      _lb.addEventListener("touchstart", (e) => {
+        lbTouchY = e.touches[0].clientY;
+        lbTouchX = e.touches[0].clientX;
+      }, { passive: true });
+      _lb.addEventListener("touchend", (e) => {
+        const dy = e.changedTouches[0].clientY - lbTouchY;
+        const dx = e.changedTouches[0].clientX - lbTouchX;
+        if (Math.abs(dy) > Math.abs(dx) && dy > 80) {
+          closeLightbox();
+        } else if (lbFitMode && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+          if (dx > 0 && lbIndex > 0) { lbIndex--; updateLightbox(); }
+          else if (dx < 0 && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
+        }
+      }, { passive: true });
     }
 
     function initReplacement(config) {
@@ -829,7 +980,13 @@
         landscapeRatio,
         portraitRatio,
         hasOrientation,
+        variant,
       } = config;
+
+      function safeAreaFracs(orient) {
+        if (variant === "square" || variant === "bulk-square") return [50 / 55, 50 / 55];
+        return orient === "portrait" ? [54 / 59, 78 / 83] : [78 / 83, 54 / 59];
+      }
 
       const CLOUDINARY_BASE =
         "https://res.cloudinary.com/djzc7ih0g/image/upload";
@@ -930,6 +1087,8 @@
         const el = document.createElement("div");
         el.className = `replacement-slot replacement-slot-${slot.status}`;
         el.dataset.slot = slot.index;
+        const slotOrient = slot.replacedOrientation || slot.originalOrientation || "landscape";
+        el.dataset.orientation = slotOrient;
 
         if (slot.status === "loading") {
           el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.index + 1}…</div>`;
@@ -940,7 +1099,8 @@
           const img = document.createElement("img");
           img.src = slot.previewUrl || slot.originalUrl;
           img.className = "replacement-slot-img";
-          const redraw = () => drawSafeAreaOverlay(el);
+          const [rx, ry] = safeAreaFracs(slotOrient);
+          const redraw = () => drawSafeAreaOverlay(el, rx, ry);
           if (img.complete && img.naturalWidth) {
             requestAnimationFrame(redraw);
           } else {
@@ -1165,9 +1325,10 @@
       updateReadiness();
 
       window.addEventListener("resize", () => {
-        gridEl
-          .querySelectorAll(".replacement-slot")
-          .forEach(drawSafeAreaOverlay);
+        gridEl.querySelectorAll(".replacement-slot").forEach((el) => {
+          const [x, y] = safeAreaFracs(el.dataset.orientation || "landscape");
+          drawSafeAreaOverlay(el, x, y);
+        });
       });
     }
 
