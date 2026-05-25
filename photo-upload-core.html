@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-15.1
+  Version: 2026-05-22.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,10 +15,9 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-15.1");
+  console.log("[photo-upload-core] v2026-05-22.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
-    const SAFE_AREA_BORDER = "rgba(0, 120, 255, 0.8)";
     const OUTPUT_MIN_SHORT_SIDE = 2000;
     // Rectangle magnet aspect ratio (wider:narrower). Update this one value
     // to retune all rectangle variants + the replacement page.
@@ -50,33 +49,32 @@
       const marginY = (iH - safeH) / 2;
       const safeLeft = imgLeft + marginX;
       const safeTop = imgTop + marginY;
-      const oc = "rgba(0, 0, 0, 0.25)";
 
-      // Dimming overlays are constrained to the image bounds so the
-      // letterbox/background space around the image stays undimmed.
+      // Dimming overlays constrained to image bounds (letterbox stays
+      // undimmed). Static styling: .safe-area-overlay / .safe-area-border.
       const topO = document.createElement("div");
-      topO.classList.add("safe-area-overlay");
-      topO.style.cssText = `display:block;position:absolute;top:${imgTop}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;background:${oc};pointer-events:none;z-index:1;`;
+      topO.className = "safe-area-overlay";
+      topO.style.cssText = `top:${imgTop}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;`;
       container.appendChild(topO);
 
       const bottomO = document.createElement("div");
-      bottomO.classList.add("safe-area-overlay");
-      bottomO.style.cssText = `display:block;position:absolute;top:${imgTop + iH - marginY}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;background:${oc};pointer-events:none;z-index:1;`;
+      bottomO.className = "safe-area-overlay";
+      bottomO.style.cssText = `top:${imgTop + iH - marginY}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;`;
       container.appendChild(bottomO);
 
       const leftO = document.createElement("div");
-      leftO.classList.add("safe-area-overlay");
-      leftO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:${imgLeft}px;width:${marginX}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+      leftO.className = "safe-area-overlay";
+      leftO.style.cssText = `top:${safeTop}px;left:${imgLeft}px;width:${marginX}px;height:${safeH}px;`;
       container.appendChild(leftO);
 
       const rightO = document.createElement("div");
-      rightO.classList.add("safe-area-overlay");
-      rightO.style.cssText = `display:block;position:absolute;top:${safeTop}px;left:${imgLeft + iW - marginX}px;width:${marginX}px;height:${safeH}px;background:${oc};pointer-events:none;z-index:1;`;
+      rightO.className = "safe-area-overlay";
+      rightO.style.cssText = `top:${safeTop}px;left:${imgLeft + iW - marginX}px;width:${marginX}px;height:${safeH}px;`;
       container.appendChild(rightO);
 
       const border = document.createElement("div");
-      border.classList.add("safe-area-overlay");
-      border.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};box-sizing:border-box;pointer-events:none;z-index:1;`;
+      border.className = "safe-area-overlay safe-area-border";
+      border.style.cssText = `left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;`;
       container.appendChild(border);
     }
 
@@ -308,38 +306,30 @@
         return hasOrientation ? landscapeRatio : aspectRatio;
       }
 
-      // Drag and drop
-      uploadArea.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        uploadArea.style.backgroundColor = "#e5e7eb";
-      });
-      uploadArea.addEventListener("dragleave", (e) => {
-        e.preventDefault();
-        uploadArea.style.backgroundColor = "";
-      });
+      // Drag and drop (background color via .dragover class in styles)
+      uploadArea.addEventListener("dragover", (e) => { e.preventDefault(); uploadArea.classList.add("dragover"); });
+      uploadArea.addEventListener("dragleave", (e) => { e.preventDefault(); uploadArea.classList.remove("dragover"); });
       uploadArea.addEventListener("drop", (e) => {
         e.preventDefault();
-        uploadArea.style.backgroundColor = "";
+        uploadArea.classList.remove("dragover");
         const files = Array.from(e.dataTransfer.files);
         if (files.length) addFilesToFileInput(files);
       });
 
-      customUploadButton.addEventListener("click", () =>
-        actualFileInput.click(),
-      );
+      customUploadButton.addEventListener("click", () => actualFileInput.click());
+
+      const showConfirm = (el, show) => {
+        el.classList.toggle("active", show);
+        footerActionsEl.style.display = show ? "none" : "flex";
+      };
 
       removeAllFilesButton.addEventListener("click", () => {
         uploadStatus.textContent = "";
-        removeAllConfirmEl.classList.add("active");
-        footerActionsEl.style.display = "none";
+        showConfirm(removeAllConfirmEl, true);
       });
-      removeAllCancelBtn.addEventListener("click", () => {
-        removeAllConfirmEl.classList.remove("active");
-        footerActionsEl.style.display = "flex";
-      });
+      removeAllCancelBtn.addEventListener("click", () => showConfirm(removeAllConfirmEl, false));
       removeAllConfirmBtn.addEventListener("click", () => {
-        removeAllConfirmEl.classList.remove("active");
-        footerActionsEl.style.display = "flex";
+        showConfirm(removeAllConfirmEl, false);
         removeAllFiles();
       });
 
@@ -350,29 +340,21 @@
           return;
         }
         mediaUploadStatus.textContent = "";
-        uploadConfirmEl.classList.add("active");
-        footerActionsEl.style.display = "none";
+        showConfirm(uploadConfirmEl, true);
       });
 
-      confirmCancelBtn.addEventListener("click", () => {
-        uploadConfirmEl.classList.remove("active");
-        footerActionsEl.style.display = "flex";
-      });
+      confirmCancelBtn.addEventListener("click", () => showConfirm(uploadConfirmEl, false));
 
       confirmUploadBtn.addEventListener("click", async () => {
-        uploadConfirmEl.classList.remove("active");
-        uploadConfirmEl.style.display = "none";
+        showConfirm(uploadConfirmEl, false);
         uploadButton.disabled = true;
         uploadButton.textContent = "Uploading...";
-        footerActionsEl.style.display = "flex";
         removeAllFilesButton.style.display = "none";
         mediaUploadStatus.textContent = "";
         uploadProgressEl.classList.add("active");
-        uploadProgressEl.style.display = "flex";
         progressBarFill.style.display = "block";
         progressBarFill.style.width = "0%";
         uploadCompleteEl.classList.remove("active");
-        uploadCompleteEl.style.display = "none";
 
         const sessionId = generateSessionId();
         let uploadedCount = 0;
@@ -398,7 +380,6 @@
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
         uploadProgressEl.classList.remove("active");
-        uploadProgressEl.style.display = "none";
 
         if (hasError) {
           mediaUploadStatus.textContent = `Upload failed on image ${uploadedCount + 1}. Please try again.`;
@@ -408,7 +389,6 @@
             removeAllFilesButton.style.display = "block";
         } else {
           uploadCompleteEl.classList.add("active");
-          uploadCompleteEl.style.display = "flex";
           uploadButton.textContent = "Done";
           uploadButton.disabled = false;
           selectPhotosButton.textContent = "Photos uploaded";
@@ -562,26 +542,14 @@
 
       function updateUploadUI() {
         fileCountDisplay.textContent = `${selectedFiles.length}/${maxFiles} images selected`;
-        const removeAllFilesBtn = document.querySelector(
-          ".remove-all-files-btn",
-        );
-        removeAllFilesBtn.style.display =
+        const ready = selectedFiles.length === maxFiles;
+        document.querySelector(".remove-all-files-btn").style.display =
           selectedFiles.length === 0 ? "none" : "block";
-        const bulkClickInstruction = document.querySelector(
-          ".bulk-click-instruction",
-        );
-        if (selectedFiles.length === maxFiles) {
-          uploadArea.style.display = "none";
-          document.querySelector(".post-selection-info").style.display = "flex";
-          if (bulkClickInstruction)
-            bulkClickInstruction.style.display = "block";
-          uploadButton.disabled = false;
-        } else {
-          uploadArea.style.display = "flex";
-          document.querySelector(".post-selection-info").style.display = "none";
-          if (bulkClickInstruction) bulkClickInstruction.style.display = "none";
-          uploadButton.disabled = true;
-        }
+        uploadArea.style.display = ready ? "none" : "flex";
+        document.querySelector(".post-selection-info").style.display = ready ? "flex" : "none";
+        const bulkClickInstruction = document.querySelector(".bulk-click-instruction");
+        if (bulkClickInstruction) bulkClickInstruction.style.display = ready ? "block" : "none";
+        uploadButton.disabled = !ready;
       }
 
       async function compressImage(
@@ -844,17 +812,16 @@
 
         const container = document.createElement("div");
         container.className = "safe-print-container";
-        container.style.cssText = `display:block;position:absolute;left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;pointer-events:none;`;
+        container.style.cssText = `left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;`;
 
         const label = document.createElement("div");
+        label.className = "safe-print-label";
         label.textContent = "Safe Print Area";
-        label.style.cssText =
-          "display:block;position:absolute;top:-8px;left:4px;background:rgba(0,120,255,0.8);color:white;padding:2px 6px;font-size:12px;border-radius:3px;";
         container.appendChild(label);
 
         const area = document.createElement("div");
         area.className = "safe-print-area";
-        area.style.cssText = `display:block;position:absolute;left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;border:2px dashed ${SAFE_AREA_BORDER};background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,0.25);pointer-events:none;z-index:2000;`;
+        area.style.cssText = `left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;`;
         container.appendChild(area);
 
         document.querySelector(".cropper-container").appendChild(container);
@@ -971,373 +938,15 @@
       }, { passive: true });
     }
 
-    function initReplacement(config) {
-      const {
-        session,
-        productId,
-        maxFiles,
-        aspectRatio,
-        landscapeRatio,
-        portraitRatio,
-        hasOrientation,
-        variant,
-      } = config;
-
-      function safeAreaFracs(orient) {
-        if (variant === "square" || variant === "bulk-square") return [50 / 55, 50 / 55];
-        return orient === "portrait" ? [54 / 59, 78 / 83] : [78 / 83, 54 / 59];
-      }
-
-      const CLOUDINARY_BASE =
-        "https://res.cloudinary.com/djzc7ih0g/image/upload";
-
-      const slots = Array.from({ length: maxFiles }, (_, i) => ({
-        index: i,
-        status: "loading",
-        originalUrl: null,
-        originalOrientation: null,
-        replacedBlob: null,
-        replacedOrientation: null,
-        previewUrl: null,
-      }));
-
-      const gridEl = document.getElementById("replacement-grid");
-      const uploadBtn = document.getElementById("replacement-upload-btn");
-      const statusEl = document.getElementById("replacement-status");
-      const progressEl = document.getElementById("replacement-progress");
-      const progressFillEl = document.getElementById(
-        "replacement-progress-fill",
-      );
-      const progressTextEl = document.getElementById(
-        "replacement-progress-text",
-      );
-      const completeEl = document.getElementById("replacement-complete");
-
-      const imageToCrop = document.getElementById("image-to-crop");
-      const cropCancel = document.getElementById("crop-cancel");
-      const cropApply = document.getElementById("crop-apply");
-      const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
-      const orientationLandscapeBtn = hasOrientation
-        ? document.getElementById("orientation-landscape")
-        : null;
-      const orientationPortraitBtn = hasOrientation
-        ? document.getElementById("orientation-portrait")
-        : null;
-
-      let currentCropperInstance = null;
-      let currentCropSlot = -1;
-      let currentOrientation = "landscape";
-
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.accept = "image/*";
-      fileInput.style.display = "none";
-      document.body.appendChild(fileInput);
-
-      function tryLoad(url, orientation) {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve({ url, orientation });
-          img.onerror = () => resolve(null);
-          img.src = url;
-        });
-      }
-
-      async function fetchOriginal(i) {
-        const paddedIndex = String(i + 1).padStart(2, "0");
-        const base = `${CLOUDINARY_BASE}/shopify_uploads/${session}`;
-        if (hasOrientation) {
-          const [landscape, portrait] = await Promise.all([
-            tryLoad(
-              `${base}/${productId}-landscape-${paddedIndex}.jpg`,
-              "landscape",
-            ),
-            tryLoad(
-              `${base}/${productId}-portrait-${paddedIndex}.jpg`,
-              "portrait",
-            ),
-          ]);
-          return landscape || portrait;
-        }
-        return await tryLoad(`${base}/${productId}-${paddedIndex}.jpg`, null);
-      }
-
-      function getRatio(orientation) {
-        if (hasOrientation) {
-          return orientation === "portrait" ? portraitRatio : landscapeRatio;
-        }
-        return aspectRatio;
-      }
-
-      function updateOrientationToggle() {
-        if (!hasOrientation) return;
-        if (currentOrientation === "landscape") {
-          orientationLandscapeBtn.classList.add("active");
-          orientationPortraitBtn.classList.remove("active");
-        } else {
-          orientationLandscapeBtn.classList.remove("active");
-          orientationPortraitBtn.classList.add("active");
-        }
-      }
-
-      function renderSlot(slot) {
-        const existing = gridEl.querySelector(`[data-slot="${slot.index}"]`);
-        if (existing) existing.remove();
-
-        const el = document.createElement("div");
-        el.className = `replacement-slot replacement-slot-${slot.status}`;
-        el.dataset.slot = slot.index;
-        const slotOrient = slot.replacedOrientation || slot.originalOrientation || "landscape";
-        el.dataset.orientation = slotOrient;
-
-        if (slot.status === "loading") {
-          el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.index + 1}…</div>`;
-        } else if (slot.status === "missing") {
-          el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.index + 1}: original not found<span class="replacement-slot-cta">Click to upload a replacement</span></div>`;
-          el.addEventListener("click", () => pickFile(slot.index));
-        } else {
-          const img = document.createElement("img");
-          img.src = slot.previewUrl || slot.originalUrl;
-          img.className = "replacement-slot-img";
-          const [rx, ry] = safeAreaFracs(slotOrient);
-          const redraw = () => drawSafeAreaOverlay(el, rx, ry);
-          if (img.complete && img.naturalWidth) {
-            requestAnimationFrame(redraw);
-          } else {
-            img.addEventListener("load", redraw);
-          }
-          el.appendChild(img);
-
-          const badge = document.createElement("div");
-          badge.className = `replacement-slot-badge replacement-slot-badge-${slot.status}`;
-          badge.textContent = slot.status === "replaced" ? "Replaced" : "Keep";
-          el.appendChild(badge);
-
-          // Whole slot click = open file picker (replace this slot).
-          el.addEventListener("click", () => pickFile(slot.index));
-
-          if (slot.status === "replaced") {
-            const undoBtn = document.createElement("button");
-            undoBtn.className = "replacement-slot-undo";
-            undoBtn.textContent = "Undo";
-            undoBtn.title = "Restore the original photo";
-            undoBtn.addEventListener("click", (ev) => {
-              ev.stopPropagation();
-              if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
-              slot.status = "kept";
-              slot.replacedBlob = null;
-              slot.replacedOrientation = null;
-              slot.previewUrl = null;
-              renderSlot(slot);
-              updateReadiness();
-            });
-            el.appendChild(undoBtn);
-          }
-        }
-
-        gridEl.appendChild(el);
-      }
-
-      function pickFile(slotIndex) {
-        fileInput.value = "";
-        fileInput.onchange = async (e) => {
-          const file = e.target.files && e.target.files[0];
-          if (!file) return;
-          statusEl.textContent = "";
-          try {
-            const usable = await maybeConvertHeic(file);
-            openCropModal(slotIndex, usable);
-          } catch (err) {
-            statusEl.textContent =
-              "Couldn't process that file. The format may not be supported — please try a JPEG or PNG.";
-          }
-        };
-        fileInput.click();
-      }
-
-      function openCropModal(slotIndex, file) {
-        currentCropSlot = slotIndex;
-        const slot = slots[slotIndex];
-        if (hasOrientation) {
-          currentOrientation =
-            slot.replacedOrientation || slot.originalOrientation || "landscape";
-          updateOrientationToggle();
-        }
-        const ratio = getRatio(currentOrientation);
-        const objectUrl = URL.createObjectURL(file);
-
-        imageToCrop.onload = function () {
-          currentCropperInstance = new Cropper(imageToCrop, {
-            aspectRatio: ratio,
-            viewMode: 1,
-            guides: true,
-            autoCropArea: 0.8,
-            movable: true,
-            rotatable: true,
-            scalable: true,
-            zoomable: true,
-          });
-        };
-        imageToCrop.src = objectUrl;
-        openModal("edit-photos-modal");
-      }
-
-      function closeCropModal() {
-        if (currentCropperInstance) {
-          currentCropperInstance.destroy();
-          currentCropperInstance = null;
-        }
-        imageToCrop.src = "";
-        currentCropSlot = -1;
-        closeModal("edit-photos-modal");
-      }
-
-      if (cropApply) {
-        cropApply.addEventListener("click", () => {
-          if (!currentCropperInstance) return;
-          const cropData = currentCropperInstance.getData();
-          const srcW = Math.round(cropData.width);
-          const srcH = Math.round(cropData.height);
-          const shortSide = Math.min(srcW, srcH);
-          const scale = Math.min(OUTPUT_MIN_SHORT_SIDE / shortSide, 1);
-          const width = Math.round(srcW * scale);
-          const height = Math.round(srcH * scale);
-
-          const croppedCanvas = currentCropperInstance.getCroppedCanvas({
-            width,
-            height,
-            fillColor: "#fff",
-          });
-
-          const slotIndex = currentCropSlot;
-          croppedCanvas.toBlob(
-            (blob) => {
-              const slot = slots[slotIndex];
-              if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
-              slot.status = "replaced";
-              slot.replacedBlob = blob;
-              slot.replacedOrientation = hasOrientation
-                ? currentOrientation
-                : null;
-              slot.previewUrl = URL.createObjectURL(blob);
-              closeCropModal();
-              renderSlot(slot);
-              updateReadiness();
-            },
-            "image/jpeg",
-            0.92,
-          );
-        });
-      }
-
-      if (cropCancel) cropCancel.addEventListener("click", closeCropModal);
-      if (editModalCloseBtn)
-        editModalCloseBtn.addEventListener("click", closeCropModal);
-
-      if (hasOrientation && orientationLandscapeBtn) {
-        orientationLandscapeBtn.addEventListener("click", () => {
-          if (!currentCropperInstance || currentOrientation === "landscape")
-            return;
-          currentOrientation = "landscape";
-          updateOrientationToggle();
-          currentCropperInstance.setAspectRatio(landscapeRatio);
-        });
-      }
-      if (hasOrientation && orientationPortraitBtn) {
-        orientationPortraitBtn.addEventListener("click", () => {
-          if (!currentCropperInstance || currentOrientation === "portrait")
-            return;
-          currentOrientation = "portrait";
-          updateOrientationToggle();
-          currentCropperInstance.setAspectRatio(portraitRatio);
-        });
-      }
-
-      function updateReadiness() {
-        const anyLoading = slots.some((s) => s.status === "loading");
-        const anyMissing = slots.some((s) => s.status === "missing");
-        const anyReplaced = slots.some((s) => s.status === "replaced");
-        uploadBtn.disabled = anyLoading || anyMissing || !anyReplaced;
-      }
-
-      uploadBtn.addEventListener("click", async () => {
-        uploadBtn.disabled = true;
-        statusEl.textContent = "";
-        progressEl.style.display = "flex";
-        progressFillEl.style.display = "block";
-        progressFillEl.style.width = "0%";
-
-        try {
-          for (let i = 0; i < slots.length; i++) {
-            const slot = slots[i];
-            progressTextEl.textContent = `Uploading ${i + 1} of ${slots.length}…`;
-            progressFillEl.style.width = `${(i / slots.length) * 100}%`;
-
-            let blob;
-            let orientation;
-            if (slot.status === "replaced") {
-              blob = slot.replacedBlob;
-              orientation = slot.replacedOrientation;
-            } else if (slot.status === "kept") {
-              const res = await fetch(slot.originalUrl);
-              if (!res.ok) throw new Error(`Could not fetch original ${i + 1}`);
-              blob = await res.blob();
-              orientation = slot.originalOrientation;
-            } else {
-              throw new Error(`Slot ${i + 1} has no photo`);
-            }
-
-            const paddedIndex = String(i + 1).padStart(2, "0");
-            const orientationPart =
-              hasOrientation && orientation ? `${orientation}-` : "";
-            const fileName = `replacements/${orientationPart}${paddedIndex}`;
-            await uploadToCloudinary(blob, fileName, session);
-          }
-          progressFillEl.style.width = "100%";
-          await new Promise((r) => setTimeout(r, 300));
-          progressEl.style.display = "none";
-          gridEl.style.display = "none";
-          uploadBtn.style.display = "none";
-          document
-            .querySelectorAll(".replacement-title, .replacement-subtitle")
-            .forEach((el) => (el.style.display = "none"));
-          completeEl.style.display = "block";
-        } catch (err) {
-          progressEl.style.display = "none";
-          statusEl.textContent = "Upload failed. Please try again.";
-          uploadBtn.disabled = false;
-        }
-      });
-
-      slots.forEach((slot) => renderSlot(slot));
-      slots.forEach(async (slot) => {
-        const result = await fetchOriginal(slot.index);
-        if (result) {
-          slot.status = "kept";
-          slot.originalUrl = result.url;
-          slot.originalOrientation = result.orientation;
-        } else {
-          slot.status = "missing";
-        }
-        renderSlot(slot);
-        updateReadiness();
-      });
-      updateReadiness();
-
-      window.addEventListener("resize", () => {
-        gridEl.querySelectorAll(".replacement-slot").forEach((el) => {
-          const [x, y] = safeAreaFracs(el.dataset.orientation || "landscape");
-          drawSafeAreaOverlay(el, x, y);
-        });
-      });
-    }
-
     return {
       init,
-      initReplacement,
+      RECTANGLE_RATIO,
+      OUTPUT_MIN_SHORT_SIDE,
+      drawSafeAreaOverlay,
       openModal,
       closeModal,
-      RECTANGLE_RATIO,
+      uploadToCloudinary,
+      maybeConvertHeic,
     };
   })();
 </script>

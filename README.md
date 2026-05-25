@@ -12,13 +12,13 @@ section is up to date.
 | File | Current version |
 | --- | --- |
 | [cart-button-control.html](cart-button-control.html) | 2026-04-22.2 |
-| [photo-upload-styles.html](photo-upload-styles.html) | 2026-05-15.1 |
-| [photo-upload-core.html](photo-upload-core.html) | 2026-05-15.1 |
+| [photo-upload-styles.html](photo-upload-styles.html) | 2026-05-22.1 |
+| [photo-upload-core.html](photo-upload-core.html) | 2026-05-22.1 |
 | [photo-upload-square.html](photo-upload-square.html) | 2026-04-22.1 |
 | [photo-upload-rectangle.html](photo-upload-rectangle.html) | 2026-04-22.1 |
 | [photo-upload-bulk-square.html](photo-upload-bulk-square.html) | 2026-04-22.1 |
 | [photo-upload-bulk-rectangle.html](photo-upload-bulk-rectangle.html) | 2026-04-22.1 |
-| [photo-upload-replacement.html](photo-upload-replacement.html) | 2026-05-15.1 |
+| [photo-upload-replacement.html](photo-upload-replacement.html) | 2026-05-22.1 |
 
 To see what changed between versions, use `git log <file>` on any individual
 snippet.

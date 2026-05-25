@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-05-15.1
+  Version: 2026-05-22.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -183,6 +183,9 @@
   }
   .upload-area:hover {
     cursor: grab;
+  }
+  .upload-area.dragover {
+    background-color: #e5e7eb;
   }
   .upload-text {
     text-align: center;
@@ -720,6 +723,46 @@
     .pq-lb-nav { width: 36px; height: 36px; min-width: 36px; }
   }
   /* === End print-quality lightbox === */
+
+  /* === Safe-area overlays (added dynamically by photo-upload-core) ===
+     Only positioning (top/left/width/height) is set inline by JS. */
+  .safe-area-overlay {
+    display: block;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .safe-area-overlay.safe-area-border {
+    background: transparent;
+    border: 2px dashed rgba(0, 120, 255, 0.8);
+    box-sizing: border-box;
+  }
+  .safe-print-container {
+    display: block;
+    position: absolute;
+    pointer-events: none;
+  }
+  .safe-print-label {
+    display: block;
+    position: absolute;
+    top: -8px;
+    left: 4px;
+    background: rgba(0, 120, 255, 0.8);
+    color: white;
+    padding: 2px 6px;
+    font-size: 12px;
+    border-radius: 3px;
+  }
+  .safe-print-area {
+    display: block;
+    position: absolute;
+    border: 2px dashed rgba(0, 120, 255, 0.8);
+    background: transparent;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 2000;
+  }
 
   @media (max-width: 480px) {
     .main-thumbnail-container {
