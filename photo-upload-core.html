@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-22.1
+  Version: 2026-05-22.2
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-22.1");
+  console.log("[photo-upload-core] v2026-05-22.2");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -673,17 +673,11 @@
       }
 
       function processThumbnails() {
-        const placeholderContainer = document.querySelector(
-          ".thumbnail-container",
-        );
-        const mainContainer = document.querySelector(
-          ".main-thumbnail-container",
-        );
-        if (placeholderContainer) placeholderContainer.innerHTML = "";
-        if (mainContainer) mainContainer.innerHTML = "";
+        const container = document.querySelector(".main-thumbnail-container");
+        if (!container) return;
+        container.innerHTML = "";
 
         const maxFilesAdded = selectedFiles.length === maxFiles;
-        const container = maxFilesAdded ? mainContainer : placeholderContainer;
         const containers = new Array(selectedFiles.length);
         let imagesLoaded = 0;
 
@@ -725,21 +719,14 @@
             actionButtons.appendChild(deleteBtn);
 
             const imgContainer = document.createElement("div");
-            imgContainer.classList.add(
-              maxFilesAdded
-                ? "main-thumbnail-img-container"
-                : "placeholder-thumbnail-img-container",
-            );
+            imgContainer.className = "main-thumbnail-img-container";
             imgContainer.style.position = "relative";
-            imgContainer.style.display = "inline-flex";
             imgContainer.dataset.orientation =
               cropOrientations[index] || "landscape";
 
             const imgElement = document.createElement("img");
             imgElement.src = e.target.result;
-            imgElement.classList.add(
-              maxFilesAdded ? "main-thumbnail" : "placeholder-thumbnail",
-            );
+            imgElement.className = "main-thumbnail";
             imgElement.onclick = (ev) => {
               ev.stopPropagation();
               openLightbox(index);

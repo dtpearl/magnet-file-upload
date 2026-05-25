@@ -238,7 +238,30 @@
         </button>
 
         <div class="modal-content">
-          <div class="main-thumbnail-container"></div>
+          <div class="modal-header">
+            <div class="modal-title-container">
+              <h2 class="modal-title">Select your photos</h2>
+            </div>
+            <details class="size-reference-details">
+              <summary class="size-reference-toggle">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                See magnet size
+              </summary>
+              <div class="size-reference" aria-label="Magnet size compared to a credit card">
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-magnet">Magnet</div>
+                  <span class="size-ref-label">50 × 50 mm</span>
+                </div>
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-card">Credit card</div>
+                  <span class="size-ref-label">85 × 54 mm</span>
+                </div>
+              </div>
+            </details>
+          </div>
+
           <div class="upload-area">
             <input
               title="File Input"
@@ -291,16 +314,9 @@
               <span class="processing-text">Processing images...</span>
             </div>
           </div>
-        </div>
 
-        <div class="preview-container">
-          <div class="modal-header">
-            <div class="modal-title-container">
-              <h2 class="modal-title">Selection preview</h2>
-            </div>
-            <p class="content-subtitle">Click pictures to resize or crop</p>
-            <div class="thumbnail-container"></div>
-          </div>
+          <div class="main-thumbnail-container"></div>
+
           <div class="post-selection-info">
             <div>
               Your 9 chosen images have been cropped to fit on square magnets.
@@ -309,8 +325,9 @@
               The area outside the dotted lines will wrap around the edges of
               your magnets.
             </div>
-            <div>Please review before placing your order.</div>
+            <div>Click any photo to resize or crop. Please review before placing your order.</div>
           </div>
+
           <div class="modal-footer">
             <div
               id="media-upload-status-square-test"
@@ -465,7 +482,30 @@
         </button>
 
         <div class="modal-content">
-          <div class="main-thumbnail-container"></div>
+          <div class="modal-header">
+            <div class="modal-title-container">
+              <h2 class="modal-title">Select your photos</h2>
+            </div>
+            <details class="size-reference-details">
+              <summary class="size-reference-toggle">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                See magnet size
+              </summary>
+              <div class="size-reference" aria-label="Magnet size compared to a credit card">
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-magnet">Magnet</div>
+                  <span class="size-ref-label">78 × 54 mm</span>
+                </div>
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-card">Credit card</div>
+                  <span class="size-ref-label">85 × 54 mm</span>
+                </div>
+              </div>
+            </details>
+          </div>
+
           <div class="upload-area">
             <input
               title="File Input"
@@ -518,16 +558,9 @@
               <span class="processing-text">Processing images...</span>
             </div>
           </div>
-        </div>
 
-        <div class="preview-container">
-          <div class="modal-header">
-            <div class="modal-title-container">
-              <h2 class="modal-title">Selection preview</h2>
-            </div>
-            <p class="content-subtitle">Click pictures to resize or crop</p>
-            <div class="thumbnail-container"></div>
-          </div>
+          <div class="main-thumbnail-container"></div>
+
           <div class="post-selection-info">
             <div>
               Your 6 chosen images have been cropped to fit on rectangular
@@ -537,8 +570,9 @@
               The area outside the dotted lines will wrap around the edges of
               your magnets.
             </div>
-            <div>Please review before placing your order.</div>
+            <div>Click any photo to resize or crop. Please review before placing your order.</div>
           </div>
+
           <div class="modal-footer">
             <div id="media-upload-status-rect-test" class="upload-status"></div>
             <div id="upload-progress" class="upload-progress">
@@ -721,8 +755,31 @@
           </svg>
         </button>
 
-        <div class="modal-content bulk-modal-content">
-          <div class="main-thumbnail-container single-image"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title-container">
+              <h2 class="modal-title">Select your photo</h2>
+            </div>
+            <details class="size-reference-details">
+              <summary class="size-reference-toggle">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                See magnet size
+              </summary>
+              <div class="size-reference" aria-label="Magnet size compared to a credit card">
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-magnet">Magnet</div>
+                  <span class="size-ref-label">50 × 50 mm</span>
+                </div>
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-card">Credit card</div>
+                  <span class="size-ref-label">85 × 54 mm</span>
+                </div>
+              </div>
+            </details>
+          </div>
+
           <div class="upload-area">
             <input
               title="File Input"
@@ -774,6 +831,9 @@
               <span class="processing-text">Processing image...</span>
             </div>
           </div>
+
+          <div class="main-thumbnail-container single-image"></div>
+
           <p class="content-subtitle bulk-click-instruction">
             Click image to resize or crop
           </p>
@@ -941,8 +1001,31 @@
           </svg>
         </button>
 
-        <div class="modal-content bulk-modal-content">
-          <div class="main-thumbnail-container single-image"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title-container">
+              <h2 class="modal-title">Select your photo</h2>
+            </div>
+            <details class="size-reference-details">
+              <summary class="size-reference-toggle">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                See magnet size
+              </summary>
+              <div class="size-reference" aria-label="Magnet size compared to a credit card">
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-magnet">Magnet</div>
+                  <span class="size-ref-label">78 × 54 mm</span>
+                </div>
+                <div class="size-ref-item">
+                  <div class="size-ref-shape size-ref-card">Credit card</div>
+                  <span class="size-ref-label">85 × 54 mm</span>
+                </div>
+              </div>
+            </details>
+          </div>
+
           <div class="upload-area">
             <input
               title="File Input"
@@ -994,6 +1077,9 @@
               <span class="processing-text">Processing image...</span>
             </div>
           </div>
+
+          <div class="main-thumbnail-container single-image"></div>
+
           <p class="content-subtitle bulk-click-instruction">
             Click image to resize or crop
           </p>
@@ -1304,6 +1390,9 @@
         align-items: center;
         padding: 32px;
         overflow: auto;
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
       }
       .content-subtitle {
         color: #6b7280;
@@ -1371,44 +1460,21 @@
       .upload-btn:hover {
         background-color: #7d7268;
       }
-      .preview-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        max-width: 448px;
-        margin-top: 32px;
-        padding-right: 80px;
-      }
       .main-thumbnail-container {
         display: grid;
-        grid-template-columns: repeat(3, auto);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         justify-content: center;
-        gap: 16px;
-        margin: 0 auto;
-        padding: 0 32px;
+        gap: 12px;
+        margin: 24px auto 0;
+        width: 100%;
+        max-width: 560px;
+      }
+      .main-thumbnail-container:empty {
+        margin: 0;
       }
       .main-thumbnail-container.single-image {
-        grid-template-columns: auto;
+        grid-template-columns: minmax(0, 320px);
       }
-      .thumbnail-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: flex-start;
-        width: 100%;
-      }
-      .placeholder-thumbnail-img-container {
-        margin: 8px;
-        border-radius: 8px;
-        overflow: hidden;
-        background-color: #e3d9cf;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .placeholder-thumbnail,
       .main-thumbnail {
         width: 100%;
         height: 100%;
@@ -1424,31 +1490,109 @@
         background-color: #e3d9cf;
         border-radius: 8px;
         transition: box-shadow 0.2s;
+        width: 100%;
       }
       .variant-square .main-thumbnail-img-container,
-      .variant-square .placeholder-thumbnail-img-container {
-        width: 82.5mm;
-        height: 82.5mm;
+      .variant-bulk-square .main-thumbnail-img-container {
+        aspect-ratio: 1 / 1;
       }
       .variant-rectangle .main-thumbnail-img-container,
-      .variant-rectangle .placeholder-thumbnail-img-container {
-        width: 124.5mm;
-        height: 88.5mm;
+      .variant-bulk-rectangle .main-thumbnail-img-container {
+        aspect-ratio: 83 / 59;
       }
       .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
-      .variant-rectangle .placeholder-thumbnail-img-container[data-orientation="portrait"] {
-        width: 88.5mm;
-        height: 124.5mm;
+      .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] {
+        aspect-ratio: 59 / 83;
       }
       @media (hover: hover) {
-        .main-thumbnail-img-container:hover,
-        .placeholder-thumbnail-img-container:hover {
+        .main-thumbnail-img-container:hover {
           box-shadow: 0 0 0 2px rgba(149, 136, 122, 0.6), 0 4px 16px rgba(0, 0, 0, 0.12);
         }
-        .main-thumbnail-img-container:hover .main-thumbnail,
-        .placeholder-thumbnail-img-container:hover .placeholder-thumbnail {
+        .main-thumbnail-img-container:hover .main-thumbnail {
           transform: scale(1.03);
         }
+      }
+      .size-reference-details {
+        text-align: center;
+        margin: 4px 0 12px;
+      }
+      .size-reference-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #6b7280;
+        padding: 4px 12px;
+        border-radius: 999px;
+        list-style: none;
+        user-select: none;
+        transition: background-color 0.2s, color 0.2s;
+      }
+      .size-reference-toggle::-webkit-details-marker {
+        display: none;
+      }
+      .size-reference-toggle:hover,
+      .size-reference-toggle:focus-visible {
+        background-color: rgba(149, 136, 122, 0.1);
+        color: #374151;
+        outline: none;
+      }
+      .size-reference-toggle svg {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.2s;
+      }
+      .size-reference-details[open] .size-reference-toggle svg {
+        transform: rotate(180deg);
+      }
+      .size-reference {
+        --size-ref-base: 160px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 20px;
+        margin: 12px 0 4px;
+      }
+      .size-ref-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .size-ref-shape {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .size-ref-magnet {
+        background: #95887a;
+        color: white;
+        border-radius: 4px;
+      }
+      .size-ref-card {
+        width: var(--size-ref-base);
+        height: calc(var(--size-ref-base) * 53.98 / 85.6);
+        border: 1.5px dashed #9ca3af;
+        border-radius: 6px;
+        color: #6b7280;
+      }
+      .variant-square .size-ref-magnet,
+      .variant-bulk-square .size-ref-magnet {
+        width: calc(var(--size-ref-base) * 50 / 85.6);
+        height: calc(var(--size-ref-base) * 50 / 85.6);
+      }
+      .variant-rectangle .size-ref-magnet,
+      .variant-bulk-rectangle .size-ref-magnet {
+        width: calc(var(--size-ref-base) * 78 / 85.6);
+        height: calc(var(--size-ref-base) * 54 / 85.6);
+      }
+      .size-ref-label {
+        font-size: 11px;
+        color: #6b7280;
+        letter-spacing: 0.02em;
       }
       /* === Print-quality lightbox === */
       .pq-lightbox { display: none; position: fixed; inset: 0; z-index: 2000; align-items: center; justify-content: center; }
@@ -1484,23 +1628,14 @@
         text-align: center;
         width: 100%;
         color: #6b7280;
-        font-size: 16px;
-      }
-      .bulk-modal-content {
-        max-width: 500px;
-        margin: 0 auto;
+        font-size: 14px;
+        margin-top: 16px;
+        gap: 4px;
       }
       .bulk-click-instruction {
         display: none;
         margin-top: 16px;
         margin-bottom: 24px;
-      }
-      .bulk-modal-content .post-selection-info {
-        margin-bottom: 24px;
-      }
-      .bulk-modal-content .modal-footer {
-        border-top: none;
-        padding-top: 0;
       }
       .modal-footer {
         padding: 24px;
@@ -1645,8 +1780,7 @@
         transition: opacity 0.2s;
         z-index: 2;
       }
-      .main-thumbnail-img-container:hover .thumbnail-action-buttons,
-      .placeholder-thumbnail-img-container:hover .thumbnail-action-buttons {
+      .main-thumbnail-img-container:hover .thumbnail-action-buttons {
         opacity: 1;
       }
       .thumbnail-action-btn {
@@ -1694,10 +1828,6 @@
           overflow: unset;
           padding: 16px;
         }
-        .preview-container {
-          max-width: 100%;
-          padding-right: 0;
-        }
         .modal-header {
           padding: 16px;
         }
@@ -1716,32 +1846,11 @@
           height: 20px;
         }
         .main-thumbnail-container {
-          grid-template-columns: repeat(3, 1fr);
-          justify-content: unset;
           gap: 8px;
-          padding: 0 16px;
+          max-width: 100%;
         }
-        .main-thumbnail-img-container,
-        .placeholder-thumbnail-img-container {
-          width: 100%;
-          height: auto;
-        }
-        .variant-square .main-thumbnail-img-container,
-        .variant-square .placeholder-thumbnail-img-container {
-          aspect-ratio: 1 / 1;
-        }
-        .variant-rectangle .main-thumbnail-img-container,
-        .variant-rectangle .placeholder-thumbnail-img-container {
-          aspect-ratio: 83 / 59;
-        }
-        .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
-        .variant-rectangle .placeholder-thumbnail-img-container[data-orientation="portrait"] {
-          aspect-ratio: 59 / 83;
-        }
-        .placeholder-thumbnail-img-container {
-          width: 30%;
-          margin: 4px;
-          height: auto;
+        .size-reference {
+          --size-ref-base: 130px;
         }
         .thumbnail-action-buttons {
           opacity: 1;
@@ -1780,16 +1889,11 @@
       }
       @media (max-width: 480px) {
         .main-thumbnail-container {
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 6px;
         }
-        .variant-rectangle .main-thumbnail-img-container,
-        .variant-rectangle .placeholder-thumbnail-img-container {
-          aspect-ratio: 83 / 59;
-        }
-        .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
-        .variant-rectangle .placeholder-thumbnail-img-container[data-orientation="portrait"] {
-          aspect-ratio: 59 / 83;
+        .size-reference {
+          --size-ref-base: 110px;
         }
         .thumbnail-action-btn {
           width: 32px;
@@ -2461,19 +2565,11 @@
           }
 
           function processThumbnails() {
-            const placeholderContainer = modal.querySelector(
-              ".thumbnail-container",
-            );
-            const mainContainer = modal.querySelector(
-              ".main-thumbnail-container",
-            );
-            if (placeholderContainer) placeholderContainer.innerHTML = "";
-            if (mainContainer) mainContainer.innerHTML = "";
+            const container = modal.querySelector(".main-thumbnail-container");
+            if (!container) return;
+            container.innerHTML = "";
 
             const maxFilesAdded = selectedFiles.length === maxFiles;
-            const container = maxFilesAdded
-              ? mainContainer
-              : placeholderContainer;
             const containers = new Array(selectedFiles.length);
             let imagesLoaded = 0;
 
@@ -2516,21 +2612,14 @@
                 actionButtons.appendChild(deleteBtn);
 
                 const imgContainer = document.createElement("div");
-                imgContainer.classList.add(
-                  maxFilesAdded
-                    ? "main-thumbnail-img-container"
-                    : "placeholder-thumbnail-img-container",
-                );
+                imgContainer.className = "main-thumbnail-img-container";
                 imgContainer.style.position = "relative";
-                imgContainer.style.display = "inline-flex";
                 imgContainer.dataset.orientation =
                   cropOrientations[index] || "landscape";
 
                 const imgElement = document.createElement("img");
                 imgElement.src = e.target.result;
-                imgElement.classList.add(
-                  maxFilesAdded ? "main-thumbnail" : "placeholder-thumbnail",
-                );
+                imgElement.className = "main-thumbnail";
                 imgElement.onclick = (ev) => {
                   ev.stopPropagation();
                   openLightbox(index);

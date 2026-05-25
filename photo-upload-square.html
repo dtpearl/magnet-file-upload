@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'square' %}
 <!--
   Photo Upload - Square Variant
-  Version: 2026-04-22.1
+  Version: 2026-05-22.1
   9 photos, 1:1 aspect ratio
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -26,7 +26,30 @@
   </button>
 
   <div class="modal-content">
-    <div class="main-thumbnail-container"></div>
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Select your photos</h2>
+      </div>
+      <details class="size-reference-details">
+        <summary class="size-reference-toggle">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          See magnet size
+        </summary>
+        <div class="size-reference" aria-label="Magnet size compared to a credit card">
+          <div class="size-ref-item">
+            <div class="size-ref-shape size-ref-magnet">Magnet</div>
+            <span class="size-ref-label">50 × 50 mm</span>
+          </div>
+          <div class="size-ref-item">
+            <div class="size-ref-shape size-ref-card">Credit card</div>
+            <span class="size-ref-label">85 × 54 mm</span>
+          </div>
+        </div>
+      </details>
+    </div>
+
     <div class="upload-area">
       <input title="File Input" type="file" id="actual-file-input-{{ product.id }}" class="hidden-file-input" accept="image/*" multiple />
       <div class="upload-text">
@@ -47,21 +70,15 @@
         <span class="processing-text">Processing images...</span>
       </div>
     </div>
-  </div>
 
-  <div class="preview-container">
-    <div class="modal-header">
-      <div class="modal-title-container">
-        <h2 class="modal-title">Selection preview</h2>
-      </div>
-      <p class="content-subtitle">Click pictures to resize or crop</p>
-      <div class="thumbnail-container"></div>
-    </div>
+    <div class="main-thumbnail-container"></div>
+
     <div class="post-selection-info">
       <div>Your 9 chosen images have been cropped to fit on square magnets.</div>
       <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
-      <div>Please review before placing your order.</div>
+      <div>Click any photo to resize or crop. Please review before placing your order.</div>
     </div>
+
     <div class="modal-footer">
       <div id="media-upload-status-{{ product.id }}" class="upload-status"></div>
       <div id="upload-progress" class="upload-progress">
@@ -124,7 +141,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-square] v2026-04-22.1");
+    console.log("[photo-upload-square] v2026-05-22.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 9,
