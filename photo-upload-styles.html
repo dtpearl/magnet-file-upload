@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-05-22.2
+  Version: 2026-05-26.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -123,13 +123,15 @@
   }
   .modal-title-container {
     display: flex;
+    align-items: baseline;
+    justify-content: space-between;
     width: 100%;
+    gap: 16px;
   }
   .modal-title {
     font-size: 20px;
     font-weight: 600;
     color: #374151;
-    display: inline-block;
   }
   .close-btn {
     width: 48px;
@@ -292,8 +294,9 @@
      shows the magnet next to a credit-card outline at the correct relative
      scale. Magnet dimensions reflect the visible magnet (not the print area). */
   .size-reference-details {
-    text-align: center;
-    margin: 4px 0 12px;
+    flex-shrink: 0;
+    text-align: right;
+    margin: 0;
   }
   .size-reference-toggle {
     display: inline-flex;
@@ -306,6 +309,7 @@
     border-radius: 999px;
     list-style: none;
     user-select: none;
+    white-space: nowrap;
     transition: background-color 0.2s, color 0.2s;
   }
   .size-reference-toggle::-webkit-details-marker {
@@ -565,6 +569,19 @@
     margin-top: 16px;
     margin-bottom: 24px;
   }
+  /* Stack title above size-reference toggle before they get close enough to the
+     close button to risk collision. Close-btn anchors to viewport-right at 48px;
+     toggle anchors to title-container-right. They meet around viewport ~800px. */
+  @media (max-width: 832px) {
+    .modal-title-container {
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .size-reference-details {
+      text-align: center;
+    }
+  }
   @media (max-width: 768px) {
     .select-photos-modal {
       flex-direction: column;
@@ -577,10 +594,6 @@
     }
     .modal-header {
       padding: 16px;
-    }
-    .modal-title-container {
-      justify-content: center;
-      width: 100%;
     }
     .close-btn {
       width: 40px;
@@ -699,26 +712,14 @@
   }
   .pq-lb-nav:hover { background: rgba(255, 255, 255, 0.3); }
   .pq-lb-nav:disabled { opacity: 0.25; cursor: default; }
-  .pq-lb-scroll { overflow: hidden; }
-  .pq-lb-scroll.pq-lb-pan {
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    max-width: 92vw;
-    max-height: calc(90vh - 140px);
-  }
   .pq-lb-frame {
     position: relative;
     background: #e3d9cf;
     flex-shrink: 0;
-  }
-  .pq-lb-frame.pq-lb-fit {
     width: min(88vw, calc((90vh - 160px) * var(--lb-ar)));
     aspect-ratio: var(--lb-ar);
     height: auto;
   }
-  .pq-lightbox.variant-square .pq-lb-frame:not(.pq-lb-fit) { width: 55mm; height: 55mm; }
-  .pq-lightbox.variant-rectangle .pq-lb-frame:not(.pq-lb-fit) { width: 83mm; height: 59mm; }
-  .pq-lightbox.variant-rectangle .pq-lb-frame[data-orientation="portrait"]:not(.pq-lb-fit) { width: 59mm; height: 83mm; }
   .pq-lb-img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .pq-lb-footer {
     display: flex;
@@ -730,21 +731,7 @@
   }
   .pq-lb-label { font-size: 20px; font-weight: 600; letter-spacing: 0.02em; }
   .pq-lb-disc { font-size: 15px; opacity: 0.6; }
-  .pq-lb-size-btn {
-    display: none;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: white;
-    padding: 8px 24px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 6px;
-    transition: background 0.2s;
-  }
-  .pq-lb-size-btn:hover { background: rgba(255, 255, 255, 0.3); }
   @media (max-width: 768px) {
-    .pq-lb-size-btn { display: inline-block; }
     .pq-lb-stage { gap: 8px; }
     .pq-lb-nav { width: 36px; height: 36px; min-width: 36px; }
   }

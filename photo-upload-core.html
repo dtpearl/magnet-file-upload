@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-22.2
+  Version: 2026-05-26.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-22.2");
+  console.log("[photo-upload-core] v2026-05-26.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -255,10 +255,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
               </svg>
             </button>
-            <div class="pq-lb-scroll">
-              <div class="pq-lb-frame">
-                <img class="pq-lb-img" src="" alt="Print preview"/>
-              </div>
+            <div class="pq-lb-frame">
+              <img class="pq-lb-img" src="" alt="Print preview"/>
             </div>
             <button class="pq-lb-nav pq-lb-next" aria-label="Next image">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
@@ -269,21 +267,17 @@
           <div class="pq-lb-footer">
             <span class="pq-lb-label"></span>
             <span class="pq-lb-disc">Shown close to actual magnet size. May vary slightly by screen.</span>
-            <button class="pq-lb-size-btn">See 1:1</button>
           </div>
         </div>`;
       document.body.appendChild(_lb);
       const lbBackdrop = _lb.querySelector(".pq-lb-backdrop");
       const lbFrame    = _lb.querySelector(".pq-lb-frame");
-      const lbScroll   = _lb.querySelector(".pq-lb-scroll");
       const lbImg      = _lb.querySelector(".pq-lb-img");
       const lbPrev     = _lb.querySelector(".pq-lb-prev");
       const lbNext     = _lb.querySelector(".pq-lb-next");
       const lbClose    = _lb.querySelector(".pq-lb-close");
       const lbLabel    = _lb.querySelector(".pq-lb-label");
-      const lbSizeBtn  = _lb.querySelector(".pq-lb-size-btn");
       let lbIndex = -1;
-      let lbFitMode = true;
 
       // Orientation elements (rectangle only)
       const orientationLandscapeBtn = hasOrientation
@@ -844,12 +838,6 @@
           : { label: "78 × 54mm", ar: 83 / 59, orient: "landscape" };
       }
 
-      function applyLbMode() {
-        lbFrame.classList.toggle("pq-lb-fit", lbFitMode);
-        lbScroll.classList.toggle("pq-lb-pan", !lbFitMode);
-        lbSizeBtn.textContent = lbFitMode ? "See 1:1" : "Fit to screen";
-      }
-
       function updateLightbox() {
         const file = croppedFiles[lbIndex];
         if (!file) return;
@@ -873,8 +861,6 @@
 
       function openLightbox(index) {
         lbIndex = index;
-        lbFitMode = window.innerWidth <= 768;
-        applyLbMode();
         updateLightbox();
         _lb.classList.add("active");
         document.addEventListener("keydown", lbKeyHandler);
@@ -897,17 +883,8 @@
       lbBackdrop.addEventListener("click", closeLightbox);
       lbPrev.addEventListener("click", () => { if (lbIndex > 0) { lbIndex--; updateLightbox(); } });
       lbNext.addEventListener("click", () => { if (lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); } });
-      lbSizeBtn.addEventListener("click", () => {
-        lbFitMode = !lbFitMode;
-        applyLbMode();
-        requestAnimationFrame(() => {
-          lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
-          const [x, y] = safeAreaFracs(lbFrame.dataset.orientation || "landscape");
-          drawSafeAreaOverlay(lbFrame, x, y);
-        });
-      });
 
-      // Swipe down to close; swipe left/right to navigate (fit mode only)
+      // Swipe down to close; swipe left/right to navigate
       let lbTouchY = 0, lbTouchX = 0;
       _lb.addEventListener("touchstart", (e) => {
         lbTouchY = e.touches[0].clientY;
@@ -918,7 +895,7 @@
         const dx = e.changedTouches[0].clientX - lbTouchX;
         if (Math.abs(dy) > Math.abs(dx) && dy > 80) {
           closeLightbox();
-        } else if (lbFitMode && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+        } else if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
           if (dx > 0 && lbIndex > 0) { lbIndex--; updateLightbox(); }
           else if (dx < 0 && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
         }

@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_rectangle' %}
 <!--
   Photo Upload - Bulk Rectangle Variant
-  Version: 2026-05-22.1
+  Version: 2026-05-26.1
   1 photo, rectangular with orientation toggle
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -29,25 +29,25 @@
     <div class="modal-header">
       <div class="modal-title-container">
         <h2 class="modal-title">Select your photo</h2>
+        <details class="size-reference-details">
+          <summary class="size-reference-toggle">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Physical size reference
+          </summary>
+          <div class="size-reference" aria-label="Magnet size compared to a credit card">
+            <div class="size-ref-item">
+              <div class="size-ref-shape size-ref-magnet">Magnet</div>
+              <span class="size-ref-label">78 × 54 mm</span>
+            </div>
+            <div class="size-ref-item">
+              <div class="size-ref-shape size-ref-card">Credit card</div>
+              <span class="size-ref-label">85 × 54 mm</span>
+            </div>
+          </div>
+        </details>
       </div>
-      <details class="size-reference-details">
-        <summary class="size-reference-toggle">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          See magnet size
-        </summary>
-        <div class="size-reference" aria-label="Magnet size compared to a credit card">
-          <div class="size-ref-item">
-            <div class="size-ref-shape size-ref-magnet">Magnet</div>
-            <span class="size-ref-label">78 × 54 mm</span>
-          </div>
-          <div class="size-ref-item">
-            <div class="size-ref-shape size-ref-card">Credit card</div>
-            <span class="size-ref-label">85 × 54 mm</span>
-          </div>
-        </div>
-      </details>
     </div>
 
     <div class="upload-area">
@@ -155,7 +155,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-bulk-rectangle] v2026-05-22.1");
+    console.log("[photo-upload-bulk-rectangle] v2026-05-26.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,
