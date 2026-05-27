@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-26.1
+  Version: 2026-05-27.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-26.1");
+  console.log("[photo-upload-core] v2026-05-27.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -207,6 +207,7 @@
       const imageToCrop = document.getElementById("image-to-crop");
       const cropCancel = document.getElementById("crop-cancel");
       const cropApply = document.getElementById("crop-apply");
+      const cropReset = document.getElementById("crop-reset");
       const uploadButton = document.getElementById("upload-btn-main");
       const uploadConfirmEl = document.getElementById("upload-confirm");
       const confirmUploadBtn = document.getElementById("confirm-upload-btn");
@@ -237,47 +238,6 @@
       document
         .getElementById(`select-photos-modal-${productId}`)
         .classList.add(`variant-${variant}`);
-
-      // Print-quality lightbox
-      const _lb = document.createElement("div");
-      _lb.className = `pq-lightbox variant-${variant}`;
-      _lb.innerHTML = `
-        <div class="pq-lb-backdrop"></div>
-        <div class="pq-lb-body">
-          <button class="pq-lb-close" aria-label="Close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-          <div class="pq-lb-stage">
-            <button class="pq-lb-nav pq-lb-prev" aria-label="Previous image">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-              </svg>
-            </button>
-            <div class="pq-lb-frame">
-              <img class="pq-lb-img" src="" alt="Print preview"/>
-            </div>
-            <button class="pq-lb-nav pq-lb-next" aria-label="Next image">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
-          <div class="pq-lb-footer">
-            <span class="pq-lb-label"></span>
-            <span class="pq-lb-disc">Shown close to actual magnet size. May vary slightly by screen.</span>
-          </div>
-        </div>`;
-      document.body.appendChild(_lb);
-      const lbBackdrop = _lb.querySelector(".pq-lb-backdrop");
-      const lbFrame    = _lb.querySelector(".pq-lb-frame");
-      const lbImg      = _lb.querySelector(".pq-lb-img");
-      const lbPrev     = _lb.querySelector(".pq-lb-prev");
-      const lbNext     = _lb.querySelector(".pq-lb-next");
-      const lbClose    = _lb.querySelector(".pq-lb-close");
-      const lbLabel    = _lb.querySelector(".pq-lb-label");
-      let lbIndex = -1;
 
       // Orientation elements (rectangle only)
       const orientationLandscapeBtn = hasOrientation
@@ -517,6 +477,12 @@
         closeEditModal();
       });
 
+      cropReset.addEventListener("click", () => {
+        if (!currentCropperInstance) return;
+        currentCropperInstance.reset();
+        requestAnimationFrame(drawSafeArea);
+      });
+
       editModalCloseBtn.addEventListener("click", () => {
         if (currentCropperInstance) {
           currentCropperInstance.destroy();
@@ -723,7 +689,8 @@
             imgElement.className = "main-thumbnail";
             imgElement.onclick = (ev) => {
               ev.stopPropagation();
-              openLightbox(index);
+              openModal("edit-photos-modal");
+              startCropping(index);
             };
 
             imgContainer.appendChild(imgElement);
@@ -828,78 +795,6 @@
         updateUploadUI();
       }
 
-      // --- Lightbox functions ---
-
-      function lbPrintDims(index) {
-        if (variant === "square") return { label: "50 × 50mm", ar: 1, orient: "landscape" };
-        const o = cropOrientations[index] || "landscape";
-        return o === "portrait"
-          ? { label: "54 × 78mm", ar: 59 / 83, orient: "portrait" }
-          : { label: "78 × 54mm", ar: 83 / 59, orient: "landscape" };
-      }
-
-      function updateLightbox() {
-        const file = croppedFiles[lbIndex];
-        if (!file) return;
-        const dims = lbPrintDims(lbIndex);
-        lbFrame.dataset.orientation = dims.orient;
-        lbFrame.style.setProperty("--lb-ar", dims.ar);
-        lbLabel.textContent = `Actual magnet size: ${dims.label}`;
-        lbPrev.disabled = lbIndex <= 0;
-        lbNext.disabled = lbIndex >= selectedFiles.length - 1;
-        const url = URL.createObjectURL(file);
-        lbImg.onload = () => {
-          URL.revokeObjectURL(url);
-          requestAnimationFrame(() => {
-            lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
-            const [x, y] = safeAreaFracs(dims.orient);
-            drawSafeAreaOverlay(lbFrame, x, y);
-          });
-        };
-        lbImg.src = url;
-      }
-
-      function openLightbox(index) {
-        lbIndex = index;
-        updateLightbox();
-        _lb.classList.add("active");
-        document.addEventListener("keydown", lbKeyHandler);
-      }
-
-      function closeLightbox() {
-        _lb.classList.remove("active");
-        lbImg.src = "";
-        lbFrame.querySelectorAll(".safe-area-overlay").forEach((el) => el.remove());
-        document.removeEventListener("keydown", lbKeyHandler);
-      }
-
-      function lbKeyHandler(e) {
-        if (e.key === "Escape") { closeLightbox(); return; }
-        if (e.key === "ArrowLeft" && lbIndex > 0) { lbIndex--; updateLightbox(); }
-        if (e.key === "ArrowRight" && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
-      }
-
-      lbClose.addEventListener("click", closeLightbox);
-      lbBackdrop.addEventListener("click", closeLightbox);
-      lbPrev.addEventListener("click", () => { if (lbIndex > 0) { lbIndex--; updateLightbox(); } });
-      lbNext.addEventListener("click", () => { if (lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); } });
-
-      // Swipe down to close; swipe left/right to navigate
-      let lbTouchY = 0, lbTouchX = 0;
-      _lb.addEventListener("touchstart", (e) => {
-        lbTouchY = e.touches[0].clientY;
-        lbTouchX = e.touches[0].clientX;
-      }, { passive: true });
-      _lb.addEventListener("touchend", (e) => {
-        const dy = e.changedTouches[0].clientY - lbTouchY;
-        const dx = e.changedTouches[0].clientX - lbTouchX;
-        if (Math.abs(dy) > Math.abs(dx) && dy > 80) {
-          closeLightbox();
-        } else if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0 && lbIndex > 0) { lbIndex--; updateLightbox(); }
-          else if (dx < 0 && lbIndex < selectedFiles.length - 1) { lbIndex++; updateLightbox(); }
-        }
-      }, { passive: true });
     }
 
     return {

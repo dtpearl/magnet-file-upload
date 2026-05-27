@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_square' %}
 <!--
   Photo Upload - Bulk Square Variant
-  Version: 2026-05-26.1
+  Version: 2026-05-27.1
   1 photo, 1:1 aspect ratio
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -29,24 +29,6 @@
     <div class="modal-header">
       <div class="modal-title-container">
         <h2 class="modal-title">Select your photo</h2>
-        <details class="size-reference-details">
-          <summary class="size-reference-toggle">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Physical size reference
-          </summary>
-          <div class="size-reference" aria-label="Magnet size compared to a credit card">
-            <div class="size-ref-item">
-              <div class="size-ref-shape size-ref-magnet">Magnet</div>
-              <span class="size-ref-label">50 × 50 mm</span>
-            </div>
-            <div class="size-ref-item">
-              <div class="size-ref-shape size-ref-card">Credit card</div>
-              <span class="size-ref-label">85 × 54 mm</span>
-            </div>
-          </div>
-        </details>
       </div>
     </div>
 
@@ -115,25 +97,27 @@
   </div>
 
   <div id="edit-photos-modal" class="edit-photos-modal">
-    <div class="modal-header">
-      <div class="modal-title-container">
-        <h2 class="modal-title">Crop your image</h2>
-        <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+    <button id="edit-modal-close-btn" class="close-btn" aria-label="Close modal" title="Close">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-container">
+          <h2 class="modal-title">Crop your image</h2>
+        </div>
       </div>
       <p class="content-subtitle">Adjust the crop area for your image</p>
       <div class="crop-container">
         <img id="image-to-crop" src="" alt="Image to crop" />
       </div>
+      <p class="crop-info">The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
       <div class="crop-controls">
+        <button id="crop-reset" class="crop-button reset">Reset</button>
         <button id="crop-cancel" class="crop-button cancel">Cancel</button>
         <button id="crop-apply" class="crop-button apply">Apply Crop</button>
-      </div>
-      <div>
-        <p>The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
       </div>
     </div>
   </div>
@@ -141,7 +125,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-bulk-square] v2026-05-26.1");
+    console.log("[photo-upload-bulk-square] v2026-05-27.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,
