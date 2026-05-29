@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-29.1
+  Version: 2026-05-29.2
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-29.1");
+  console.log("[photo-upload-core] v2026-05-29.2");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -324,11 +324,7 @@
           try {
             progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
             progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
-            const paddedIndex = String(index + 1).padStart(2, "0");
-            const orientationPart = hasOrientation
-              ? `-${cropOrientations[index] || "landscape"}`
-              : "";
-            const fileName = `${productId}${orientationPart}-${paddedIndex}`;
+            const fileName = String(index + 1).padStart(2, "0");
             await uploadToCloudinary(croppedFiles[index], fileName, sessionId);
             uploadedCount++;
             progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
