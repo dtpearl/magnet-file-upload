@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-27.1
+  Version: 2026-05-29.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-27.1");
+  console.log("[photo-upload-core] v2026-05-29.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -98,7 +98,13 @@
       const dd = String(now.getDate()).padStart(2, "0");
       const hh = String(now.getHours()).padStart(2, "0");
       const min = String(now.getMinutes()).padStart(2, "0");
-      const rand = Math.floor(1000 + Math.random() * 9000);
+      // Crockford base32 random suffix: 32^6 ≈ 1.07B combinations per minute.
+      // Alphabet excludes I, L, O, U so customers/staff reading session IDs
+      // aloud or copy-pasting from order properties can't confuse characters.
+      const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+      const bytes = crypto.getRandomValues(new Uint8Array(6));
+      let rand = "";
+      for (let i = 0; i < 6; i++) rand += alphabet[bytes[i] & 31];
       return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
     }
 
