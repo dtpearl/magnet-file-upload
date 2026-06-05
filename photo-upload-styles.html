@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-05-27.1
+  Version: 2026-06-05.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -275,17 +275,22 @@
     transition: box-shadow 0.2s;
     width: 100%;
   }
-  /* Thumbnail aspect ratio matches physical magnet shape. */
-  .variant-square .main-thumbnail-img-container,
-  .variant-bulk-square .main-thumbnail-img-container {
+  /* Thumbnail containers are square so portrait and landscape magnets occupy
+     the same footprint. Square magnets fill the container; rectangle magnets
+     are inscribed in the square at their physical aspect ratio (letterboxed). */
+  .main-thumbnail-img-container {
     aspect-ratio: 1 / 1;
   }
-  .variant-rectangle .main-thumbnail-img-container,
-  .variant-bulk-rectangle .main-thumbnail-img-container {
+  .variant-rectangle .main-thumbnail,
+  .variant-bulk-rectangle .main-thumbnail {
+    width: 100%;
+    height: auto;
     aspect-ratio: 83 / 59;
   }
-  .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
-  .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] {
+  .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail,
+  .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail {
+    width: auto;
+    height: 100%;
     aspect-ratio: 59 / 83;
   }
   @media (hover: hover) {

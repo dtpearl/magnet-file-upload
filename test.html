@@ -1445,16 +1445,22 @@
         transition: box-shadow 0.2s;
         width: 100%;
       }
-      .variant-square .main-thumbnail-img-container,
-      .variant-bulk-square .main-thumbnail-img-container {
+      /* Thumbnail containers are square so portrait and landscape magnets
+         occupy the same footprint. Square magnets fill the container; rectangle
+         magnets are inscribed in the square at their physical aspect ratio. */
+      .main-thumbnail-img-container {
         aspect-ratio: 1 / 1;
       }
-      .variant-rectangle .main-thumbnail-img-container,
-      .variant-bulk-rectangle .main-thumbnail-img-container {
+      .variant-rectangle .main-thumbnail,
+      .variant-bulk-rectangle .main-thumbnail {
+        width: 100%;
+        height: auto;
         aspect-ratio: 83 / 59;
       }
-      .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"],
-      .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] {
+      .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail,
+      .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail {
+        width: auto;
+        height: 100%;
         aspect-ratio: 59 / 83;
       }
       @media (hover: hover) {
@@ -1998,10 +2004,6 @@
             return aspectRatio;
           }
 
-          function getDefaultRatio() {
-            return hasOrientation ? landscapeRatio : aspectRatio;
-          }
-
           // Drag and drop
           uploadArea.addEventListener("dragover", (e) => {
             e.preventDefault();
@@ -2326,7 +2328,20 @@
               };
               img.onload = () => {
                 URL.revokeObjectURL(url);
-                const targetRatio = getDefaultRatio();
+                // For orientation-aware products, match the default crop to the
+                // source image's own orientation so the first render looks as
+                // good as possible (portrait photos get a portrait magnet,
+                // landscape photos a landscape one). Square falls back to
+                // landscape.
+                const orientation =
+                  hasOrientation && img.height > img.width
+                    ? "portrait"
+                    : "landscape";
+                const targetRatio = !hasOrientation
+                  ? aspectRatio
+                  : orientation === "portrait"
+                    ? portraitRatio
+                    : landscapeRatio;
                 let cropWidth, cropHeight;
                 if (img.width / img.height > targetRatio) {
                   cropHeight = img.height;
@@ -2353,7 +2368,7 @@
                   cropHeight,
                 );
                 canvas.toBlob(
-                  (croppedBlob) => resolve(croppedBlob),
+                  (croppedBlob) => resolve({ blob: croppedBlob, orientation }),
                   "image/jpeg",
                   0.92,
                 );
@@ -2387,8 +2402,9 @@
                 );
                 const cropped = await createDefaultCrop(compressed);
                 selectedFiles[writeIndex] = compressed;
-                croppedFiles[writeIndex] = cropped;
-                if (hasOrientation) cropOrientations[writeIndex] = "landscape";
+                croppedFiles[writeIndex] = cropped.blob;
+                if (hasOrientation)
+                  cropOrientations[writeIndex] = cropped.orientation;
                 writeIndex++;
               } catch (err) {
                 skipped.push(files[i].name || `file ${i + 1}`);

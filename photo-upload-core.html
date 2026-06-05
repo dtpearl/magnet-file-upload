@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-05-29.2
+  Version: 2026-06-05.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-05-29.2");
+  console.log("[photo-upload-core] v2026-06-05.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -260,10 +260,6 @@
             : portraitRatio;
         }
         return aspectRatio;
-      }
-
-      function getDefaultRatio() {
-        return hasOrientation ? landscapeRatio : aspectRatio;
       }
 
       // Drag and drop (background color via .dragover class in styles)
@@ -552,7 +548,19 @@
           };
           img.onload = () => {
             URL.revokeObjectURL(url);
-            const targetRatio = getDefaultRatio();
+            // For orientation-aware products, match the default crop to the
+            // source image's own orientation so the first render looks as good
+            // as possible (portrait photos get a portrait magnet, landscape
+            // photos a landscape one). Square images fall back to landscape.
+            const orientation =
+              hasOrientation && img.height > img.width
+                ? "portrait"
+                : "landscape";
+            const targetRatio = !hasOrientation
+              ? aspectRatio
+              : orientation === "portrait"
+                ? portraitRatio
+                : landscapeRatio;
             let cropWidth, cropHeight;
             if (img.width / img.height > targetRatio) {
               cropHeight = img.height;
@@ -579,7 +587,7 @@
               cropHeight,
             );
             canvas.toBlob(
-              (croppedBlob) => resolve(croppedBlob),
+              (croppedBlob) => resolve({ blob: croppedBlob, orientation }),
               "image/jpeg",
               0.92,
             );
@@ -613,8 +621,9 @@
             );
             const cropped = await createDefaultCrop(compressed);
             selectedFiles[writeIndex] = compressed;
-            croppedFiles[writeIndex] = cropped;
-            if (hasOrientation) cropOrientations[writeIndex] = "landscape";
+            croppedFiles[writeIndex] = cropped.blob;
+            if (hasOrientation)
+              cropOrientations[writeIndex] = cropped.orientation;
             writeIndex++;
           } catch (err) {
             skipped.push(files[i].name || `file ${i + 1}`);
