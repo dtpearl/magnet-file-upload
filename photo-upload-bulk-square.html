@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_square' %}
 <!--
   Photo Upload - Bulk Square Variant
-  Version: 2026-05-27.1
+  Version: 2026-06-05.1
   1 photo, 1:1 aspect ratio
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -49,15 +49,15 @@
             <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.8s" repeatCount="indefinite" />
           </circle>
         </svg>
-        <span class="processing-text">Processing image...</span>
+        <span class="processing-text">Processing photo...</span>
       </div>
     </div>
 
     <div class="main-thumbnail-container single-image"></div>
 
-    <p class="content-subtitle bulk-click-instruction">Click image to resize or crop</p>
+    <p class="content-subtitle bulk-click-instruction">Click your photo to resize or crop</p>
     <div class="post-selection-info">
-      <div>Your chosen image has been cropped to fit on square magnets.</div>
+      <div>Your chosen photo has been cropped to fit on square magnets.</div>
       <div>The area outside the dotted lines will wrap around the edges of your magnets.</div>
       <div>Please review before placing your order.</div>
     </div>
@@ -73,10 +73,10 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <p>Image uploaded successfully!</p>
+        <p>Photo uploaded successfully!</p>
       </div>
       <div id="remove-all-confirm" class="upload-confirm">
-        <p class="upload-confirm-text">Remove selected image? This cannot be undone.</p>
+        <p class="upload-confirm-text">Remove selected photo? This cannot be undone.</p>
         <div class="upload-confirm-actions">
           <button id="remove-all-cancel-btn" class="confirm-cancel-btn">Go back</button>
           <button id="remove-all-confirm-btn" class="confirm-upload-btn">Yes, remove</button>
@@ -90,7 +90,7 @@
         </div>
       </div>
       <div class="modal-footer-actions">
-        <button id="remove-all-files-btn" class="remove-all-files-btn">Remove image</button>
+        <button id="remove-all-files-btn" class="remove-all-files-btn">Remove photo</button>
         <button id="upload-btn-main" class="add-to-cart-btn" disabled>Upload</button>
       </div>
     </div>
@@ -106,12 +106,12 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="modal-title-container">
-          <h2 class="modal-title">Crop your image</h2>
+          <h2 class="modal-title">Crop your photo</h2>
         </div>
       </div>
-      <p class="content-subtitle">Adjust the crop area for your image</p>
+      <p class="content-subtitle">Position your photo to get the perfect shot</p>
       <div class="crop-container">
-        <img id="image-to-crop" src="" alt="Image to crop" />
+        <img id="image-to-crop" src="" alt="Photo to crop" />
       </div>
       <p class="crop-info">The dashed blue box indicates the safe print area. Content outside this area may be trimmed during printing and magnet construction.</p>
       <div class="crop-controls">
@@ -125,7 +125,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-bulk-square] v2026-05-27.1");
+    console.log("[photo-upload-bulk-square] v2026-06-05.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,

@@ -1,6 +1,6 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-05-29.1
+  Version: 2026-06-05.1
   Self-service page for replacing photos on an existing order.
 
   URL params (all required): session, product, variant.
@@ -200,35 +200,42 @@
     Upload photos
   </button>
   <div id="replacement-complete" class="replacement-complete" style="display: none;">
-    <h2>Thanks — your photos have been uploaded.</h2>
+    <h2>Photos uploaded successfully!</h2>
     <p>We'll use these when preparing your order. You can close this page.</p>
   </div>
 </div>
 
 <div id="edit-photos-modal" class="edit-photos-modal">
-  <div class="modal-header">
-    <div class="modal-title-container">
-      <h2 class="modal-title">Crop your image</h2>
-      <button
-        id="edit-modal-close-btn"
-        class="close-btn"
-        aria-label="Close modal"
-        title="Close"
-      >
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
-      </button>
+  <button
+    id="edit-modal-close-btn"
+    class="close-btn"
+    aria-label="Close modal"
+    title="Close"
+  >
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M6 18L18 6M6 6l12 12"
+      ></path>
+    </svg>
+  </button>
+
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Crop your photo</h2>
+      </div>
     </div>
-    <p class="content-subtitle">Position your image to get the perfect shot</p>
+    <p class="content-subtitle">Position your photo to get the perfect shot</p>
     <div class="crop-container">
-      <img id="image-to-crop" src="" alt="Image to crop" />
+      <img id="image-to-crop" src="" alt="Photo to crop" />
     </div>
+    <p class="crop-info">
+      The dashed blue box indicates the safe print area. Content outside this area
+      may be trimmed during printing and magnet construction.
+    </p>
     <div class="crop-controls">
       <div
         id="replacement-orientation-toggle"
@@ -256,20 +263,15 @@
           Portrait
         </button>
       </div>
+      <button id="crop-reset" class="crop-button reset">Reset</button>
       <button id="crop-cancel" class="crop-button cancel">Cancel</button>
       <button id="crop-apply" class="crop-button apply">Apply Crop</button>
-    </div>
-    <div>
-      <p>
-        The dashed blue box indicates the safe print area. Content outside this area
-        may be trimmed during printing.
-      </p>
     </div>
   </div>
 </div>
 
 <script>
-  console.log("[photo-upload-replacement] v2026-05-29.1");
+  console.log("[photo-upload-replacement] v2026-06-05.1");
 
   // Replacement-page flow. Depends on PhotoUploader (photo-upload-core) for
   // shared helpers: drawSafeAreaOverlay, openModal, closeModal,
@@ -318,6 +320,7 @@
     const imageToCrop = document.getElementById("image-to-crop");
     const cropCancel = document.getElementById("crop-cancel");
     const cropApply = document.getElementById("crop-apply");
+    const cropReset = document.getElementById("crop-reset");
     const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
     const orientationLandscapeBtn = hasOrientation
       ? document.getElementById("orientation-landscape")
@@ -471,6 +474,8 @@
           rotatable: true,
           scalable: true,
           zoomable: true,
+          ready: () => drawSafeArea(),
+          cropmove: () => drawSafeArea(),
         });
       };
       imageToCrop.src = objectUrl;
@@ -485,6 +490,40 @@
       imageToCrop.src = "";
       currentCropSlot = -1;
       PhotoUploader.closeModal("edit-photos-modal");
+    }
+
+    // Live "Safe Print Area" overlay drawn over the crop box, kept in sync with
+    // the square/rectangle pages (photo-upload-core drawSafeArea). The 0.9 inset
+    // is the same for both — there is no square/rectangle difference here. Reuses
+    // the shared .safe-print-* styles from photo-upload-styles.
+    const SAFE_AREA_PERCENTAGE = 0.9;
+
+    function drawSafeArea() {
+      if (!currentCropperInstance) return;
+      const existing = document.querySelector(".safe-print-container");
+      if (existing) existing.remove();
+
+      const cropBox = currentCropperInstance.getCropBoxData();
+      const safeW = cropBox.width * SAFE_AREA_PERCENTAGE;
+      const safeH = cropBox.height * SAFE_AREA_PERCENTAGE;
+      const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+      const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+
+      const container = document.createElement("div");
+      container.className = "safe-print-container";
+      container.style.cssText = `left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;`;
+
+      const label = document.createElement("div");
+      label.className = "safe-print-label";
+      label.textContent = "Safe Print Area";
+      container.appendChild(label);
+
+      const area = document.createElement("div");
+      area.className = "safe-print-area";
+      area.style.cssText = `left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;`;
+      container.appendChild(area);
+
+      document.querySelector(".cropper-container").appendChild(container);
     }
 
     if (cropApply) {
@@ -529,6 +568,15 @@
     if (editModalCloseBtn)
       editModalCloseBtn.addEventListener("click", closeCropModal);
 
+    // Reset returns the image and crop box to their initial state, undoing any
+    // zoom, move, or rotate the customer applied.
+    if (cropReset)
+      cropReset.addEventListener("click", () => {
+        if (!currentCropperInstance) return;
+        currentCropperInstance.reset();
+        requestAnimationFrame(drawSafeArea);
+      });
+
     if (hasOrientation && orientationLandscapeBtn) {
       orientationLandscapeBtn.addEventListener("click", () => {
         if (!currentCropperInstance || currentOrientation === "landscape")
@@ -536,6 +584,7 @@
         currentOrientation = "landscape";
         updateOrientationToggle();
         currentCropperInstance.setAspectRatio(landscapeRatio);
+        drawSafeArea();
       });
     }
     if (hasOrientation && orientationPortraitBtn) {
@@ -545,6 +594,7 @@
         currentOrientation = "portrait";
         updateOrientationToggle();
         currentCropperInstance.setAspectRatio(portraitRatio);
+        drawSafeArea();
       });
     }
 
