@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_rectangle' %}
 <!--
   Photo Upload - Bulk Rectangle Variant
-  Version: 2026-06-05.1
+  Version: 2026-07-30.1
   1 photo, rectangular with orientation toggle
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -75,6 +75,15 @@
         </svg>
         <p>Photo uploaded successfully!</p>
       </div>
+      <!-- Same wording as remove-all: with a single photo both routes do the
+           same thing, so they should read the same. -->
+      <div id="remove-one-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">Remove selected photo? This cannot be undone.</p>
+        <div class="upload-confirm-actions">
+          <button id="remove-one-cancel-btn" class="confirm-cancel-btn">Go back</button>
+          <button id="remove-one-confirm-btn" class="confirm-upload-btn">Yes, remove</button>
+        </div>
+      </div>
       <div id="remove-all-confirm" class="upload-confirm">
         <p class="upload-confirm-text">Remove selected photo? This cannot be undone.</p>
         <div class="upload-confirm-actions">
@@ -139,7 +148,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-bulk-rectangle] v2026-06-05.1");
+    console.log("[photo-upload-bulk-rectangle] v2026-07-30.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,

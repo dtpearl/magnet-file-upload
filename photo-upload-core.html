@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-06-05.2
+  Version: 2026-07-30.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,7 +15,7 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-06-05.2");
+  console.log("[photo-upload-core] v2026-07-30.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
@@ -191,6 +191,7 @@
       let currentCropperInstance = null;
       let currentCropIndex = -1;
       let currentOrientation = "landscape";
+      let pendingRemoveIndex = -1;
 
       const actualFileInput = document.getElementById(
         `actual-file-input-${productId}`,
@@ -224,6 +225,13 @@
       );
       const removeAllCancelBtn = document.getElementById(
         "remove-all-cancel-btn",
+      );
+      const removeOneConfirmEl = document.getElementById("remove-one-confirm");
+      const removeOneConfirmBtn = document.getElementById(
+        "remove-one-confirm-btn",
+      );
+      const removeOneCancelBtn = document.getElementById(
+        "remove-one-cancel-btn",
       );
       const selectPhotosButton = document.getElementById(
         `select-photos-button-${productId}`,
@@ -274,10 +282,40 @@
 
       customUploadButton.addEventListener("click", () => actualFileInput.click());
 
+      const confirmPanels = [
+        uploadConfirmEl,
+        removeAllConfirmEl,
+        removeOneConfirmEl,
+      ];
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      // Only one confirmation is ever visible, and it takes the place of the
+      // footer actions so the pending choice is the only thing on offer. The
+      // panel lives in the footer, which can be off-screen when the click came
+      // from a thumbnail, so scroll it into view and move focus into it.
       const showConfirm = (el, show) => {
-        el.classList.toggle("active", show);
+        confirmPanels.forEach((panel) =>
+          panel.classList.toggle("active", panel === el && show),
+        );
         footerActionsEl.style.display = show ? "none" : "flex";
+        if (!(show && el === removeOneConfirmEl)) clearPendingRemove();
+        if (show) {
+          el.scrollIntoView({
+            block: "center",
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+          });
+          el.querySelector(".confirm-cancel-btn").focus({ preventScroll: true });
+        }
       };
+
+      // Escape backs out of whichever confirmation is open.
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        const open = confirmPanels.find((p) => p.classList.contains("active"));
+        if (open) showConfirm(open, false);
+      });
 
       removeAllFilesButton.addEventListener("click", () => {
         uploadStatus.textContent = "";
@@ -287,6 +325,13 @@
       removeAllConfirmBtn.addEventListener("click", () => {
         showConfirm(removeAllConfirmEl, false);
         removeAllFiles();
+      });
+
+      removeOneCancelBtn.addEventListener("click", () => showConfirm(removeOneConfirmEl, false));
+      removeOneConfirmBtn.addEventListener("click", () => {
+        const index = pendingRemoveIndex;
+        showConfirm(removeOneConfirmEl, false);
+        removeFile(index);
       });
 
       uploadButton.addEventListener("click", () => {
@@ -646,6 +691,9 @@
       function processThumbnails() {
         const container = document.querySelector(".main-thumbnail-container");
         if (!container) return;
+        // Rebuilding the grid drops the highlighted thumbnail, so a pending
+        // single-photo confirmation would no longer say which photo it means.
+        if (pendingRemoveIndex !== -1) showConfirm(removeOneConfirmEl, false);
         container.innerHTML = "";
 
         const maxFilesAdded = selectedFiles.length === maxFiles;
@@ -683,7 +731,7 @@
             deleteBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M6 8v6m4-6v6m4-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4m5-2h-2a2 2 0 0 0-2 2v2h8V4a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
             deleteBtn.onclick = (ev) => {
               ev.stopPropagation();
-              removeFile(index);
+              requestRemoveFile(index);
             };
 
             actionButtons.appendChild(editBtn);
@@ -784,6 +832,28 @@
         container.appendChild(area);
 
         document.querySelector(".cropper-container").appendChild(container);
+      }
+
+      function clearPendingRemove() {
+        pendingRemoveIndex = -1;
+        document
+          .querySelectorAll(".main-thumbnail-img-container.pending-remove")
+          .forEach((el) => el.classList.remove("pending-remove"));
+      }
+
+      // Marks the photo so the footer confirmation is unambiguous about which
+      // one is about to go, then asks before removing it.
+      function requestRemoveFile(index) {
+        if (index < 0 || index >= selectedFiles.length) return;
+        uploadStatus.textContent = "";
+        mediaUploadStatus.textContent = "";
+        clearPendingRemove();
+        pendingRemoveIndex = index;
+        const target = document.querySelectorAll(
+          ".main-thumbnail-img-container",
+        )[index];
+        if (target) target.classList.add("pending-remove");
+        showConfirm(removeOneConfirmEl, true);
       }
 
       function removeFile(index) {

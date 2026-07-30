@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-06-05.1
+  Version: 2026-07-30.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -301,6 +301,18 @@
       transform: scale(1.03);
     }
   }
+  /* The photo awaiting a remove confirmation. Declared after :hover so it wins
+     at equal specificity and the marker survives the pointer moving away.
+     Greyscale rather than dimming alone, so the marker reads the same whatever
+     the photo happens to look like. */
+  .main-thumbnail-img-container.pending-remove {
+    box-shadow: 0 0 0 3px #a33, 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  .main-thumbnail-img-container.pending-remove .main-thumbnail {
+    filter: grayscale(1);
+    opacity: 0.5;
+    transform: none;
+  }
   .post-selection-info {
     display: none;
     flex-direction: column;
@@ -450,7 +462,8 @@
     transition: opacity 0.2s;
     z-index: 2;
   }
-  .main-thumbnail-img-container:hover .thumbnail-action-buttons {
+  .main-thumbnail-img-container:hover .thumbnail-action-buttons,
+  .main-thumbnail-img-container:focus-within .thumbnail-action-buttons {
     opacity: 1;
   }
   .thumbnail-action-btn {
@@ -469,6 +482,19 @@
   .thumbnail-action-btn svg {
     width: 16px;
     height: 16px;
+  }
+  /* Keyboard focus rings: white on the dark thumbnail pills, ink elsewhere. */
+  .thumbnail-action-btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  .remove-all-files-btn:focus-visible,
+  .confirm-cancel-btn:focus-visible,
+  .add-to-cart-btn:focus-visible,
+  .confirm-upload-btn:focus-visible,
+  .upload-btn:focus-visible {
+    outline: 2px solid #374151;
+    outline-offset: 2px;
   }
   .processing-indicator {
     display: none;

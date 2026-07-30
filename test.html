@@ -307,7 +307,10 @@
               The area outside the dotted lines will wrap around the edges of
               your magnets.
             </div>
-            <div>Click any photo to resize or crop. Please review before placing your order.</div>
+            <div>
+              Click any photo to resize or crop. Please review before placing
+              your order.
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -334,9 +337,22 @@
               </svg>
               <p>Photos uploaded successfully!</p>
             </div>
+            <div id="remove-one-confirm" class="upload-confirm">
+              <p class="upload-confirm-text">
+                Remove the highlighted photo? This cannot be undone.
+              </p>
+              <div class="upload-confirm-actions">
+                <button id="remove-one-cancel-btn" class="confirm-cancel-btn">
+                  Go back
+                </button>
+                <button id="remove-one-confirm-btn" class="confirm-upload-btn">
+                  Yes, remove
+                </button>
+              </div>
+            </div>
             <div id="remove-all-confirm" class="upload-confirm">
               <p class="upload-confirm-text">
-                Remove all selected photos? This cannot be undone.
+                Remove all photos? This cannot be undone.
               </p>
               <div class="upload-confirm-actions">
                 <button id="remove-all-cancel-btn" class="confirm-cancel-btn">
@@ -395,19 +411,18 @@
                 <h2 class="modal-title">Crop your photo</h2>
               </div>
             </div>
-            <p class="content-subtitle">Position your photo to get the perfect shot</p>
+            <p class="content-subtitle">
+              Position your photo to get the perfect shot
+            </p>
             <div class="crop-container">
               <img id="image-to-crop" src="" alt="Photo to crop" />
             </div>
             <p class="crop-info">
-              The dashed blue box indicates the safe print area. Content
-              outside this area may be trimmed during printing and magnet
-              construction.
+              The dashed blue box indicates the safe print area. Content outside
+              this area may be trimmed during printing and magnet construction.
             </p>
             <div class="crop-controls">
-              <button id="crop-reset" class="crop-button reset">
-                Reset
-              </button>
+              <button id="crop-reset" class="crop-button reset">Reset</button>
               <button id="crop-cancel" class="crop-button cancel">
                 Cancel
               </button>
@@ -538,7 +553,10 @@
               The area outside the dotted lines will wrap around the edges of
               your magnets.
             </div>
-            <div>Click any photo to resize or crop. Please review before placing your order.</div>
+            <div>
+              Click any photo to resize or crop. Please review before placing
+              your order.
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -562,9 +580,22 @@
               </svg>
               <p>Photos uploaded successfully!</p>
             </div>
+            <div id="remove-one-confirm" class="upload-confirm">
+              <p class="upload-confirm-text">
+                Remove the highlighted photo? This cannot be undone.
+              </p>
+              <div class="upload-confirm-actions">
+                <button id="remove-one-cancel-btn" class="confirm-cancel-btn">
+                  Go back
+                </button>
+                <button id="remove-one-confirm-btn" class="confirm-upload-btn">
+                  Yes, remove
+                </button>
+              </div>
+            </div>
             <div id="remove-all-confirm" class="upload-confirm">
               <p class="upload-confirm-text">
-                Remove all selected photos? This cannot be undone.
+                Remove all photos? This cannot be undone.
               </p>
               <div class="upload-confirm-actions">
                 <button id="remove-all-cancel-btn" class="confirm-cancel-btn">
@@ -623,14 +654,15 @@
                 <h2 class="modal-title">Crop your photo</h2>
               </div>
             </div>
-            <p class="content-subtitle">Position your photo to get the perfect shot</p>
+            <p class="content-subtitle">
+              Position your photo to get the perfect shot
+            </p>
             <div class="crop-container">
               <img id="image-to-crop" src="" alt="Photo to crop" />
             </div>
             <p class="crop-info">
-              The dashed blue box indicates the safe print area. Content
-              outside this area may be trimmed during printing and magnet
-              construction.
+              The dashed blue box indicates the safe print area. Content outside
+              this area may be trimmed during printing and magnet construction.
             </p>
             <div class="crop-controls">
               <div class="orientation-toggle">
@@ -665,9 +697,7 @@
                   Portrait
                 </button>
               </div>
-              <button id="crop-reset" class="crop-button reset">
-                Reset
-              </button>
+              <button id="crop-reset" class="crop-button reset">Reset</button>
               <button id="crop-cancel" class="crop-button cancel">
                 Cancel
               </button>
@@ -823,6 +853,21 @@
               </svg>
               <p>Photo uploaded successfully!</p>
             </div>
+            <!-- Same wording as remove-all: with a single photo both routes do
+                 the same thing, so they should read the same. -->
+            <div id="remove-one-confirm" class="upload-confirm">
+              <p class="upload-confirm-text">
+                Remove selected photo? This cannot be undone.
+              </p>
+              <div class="upload-confirm-actions">
+                <button id="remove-one-cancel-btn" class="confirm-cancel-btn">
+                  Go back
+                </button>
+                <button id="remove-one-confirm-btn" class="confirm-upload-btn">
+                  Yes, remove
+                </button>
+              </div>
+            </div>
             <div id="remove-all-confirm" class="upload-confirm">
               <p class="upload-confirm-text">
                 Remove selected photo? This cannot be undone.
@@ -883,19 +928,18 @@
                 <h2 class="modal-title">Crop your photo</h2>
               </div>
             </div>
-            <p class="content-subtitle">Position your photo to get the perfect shot</p>
+            <p class="content-subtitle">
+              Position your photo to get the perfect shot
+            </p>
             <div class="crop-container">
               <img id="image-to-crop" src="" alt="Photo to crop" />
             </div>
             <p class="crop-info">
-              The dashed blue box indicates the safe print area. Content
-              outside this area may be trimmed during printing and magnet
-              construction.
+              The dashed blue box indicates the safe print area. Content outside
+              this area may be trimmed during printing and magnet construction.
             </p>
             <div class="crop-controls">
-              <button id="crop-reset" class="crop-button reset">
-                Reset
-              </button>
+              <button id="crop-reset" class="crop-button reset">Reset</button>
               <button id="crop-cancel" class="crop-button cancel">
                 Cancel
               </button>
@@ -1055,6 +1099,21 @@
               </svg>
               <p>Photo uploaded successfully!</p>
             </div>
+            <!-- Same wording as remove-all: with a single photo both routes do
+                 the same thing, so they should read the same. -->
+            <div id="remove-one-confirm" class="upload-confirm">
+              <p class="upload-confirm-text">
+                Remove selected photo? This cannot be undone.
+              </p>
+              <div class="upload-confirm-actions">
+                <button id="remove-one-cancel-btn" class="confirm-cancel-btn">
+                  Go back
+                </button>
+                <button id="remove-one-confirm-btn" class="confirm-upload-btn">
+                  Yes, remove
+                </button>
+              </div>
+            </div>
             <div id="remove-all-confirm" class="upload-confirm">
               <p class="upload-confirm-text">
                 Remove selected photo? This cannot be undone.
@@ -1115,14 +1174,15 @@
                 <h2 class="modal-title">Crop your photo</h2>
               </div>
             </div>
-            <p class="content-subtitle">Position your photo to get the perfect shot</p>
+            <p class="content-subtitle">
+              Position your photo to get the perfect shot
+            </p>
             <div class="crop-container">
               <img id="image-to-crop" src="" alt="Photo to crop" />
             </div>
             <p class="crop-info">
-              The dashed blue box indicates the safe print area. Content
-              outside this area may be trimmed during printing and magnet
-              construction.
+              The dashed blue box indicates the safe print area. Content outside
+              this area may be trimmed during printing and magnet construction.
             </p>
             <div class="crop-controls">
               <div class="orientation-toggle">
@@ -1157,9 +1217,7 @@
                   Portrait
                 </button>
               </div>
-              <button id="crop-reset" class="crop-button reset">
-                Reset
-              </button>
+              <button id="crop-reset" class="crop-button reset">Reset</button>
               <button id="crop-cancel" class="crop-button cancel">
                 Cancel
               </button>
@@ -1457,19 +1515,39 @@
         height: auto;
         aspect-ratio: 83 / 59;
       }
-      .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail,
-      .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail {
+      .variant-rectangle
+        .main-thumbnail-img-container[data-orientation="portrait"]
+        .main-thumbnail,
+      .variant-bulk-rectangle
+        .main-thumbnail-img-container[data-orientation="portrait"]
+        .main-thumbnail {
         width: auto;
         height: 100%;
         aspect-ratio: 59 / 83;
       }
       @media (hover: hover) {
         .main-thumbnail-img-container:hover {
-          box-shadow: 0 0 0 2px rgba(149, 136, 122, 0.6), 0 4px 16px rgba(0, 0, 0, 0.12);
+          box-shadow:
+            0 0 0 2px rgba(149, 136, 122, 0.6),
+            0 4px 16px rgba(0, 0, 0, 0.12);
         }
         .main-thumbnail-img-container:hover .main-thumbnail {
           transform: scale(1.03);
         }
+      }
+      /* The photo awaiting a remove confirmation. Declared after :hover so it
+         wins at equal specificity and the marker survives the pointer leaving.
+         Greyscale rather than dimming alone, so the marker reads the same
+         whatever the photo happens to look like. */
+      .main-thumbnail-img-container.pending-remove {
+        box-shadow:
+          0 0 0 3px #a33,
+          0 4px 16px rgba(0, 0, 0, 0.12);
+      }
+      .main-thumbnail-img-container.pending-remove .main-thumbnail {
+        filter: grayscale(1);
+        opacity: 0.5;
+        transform: none;
       }
       .post-selection-info {
         display: none;
@@ -1631,7 +1709,8 @@
         transition: opacity 0.2s;
         z-index: 2;
       }
-      .main-thumbnail-img-container:hover .thumbnail-action-buttons {
+      .main-thumbnail-img-container:hover .thumbnail-action-buttons,
+      .main-thumbnail-img-container:focus-within .thumbnail-action-buttons {
         opacity: 1;
       }
       .thumbnail-action-btn {
@@ -1650,6 +1729,19 @@
       .thumbnail-action-btn svg {
         width: 16px;
         height: 16px;
+      }
+      /* Keyboard focus rings: white on the dark thumbnail pills, ink elsewhere. */
+      .thumbnail-action-btn:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+      .remove-all-files-btn:focus-visible,
+      .confirm-cancel-btn:focus-visible,
+      .add-to-cart-btn:focus-visible,
+      .confirm-upload-btn:focus-visible,
+      .upload-btn:focus-visible {
+        outline: 2px solid #374151;
+        outline-offset: 2px;
       }
       .processing-indicator {
         display: none;
@@ -1770,8 +1862,10 @@
         const RECTANGLE_RATIO = 83 / 59;
 
         function drawSafeAreaOverlay(container, safeXFrac, safeYFrac) {
-          safeXFrac = safeXFrac !== undefined ? safeXFrac : SAFE_AREA_PERCENTAGE;
-          safeYFrac = safeYFrac !== undefined ? safeYFrac : SAFE_AREA_PERCENTAGE;
+          safeXFrac =
+            safeXFrac !== undefined ? safeXFrac : SAFE_AREA_PERCENTAGE;
+          safeYFrac =
+            safeYFrac !== undefined ? safeYFrac : SAFE_AREA_PERCENTAGE;
           container
             .querySelectorAll(".safe-area-overlay")
             .forEach((el) => el.remove());
@@ -1930,6 +2024,7 @@
           let currentCropperInstance = null;
           let currentCropIndex = -1;
           let currentOrientation = "landscape";
+          let pendingRemoveIndex = -1;
 
           const modal = document.getElementById(
             `select-photos-modal-${productId}`,
@@ -1966,6 +2061,13 @@
           );
           const removeAllCancelBtn = modal.querySelector(
             "#remove-all-cancel-btn",
+          );
+          const removeOneConfirmEl = modal.querySelector("#remove-one-confirm");
+          const removeOneConfirmBtn = modal.querySelector(
+            "#remove-one-confirm-btn",
+          );
+          const removeOneCancelBtn = modal.querySelector(
+            "#remove-one-cancel-btn",
           );
           const selectPhotosButton = document.getElementById(
             `select-photos-button-${productId}`,
@@ -2024,19 +2126,65 @@
             actualFileInput.click(),
           );
 
+          const confirmPanels = [
+            uploadConfirmEl,
+            removeAllConfirmEl,
+            removeOneConfirmEl,
+          ];
+          const prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+          ).matches;
+
+          // Only one confirmation is ever visible, and it takes the place of the
+          // footer actions so the pending choice is the only thing on offer. The
+          // panel lives in the footer, which can be off-screen when the click
+          // came from a thumbnail, so scroll it into view and move focus into it.
+          const showConfirm = (el, show) => {
+            confirmPanels.forEach((panel) =>
+              panel.classList.toggle("active", panel === el && show),
+            );
+            footerActionsEl.style.display = show ? "none" : "flex";
+            if (!(show && el === removeOneConfirmEl)) clearPendingRemove();
+            if (show) {
+              el.scrollIntoView({
+                block: "center",
+                behavior: prefersReducedMotion ? "auto" : "smooth",
+              });
+              el.querySelector(".confirm-cancel-btn").focus({
+                preventScroll: true,
+              });
+            }
+          };
+
+          // Escape backs out of whichever confirmation is open.
+          document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            if (!modal.classList.contains("active")) return;
+            const open = confirmPanels.find((p) =>
+              p.classList.contains("active"),
+            );
+            if (open) showConfirm(open, false);
+          });
+
           removeAllFilesButton.addEventListener("click", () => {
             uploadStatus.textContent = "";
-            removeAllConfirmEl.classList.add("active");
-            footerActionsEl.style.display = "none";
+            showConfirm(removeAllConfirmEl, true);
           });
-          removeAllCancelBtn.addEventListener("click", () => {
-            removeAllConfirmEl.classList.remove("active");
-            footerActionsEl.style.display = "flex";
-          });
+          removeAllCancelBtn.addEventListener("click", () =>
+            showConfirm(removeAllConfirmEl, false),
+          );
           removeAllConfirmBtn.addEventListener("click", () => {
-            removeAllConfirmEl.classList.remove("active");
-            footerActionsEl.style.display = "flex";
+            showConfirm(removeAllConfirmEl, false);
             removeAllFiles();
+          });
+
+          removeOneCancelBtn.addEventListener("click", () =>
+            showConfirm(removeOneConfirmEl, false),
+          );
+          removeOneConfirmBtn.addEventListener("click", () => {
+            const index = pendingRemoveIndex;
+            showConfirm(removeOneConfirmEl, false);
+            removeFile(index);
           });
 
           uploadButton.addEventListener("click", () => {
@@ -2046,14 +2194,12 @@
               return;
             }
             mediaUploadStatus.textContent = "";
-            uploadConfirmEl.classList.add("active");
-            footerActionsEl.style.display = "none";
+            showConfirm(uploadConfirmEl, true);
           });
 
-          confirmCancelBtn.addEventListener("click", () => {
-            uploadConfirmEl.classList.remove("active");
-            footerActionsEl.style.display = "flex";
-          });
+          confirmCancelBtn.addEventListener("click", () =>
+            showConfirm(uploadConfirmEl, false),
+          );
 
           confirmUploadBtn.addEventListener("click", async () => {
             uploadConfirmEl.classList.remove("active");
@@ -2427,6 +2573,9 @@
           function processThumbnails() {
             const container = modal.querySelector(".main-thumbnail-container");
             if (!container) return;
+            // Rebuilding the grid drops the highlighted thumbnail, so a pending
+            // single-photo confirmation would no longer say which photo it means.
+            if (pendingRemoveIndex !== -1) showConfirm(removeOneConfirmEl, false);
             container.innerHTML = "";
 
             const maxFilesAdded = selectedFiles.length === maxFiles;
@@ -2465,7 +2614,7 @@
                 deleteBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none"><path d="M6 8v6m4-6v6m4-10v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4m5-2h-2a2 2 0 0 0-2 2v2h8V4a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
                 deleteBtn.onclick = (ev) => {
                   ev.stopPropagation();
-                  removeFile(index);
+                  requestRemoveFile(index);
                 };
 
                 actionButtons.appendChild(editBtn);
@@ -2521,14 +2670,20 @@
 
           function safeAreaFracs(orient) {
             if (variant === "square") return [50 / 55, 50 / 55];
-            return orient === "portrait" ? [54 / 59, 78 / 83] : [78 / 83, 54 / 59];
+            return orient === "portrait"
+              ? [54 / 59, 78 / 83]
+              : [78 / 83, 54 / 59];
           }
 
           function handleSafeAreaOverlay() {
-            modal.querySelectorAll(".main-thumbnail-img-container").forEach((c) => {
-              const [x, y] = safeAreaFracs(c.dataset.orientation || "landscape");
-              drawSafeAreaOverlay(c, x, y);
-            });
+            modal
+              .querySelectorAll(".main-thumbnail-img-container")
+              .forEach((c) => {
+                const [x, y] = safeAreaFracs(
+                  c.dataset.orientation || "landscape",
+                );
+                drawSafeAreaOverlay(c, x, y);
+              });
           }
 
           window.addEventListener("resize", () => {
@@ -2569,6 +2724,28 @@
             modal.querySelector(".cropper-container").appendChild(container);
           }
 
+          function clearPendingRemove() {
+            pendingRemoveIndex = -1;
+            modal
+              .querySelectorAll(".main-thumbnail-img-container.pending-remove")
+              .forEach((el) => el.classList.remove("pending-remove"));
+          }
+
+          // Marks the photo so the footer confirmation is unambiguous about
+          // which one is about to go, then asks before removing it.
+          function requestRemoveFile(index) {
+            if (index < 0 || index >= selectedFiles.length) return;
+            uploadStatus.textContent = "";
+            mediaUploadStatus.textContent = "";
+            clearPendingRemove();
+            pendingRemoveIndex = index;
+            const target = modal.querySelectorAll(
+              ".main-thumbnail-img-container",
+            )[index];
+            if (target) target.classList.add("pending-remove");
+            showConfirm(removeOneConfirmEl, true);
+          }
+
           function removeFile(index) {
             if (index < 0 || index >= selectedFiles.length) return;
             uploadStatus.textContent = "";
@@ -2588,7 +2765,6 @@
             processThumbnails();
             updateUploadUI();
           }
-
         }
 
         return { init, openModal, closeModal, RECTANGLE_RATIO };
