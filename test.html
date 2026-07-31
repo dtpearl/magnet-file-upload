@@ -197,24 +197,44 @@
       latter. The quantity field deliberately ships with the theme's invalid
       max="null" so the fix-up can be observed.
     -->
-    <form class="test-product-form" onsubmit="return false">
-      <label class="quantity__label" for="test-quantity">Quantity</label>
-      <input
-        id="test-quantity"
-        name="quantity"
-        type="number"
-        value="1"
-        min="1"
-        max="null"
-      />
-      <button type="submit" class="product-form__submit" name="add">
-        Add to cart
-      </button>
+    <div class="test-product-form">
+      <!--
+        Mirrors the live theme: <quantity-input> and its label sit OUTSIDE the
+        <form> and are linked by the input's form="..." attribute, and the label
+        wraps a live "(N in cart)" span. Both details broke earlier lookups, so
+        the harness models them rather than a simplified form.
+      -->
+      <div class="product-form__input product-form__quantity">
+        <label class="quantity__label form__label" for="Quantity-test">
+          Quantity
+          <span class="quantity__rules-cart hidden"
+            >(<span class="quantity-cart">0</span> in cart)</span
+          >
+        </label>
+        <quantity-input class="quantity">
+          <input
+            class="quantity__input"
+            id="Quantity-test"
+            name="quantity"
+            type="number"
+            value="1"
+            min="1"
+            step="1"
+            max="null"
+            form="test-product-form"
+          />
+        </quantity-input>
+      </div>
+      <form id="test-product-form" class="product-form" onsubmit="return false">
+        <button type="submit" class="product-form__submit" name="add">
+          Add to cart
+        </button>
+      </form>
       <span class="test-form-hint">
         Add to cart publishes a fake <code>cartUpdate</code> to exercise the
         post-add reset.
       </span>
-    </form>
+    </div>
 
     <!-- Square Variant -->
     <div id="square-variant" class="variant-container active">
@@ -1963,7 +1983,7 @@
 
       document.addEventListener("DOMContentLoaded", () => {
         document
-          .querySelector(".test-product-form")
+          .getElementById("test-product-form")
           ?.addEventListener("submit", (e) => {
             e.preventDefault();
             publish(PUB_SUB_EVENTS.cartUpdate, { source: "product-form" });
@@ -2262,8 +2282,15 @@
             addToCartForm = document
               .querySelector('.product-form__submit[type="submit"]')
               ?.closest("form");
-            quantityInput =
-              addToCartForm?.querySelector('input[name="quantity"]') || null;
+            // Dawn renders <quantity-input> OUTSIDE the <form> and links the
+            // two with the input's form="..." attribute, so the input is not a
+            // descendant and querySelector on the form finds nothing.
+            // form.elements works whether it is nested or associated.
+            let found = addToCartForm
+              ? addToCartForm.elements.namedItem("quantity")
+              : null;
+            if (found && !(found instanceof HTMLElement)) found = found[0] || null;
+            quantityInput = found || null;
           }
 
           function packCount() {
@@ -2277,13 +2304,23 @@
           function applyQuantityFieldCopy() {
             if (!supportsMultiPack || !quantityInput) return;
             quantityInput.max = String(MAX_PACKS);
+            // From the document, not the form - the label sits outside it.
             const label =
               (quantityInput.id &&
-                addToCartForm.querySelector(
+                document.querySelector(
                   `label[for="${CSS.escape(quantityInput.id)}"]`,
                 )) ||
-              addToCartForm.querySelector(".quantity__label");
-            if (label) label.textContent = "Number of packs";
+              quantityInput
+                .closest(".product-form__quantity, .product-form__input")
+                ?.querySelector(".quantity__label");
+            if (!label) return;
+            // The label also wraps a live "(N in cart)" span, so replace only
+            // its leading text node - textContent would delete that markup.
+            const textNode = Array.from(label.childNodes).find(
+              (n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim(),
+            );
+            if (textNode) textNode.textContent = "Number of packs ";
+            else label.prepend("Number of packs ");
           }
 
           function updateMultiPackNotice() {
