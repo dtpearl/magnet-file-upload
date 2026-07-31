@@ -2,24 +2,16 @@
   Photo Upload - Replacement
   Version: 2026-07-31.1
   Self-service page for replacing photos on an existing order.
+  Requires: photo-upload-styles.html, photo-upload-core.html
 
   URL params (all required): session, product, variant.
   Redirects to / if any are missing or the variant is not one of
   square | rectangle | bulk-square | bulk-rectangle.
 
-  Production URL: https://luxmagnetco.myshopify.com/pages/upload-your-photos
+  The session is the whole order, so the page renders every pack it finds
+  under shopify_uploads/{session}/pack-NN/ - one section each.
 
-  SETUP — Shopify admin:
-    1. Online Store > Pages > Add page. Title: "Upload your photos".
-       Handle: upload-your-photos (so the URL path is /pages/upload-your-photos).
-    2. Theme customizer > Pages > "Upload your photos". Add three Custom Liquid
-       sections in this order:
-         a. photo-upload-styles.html
-         b. photo-upload-core.html
-         c. photo-upload-replacement.html  (this file)
-    3. Save. No metafield or product wiring needed; the page reads everything
-       from the URL query string. Opening the page without valid params will
-       redirect to /.
+  Production URL: https://luxmagnetco.com/pages/upload-your-photos
 
   The URL to send to a customer lives on the order's line item under
   properties[_replacement_url] and is also logged to the browser console
