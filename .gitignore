@@ -2,3 +2,8 @@ test-images/
 .DS_Store
 
 magnet-file-upload.code-workspace
+
+# Local working notes - planning docs, handover write-ups, scratch research.
+# Useful while a piece of work is in flight, but not part of the deployed
+# snippets and not worth carrying in history once the work has landed.
+notes/
