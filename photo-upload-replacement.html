@@ -1,6 +1,6 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-06-05.1
+  Version: 2026-07-31.1
   Self-service page for replacing photos on an existing order.
 
   URL params (all required): session, product, variant.
@@ -68,6 +68,23 @@
     .replacement-grid {
       grid-template-columns: repeat(2, 1fr);
     }
+  }
+  /* With more than one pack the outer container holds sections, not slots, so
+     it stops being a grid and each pack brings its own. */
+  .replacement-grid.replacement-grid-packed {
+    display: block;
+  }
+  .replacement-pack {
+    margin-bottom: 32px;
+  }
+  .replacement-pack-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
   }
   .replacement-slot {
     position: relative;
@@ -271,7 +288,7 @@
 </div>
 
 <script>
-  console.log("[photo-upload-replacement] v2026-06-05.1");
+  console.log("[photo-upload-replacement] v2026-07-31.1");
 
   // Replacement-page flow. Depends on PhotoUploader (photo-upload-core) for
   // shared helpers: drawSafeAreaOverlay, openModal, closeModal,
@@ -295,15 +312,50 @@
     const CLOUDINARY_BASE =
       "https://res.cloudinary.com/djzc7ih0g/image/upload";
 
-    const slots = Array.from({ length: maxFiles }, (_, i) => ({
-      index: i,
-      status: "loading",
-      originalUrl: null,
-      originalOrientation: null,
-      replacedBlob: null,
-      replacedOrientation: null,
-      previewUrl: null,
-    }));
+    // An order can contain several packs, all under one session id with a
+    // numbered subfolder each. Slots stay a single flat list - each one knows
+    // which pack and which position within it - so the crop, undo, readiness
+    // and upload logic below is unchanged by the introduction of packs.
+    const MAX_PACKS = 10;
+    let slots = [];
+    let packs = [];
+
+    const packFolder = (n) => `pack-${String(n).padStart(2, "0")}`;
+
+    function packPath(pack) {
+      // pack === null means the legacy flat layout, where photos sat directly
+      // in shopify_uploads/{session}/. Kept so pre-existing sessions still open.
+      return pack === null ? "" : `${packFolder(pack)}/`;
+    }
+
+    function probe(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    // Probes every pack number rather than stopping at the first gap: removing
+    // a pack from the cart leaves a hole, and pack 3 must still be found when
+    // pack 2 is absent.
+    async function discoverPacks() {
+      const found = [];
+      const results = await Promise.all(
+        Array.from({ length: MAX_PACKS }, (_, i) =>
+          probe(
+            `${CLOUDINARY_BASE}/shopify_uploads/${session}/${packFolder(i + 1)}/01.jpg`,
+          ),
+        ),
+      );
+      results.forEach((ok, i) => ok && found.push(i + 1));
+      if (found.length) return found;
+      const legacy = await probe(
+        `${CLOUDINARY_BASE}/shopify_uploads/${session}/01.jpg`,
+      );
+      return legacy ? [null] : [];
+    }
 
     const gridEl = document.getElementById("replacement-grid");
     const uploadBtn = document.getElementById("replacement-upload-btn");
@@ -342,9 +394,9 @@
     // Filenames in shopify_uploads/{session}/ are just the zero-padded slot
     // number now (no productId, no orientation). For rectangle variants we
     // read orientation from the image's natural dimensions instead.
-    function fetchOriginal(i) {
-      const paddedIndex = String(i + 1).padStart(2, "0");
-      const url = `${CLOUDINARY_BASE}/shopify_uploads/${session}/${paddedIndex}.jpg`;
+    function fetchOriginal(slot) {
+      const paddedIndex = String(slot.slotInPack + 1).padStart(2, "0");
+      const url = `${CLOUDINARY_BASE}/shopify_uploads/${session}/${packPath(slot.pack)}${paddedIndex}.jpg`;
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
@@ -379,7 +431,8 @@
     }
 
     function renderSlot(slot) {
-      const existing = gridEl.querySelector(`[data-slot="${slot.index}"]`);
+      const target = slot.gridEl || gridEl;
+      const existing = target.querySelector(`[data-slot="${slot.index}"]`);
       if (existing) existing.remove();
 
       const el = document.createElement("div");
@@ -389,9 +442,9 @@
       el.dataset.orientation = slotOrient;
 
       if (slot.status === "loading") {
-        el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.index + 1}…</div>`;
+        el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.slotInPack + 1}…</div>`;
       } else if (slot.status === "missing") {
-        el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.index + 1}: original not found<span class="replacement-slot-cta">Click to upload a replacement</span></div>`;
+        el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.slotInPack + 1}: original not found<span class="replacement-slot-cta">Click to upload a replacement</span></div>`;
         el.addEventListener("click", () => pickFile(slot.index));
       } else {
         const img = document.createElement("img");
@@ -433,7 +486,7 @@
         }
       }
 
-      gridEl.appendChild(el);
+      target.appendChild(el);
     }
 
     function pickFile(slotIndex) {
@@ -629,7 +682,9 @@
             throw new Error(`Slot ${i + 1} has no photo`);
           }
 
-          const fileName = `replacements/${String(i + 1).padStart(2, "0")}`;
+          const fileName = `${packPath(slot.pack)}replacements/${String(
+            slot.slotInPack + 1,
+          ).padStart(2, "0")}`;
           await PhotoUploader.uploadToCloudinary(blob, fileName, session);
         }
         progressFillEl.style.width = "100%";
@@ -648,20 +703,70 @@
       }
     });
 
-    slots.forEach((slot) => renderSlot(slot));
-    slots.forEach(async (slot) => {
-      const result = await fetchOriginal(slot.index);
-      if (result) {
-        slot.status = "kept";
-        slot.originalUrl = result.url;
-        slot.originalOrientation = result.orientation;
-      } else {
-        slot.status = "missing";
+    // Builds one section per pack, then loads every slot. Slots are numbered
+    // globally (so crop/undo/upload can address them by a single index) but
+    // labelled by their position within their own pack.
+    function buildSlots() {
+      slots = [];
+      gridEl.innerHTML = "";
+      const multiple = packs.length > 1;
+      gridEl.classList.toggle("replacement-grid-packed", multiple);
+
+      packs.forEach((pack, packIdx) => {
+        let target = gridEl;
+        if (multiple) {
+          const section = document.createElement("section");
+          section.className = "replacement-pack";
+          const heading = document.createElement("h3");
+          heading.className = "replacement-pack-title";
+          heading.textContent = `Pack ${packIdx + 1} of ${packs.length}`;
+          section.appendChild(heading);
+          target = document.createElement("div");
+          target.className = "replacement-grid";
+          section.appendChild(target);
+          gridEl.appendChild(section);
+        }
+        for (let i = 0; i < maxFiles; i++) {
+          slots.push({
+            index: slots.length,
+            pack,
+            slotInPack: i,
+            gridEl: target,
+            status: "loading",
+            originalUrl: null,
+            originalOrientation: null,
+            replacedBlob: null,
+            replacedOrientation: null,
+            previewUrl: null,
+          });
+        }
+      });
+    }
+
+    (async () => {
+      packs = await discoverPacks();
+      if (!packs.length) {
+        statusEl.textContent =
+          "We couldn't find the photos for this order. Please check the link, or get in touch and we'll help.";
+        uploadBtn.style.display = "none";
+        return;
       }
-      renderSlot(slot);
+      buildSlots();
+      slots.forEach((slot) => renderSlot(slot));
+      slots.forEach(async (slot) => {
+        const result = await fetchOriginal(slot);
+        if (result) {
+          slot.status = "kept";
+          slot.originalUrl = result.url;
+          slot.originalOrientation = result.orientation;
+        } else {
+          slot.status = "missing";
+        }
+        renderSlot(slot);
+        updateReadiness();
+      });
       updateReadiness();
-    });
-    updateReadiness();
+    })();
 
     window.addEventListener("resize", () => {
       gridEl.querySelectorAll(".replacement-slot").forEach((el) => {

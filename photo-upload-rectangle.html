@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'rectangle' %}
 <!--
   Photo Upload - Rectangle Variant
-  Version: 2026-07-30.1
+  Version: 2026-07-31.1
   6 photos, rectangular with orientation toggle
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -52,6 +52,9 @@
         <h2 class="modal-title">Select your photos</h2>
       </div>
     </div>
+
+    <!-- Populated by photo-upload-core when the quantity is more than one pack. -->
+    <div id="multi-pack-notice" class="multi-pack-notice"></div>
 
     <div class="upload-area">
       <input
@@ -270,7 +273,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    console.log("[photo-upload-rectangle] v2026-07-30.1");
+    console.log("[photo-upload-rectangle] v2026-07-31.1");
     PhotoUploader.init({
       productId: "{{ product.id }}",
       maxFiles: 6,

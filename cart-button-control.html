@@ -1,6 +1,6 @@
 <!--
   Cart Button Control
-  Version: 2026-04-22.2
+  Version: 2026-07-31.1
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
@@ -14,7 +14,7 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-04-22.2");
+    console.log("[cart-button-control] v2026-07-31.1");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
 
     const initCartButtonControl = () => {
@@ -42,36 +42,34 @@
         return;
       }
 
-      // Disable buttons initially with tooltip
-      if (addToCartBtn) {
-        addToCartBtn.disabled = true;
-        addToCartBtn.setAttribute("data-photos-required", "true");
-        addToCartBtn.title = TOOLTIP_MESSAGE;
-      }
-
-      if (buyItNowBtn) {
-        buyItNowBtn.disabled = true;
-        buyItNowBtn.setAttribute("data-photos-required", "true");
-        buyItNowBtn.title = TOOLTIP_MESSAGE;
-      }
-
-      // Listen for photos uploaded event
-      document.addEventListener("photosUploaded", function (e) {
+      const gateButtons = (locked) => {
         if (addToCartBtn) {
-          addToCartBtn.disabled = originalAddToCartDisabled;
-          addToCartBtn.removeAttribute("data-photos-required");
-          addToCartBtn.title = originalAddToCartTitle;
+          addToCartBtn.disabled = locked ? true : originalAddToCartDisabled;
+          addToCartBtn.title = locked ? TOOLTIP_MESSAGE : originalAddToCartTitle;
+          if (locked) addToCartBtn.setAttribute("data-photos-required", "true");
+          else addToCartBtn.removeAttribute("data-photos-required");
         }
 
         if (buyItNowBtn) {
-          buyItNowBtn.disabled = originalBuyItNowDisabled;
-          buyItNowBtn.removeAttribute("data-photos-required");
-          buyItNowBtn.title = originalBuyItNowTitle;
+          buyItNowBtn.disabled = locked ? true : originalBuyItNowDisabled;
+          buyItNowBtn.title = locked ? TOOLTIP_MESSAGE : originalBuyItNowTitle;
+          if (locked) buyItNowBtn.setAttribute("data-photos-required", "true");
+          else buyItNowBtn.removeAttribute("data-photos-required");
         }
+      };
+
+      // Disable buttons initially with tooltip
+      gateButtons(true);
+
+      // Listen for photos uploaded event
+      document.addEventListener("photosUploaded", function (e) {
+        gateButtons(false);
 
         const sessionId = e.detail?.sessionId;
         const productId = e.detail?.productId;
         const variant = e.detail?.variant;
+        const packSize = e.detail?.packSize;
+        const packNumber = e.detail?.packNumber;
         const replacementUrl = buildReplacementUrl(sessionId, productId, variant);
         console.log("[cart-button-control] _product_id:", productId);
         console.log("[cart-button-control] _replacement_url:", replacementUrl);
@@ -80,7 +78,38 @@
         if (productForm) {
           setHiddenProperty(productForm, "_session_id", sessionId);
           setHiddenProperty(productForm, "_replacement_url", replacementUrl);
+          setHiddenProperty(productForm, "_pack_size", packSize);
+          // Maps this line item to its shopify_uploads/{session}/pack-NN/
+          // subfolder, and lets the next upload in this cart pick max+1.
+          setHiddenProperty(productForm, "_pack_number", packNumber);
+          // Customer-visible (no leading underscore) so a shopper can catch a
+          // misunderstanding in the cart, while it still costs nothing. Only
+          // meaningful for packs - a single-magnet product has no pack for the
+          // photo to be repeated across.
+          setHiddenProperty(
+            productForm,
+            "Photos",
+            packSize > 1 ? `${packSize} photos, one set per pack` : null,
+          );
         }
+      });
+
+      // Fired after a successful add to cart, once the uploader has reset for
+      // the next pack. Without stripping the properties here, the next add to
+      // cart would silently carry the PREVIOUS pack's session - shipping the
+      // wrong photos on an order that looks entirely valid.
+      document.addEventListener("photosReset", function () {
+        gateButtons(true);
+        const productForm =
+          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
+        if (!productForm) return;
+        [
+          "_session_id",
+          "_replacement_url",
+          "_pack_size",
+          "_pack_number",
+          "Photos",
+        ].forEach((name) => removeHiddenProperty(productForm, name));
       });
     };
 
@@ -107,6 +136,12 @@
       }
       input.value = value;
     };
+
+    // Removes the input outright rather than blanking it - an empty
+    // properties[...] field still reaches the order as an empty property.
+    function removeHiddenProperty(form, name) {
+      form.querySelector(`input[name="properties[${name}]"]`)?.remove();
+    }
 
     // Initialize when DOM is ready
     if (document.readyState === "loading") {

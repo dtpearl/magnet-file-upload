@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-07-30.1
+  Version: 2026-07-31.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,9 +15,13 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-07-30.1");
+  console.log("[photo-upload-core] v2026-07-31.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
+    // Upper bound written onto the quantity input, which the theme ships as an
+    // invalid max="null". Guards against fat-finger orders, not adversaries -
+    // it's client-side only and the Cart AJAX API ignores it.
+    const MAX_PACKS = 10;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
     // Rectangle magnet aspect ratio (wider:narrower). Update this one value
     // to retune all rectangle variants + the replacement page.
@@ -106,6 +110,40 @@
       let rand = "";
       for (let i = 0; i < 6; i++) rand += alphabet[bytes[i] & 31];
       return `${yyyy}${mm}${dd}-${hh}${min}-${rand}`;
+    }
+
+    const packFolder = (packNumber) =>
+      `pack-${String(packNumber).padStart(2, "0")}`;
+
+    // Every pack in the same cart shares one session id, so an order's photos
+    // all land in one Cloudinary folder with a numbered subfolder per pack.
+    // The cart is the source of truth rather than a stored identifier: there is
+    // nothing to keep in sync, and emptying the cart correctly starts a fresh
+    // session. Pack numbers come from max+1 so removing a pack leaves a hole
+    // rather than letting the next upload overwrite an existing folder.
+    async function resolveUploadTarget() {
+      let sessionId = null;
+      let maxPack = 0;
+      try {
+        const cart = await fetch("/cart.js", {
+          headers: { Accept: "application/json" },
+        }).then((r) => r.json());
+        for (const item of cart.items || []) {
+          const itemSession = item.properties && item.properties._session_id;
+          if (!itemSession) continue;
+          sessionId = itemSession;
+          const n = Number(item.properties._pack_number) || 0;
+          if (n > maxPack) maxPack = n;
+        }
+      } catch (err) {
+        // No cart endpoint (test harness) or a network failure. Fall through to
+        // a fresh session rather than blocking the upload.
+      }
+      if (!sessionId) {
+        sessionId = generateSessionId();
+        maxPack = 0;
+      }
+      return { sessionId, packNumber: maxPack + 1 };
     }
 
     // HEIC → JPEG conversion via heic2any. Lazy-loaded from jsDelivr only when
@@ -248,10 +286,113 @@
       );
       const processingTextEl =
         processingIndicator.querySelector(".processing-text");
+      const multiPackNoticeEl = document.getElementById("multi-pack-notice");
+      const uploadConfirmTextEl =
+        uploadConfirmEl.querySelector(".upload-confirm-text");
+
+      // Captured before anything overwrites them; the labels differ by variant
+      // ("Select photos" vs "Select photo") and the reset has to put them back.
+      const selectPhotosDefaultText = selectPhotosButton.textContent.trim();
+      const uploadButtonDefaultText = uploadButton.textContent.trim();
+      const uploadConfirmDefaultText = uploadConfirmTextEl.textContent.trim();
 
       document
         .getElementById(`select-photos-modal-${productId}`)
         .classList.add(`variant-${variant}`);
+
+      // --- Packs (product quantity) ----------------------------------------
+      // Quantity means "how many identical copies of this photo set to make",
+      // so photo count never depends on it and a cart-side quantity edit can't
+      // desync anything. Different photos = a separate add-to-cart.
+      //
+      // The product page renders two forms: Shopify's Shop Pay installments
+      // form (no quantity, no submit button) and the real add-to-cart form.
+      // Resolve via the add button so we always get the latter.
+      const supportsMultiPack = maxFiles > 1;
+      let addToCartForm = null;
+      let quantityInput = null;
+
+      function resolveQuantityInput() {
+        addToCartForm = document
+          .querySelector('.product-form__submit[type="submit"]')
+          ?.closest("form");
+        quantityInput =
+          addToCartForm?.querySelector('input[name="quantity"]') || null;
+      }
+
+      function packCount() {
+        const n = Number(quantityInput?.value);
+        return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1;
+      }
+
+      // The theme ships max="null" - an invalid value browsers ignore, so there
+      // is no cap - and labels the field "Quantity", which reads as a magnet
+      // count on a pack product: typing 6 on the 6-pack orders 36 magnets.
+      function applyQuantityFieldCopy() {
+        if (!supportsMultiPack || !quantityInput) return;
+        quantityInput.max = String(MAX_PACKS);
+        const label =
+          (quantityInput.id &&
+            addToCartForm.querySelector(
+              `label[for="${CSS.escape(quantityInput.id)}"]`,
+            )) ||
+          addToCartForm.querySelector(".quantity__label");
+        if (label) label.textContent = "Number of packs";
+      }
+
+      function updateMultiPackNotice() {
+        if (!multiPackNoticeEl) return;
+        const packs = packCount();
+        const show = supportsMultiPack && packs > 1;
+        multiPackNoticeEl.classList.toggle("active", show);
+        multiPackNoticeEl.textContent = "";
+        if (!show) return;
+        const lead = document.createElement("p");
+        lead.textContent = `You're ordering ${packs} packs. The ${maxFiles} photos you choose here will be used for every pack — ${maxFiles * packs} magnets in total.`;
+        const hint = document.createElement("p");
+        hint.className = "multi-pack-notice-hint";
+        hint.textContent =
+          "Want different photos in each pack? Choose photos for one pack, add it to your cart, then start again.";
+        multiPackNoticeEl.append(lead, hint);
+      }
+
+      function applyUploadConfirmText() {
+        const packs = packCount();
+        uploadConfirmTextEl.textContent =
+          supportsMultiPack && packs > 1
+            ? `Are your photos looking good? These ${maxFiles} photos will be used for all ${packs} packs, and cannot be changed once uploaded.`
+            : uploadConfirmDefaultText;
+      }
+
+      resolveQuantityInput();
+      applyQuantityFieldCopy();
+      quantityInput?.addEventListener("change", updateMultiPackNotice);
+      // Re-read on open rather than once at init: quantity can change between
+      // visits to the modal.
+      selectPhotosButton.addEventListener("click", updateMultiPackNotice);
+
+      // Dawn re-renders the product form on variant change, which discards the
+      // label and max above and invalidates the input reference.
+      if (
+        typeof subscribe === "function" &&
+        typeof PUB_SUB_EVENTS !== "undefined"
+      ) {
+        subscribe(PUB_SUB_EVENTS.variantChange, () => {
+          resolveQuantityInput();
+          applyQuantityFieldCopy();
+          quantityInput?.addEventListener("change", updateMultiPackNotice);
+          updateMultiPackNotice();
+        });
+
+        // Add to cart is AJAX with a cart-notification popup, so the page never
+        // reloads and the uploader would otherwise stay stuck on "Photos
+        // uploaded" with no way to start a second pack. cart.js publishes this
+        // same event with source "cart-items" when a shopper edits quantity on
+        // the cart page - that must not wipe an in-progress selection.
+        subscribe(PUB_SUB_EVENTS.cartUpdate, (event) => {
+          if (event?.source === "product-form") resetUploader();
+        });
+      }
 
       // Orientation elements (rectangle only)
       const orientationLandscapeBtn = hasOrientation
@@ -341,6 +482,7 @@
           return;
         }
         mediaUploadStatus.textContent = "";
+        applyUploadConfirmText();
         showConfirm(uploadConfirmEl, true);
       });
 
@@ -357,7 +499,7 @@
         progressBarFill.style.width = "0%";
         uploadCompleteEl.classList.remove("active");
 
-        const sessionId = generateSessionId();
+        const { sessionId, packNumber } = await resolveUploadTarget();
         let uploadedCount = 0;
         let hasError = false;
 
@@ -365,7 +507,7 @@
           try {
             progressText.textContent = `Uploading ${index + 1} of ${croppedFiles.length}...`;
             progressBarFill.style.width = `${(index / croppedFiles.length) * 100}%`;
-            const fileName = String(index + 1).padStart(2, "0");
+            const fileName = `${packFolder(packNumber)}/${String(index + 1).padStart(2, "0")}`;
             await uploadToCloudinary(croppedFiles[index], fileName, sessionId);
             uploadedCount++;
             progressBarFill.style.width = `${(uploadedCount / croppedFiles.length) * 100}%`;
@@ -391,7 +533,13 @@
           selectPhotosButton.textContent = "Photos uploaded";
           document.dispatchEvent(
             new CustomEvent("photosUploaded", {
-              detail: { sessionId, productId, variant },
+              detail: {
+                sessionId,
+                productId,
+                variant,
+                packSize: maxFiles,
+                packNumber,
+              },
             }),
           );
           uploadButton.onclick = () =>
@@ -874,6 +1022,38 @@
         actualFileInput.value = "";
         processThumbnails();
         updateUploadUI();
+      }
+
+      // Returns the uploader to its opening state so the shopper can choose a
+      // different set of photos for the next pack. Fired after a successful
+      // add to cart, which is AJAX here and so never reloads the page.
+      function resetUploader() {
+        selectedFiles = [];
+        croppedFiles = [];
+        cropOrientations = [];
+        actualFileInput.value = "";
+        clearPendingRemove();
+        confirmPanels.forEach((panel) => panel.classList.remove("active"));
+        footerActionsEl.style.display = "flex";
+        uploadCompleteEl.classList.remove("active");
+        uploadProgressEl.classList.remove("active");
+        uploadStatus.textContent = "";
+        mediaUploadStatus.textContent = "";
+        uploadConfirmTextEl.textContent = uploadConfirmDefaultText;
+        // The success path assigns .onclick on top of the click listener rather
+        // than replacing it, so without clearing it the button would both
+        // re-open the confirm panel and close the modal on the next pack.
+        uploadButton.onclick = null;
+        uploadButton.textContent = uploadButtonDefaultText;
+        selectPhotosButton.textContent = selectPhotosDefaultText;
+        processThumbnails();
+        updateUploadUI();
+        updateMultiPackNotice();
+        // cart-button-control listens for this to re-gate the cart buttons and
+        // strip the previous pack's line item properties.
+        document.dispatchEvent(
+          new CustomEvent("photosReset", { detail: { productId } }),
+        );
       }
 
     }
