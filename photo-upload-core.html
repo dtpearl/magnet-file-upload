@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-07-31.2
+  Version: 2026-08-12.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,13 +15,9 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-07-31.2");
+  console.log("[photo-upload-core] v2026-08-12.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
-    // Upper bound written onto the quantity input, which the theme ships as an
-    // invalid max="null". Guards against fat-finger orders, not adversaries -
-    // it's client-side only and the Cart AJAX API ignores it.
-    const MAX_PACKS = 10;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
     // Rectangle magnet aspect ratio (wider:narrower). Update this one value
     // to retune all rectangle variants + the replacement page.
@@ -286,131 +282,57 @@
       );
       const processingTextEl =
         processingIndicator.querySelector(".processing-text");
-      const multiPackNoticeEl = document.getElementById("multi-pack-notice");
-      const uploadConfirmTextEl =
-        uploadConfirmEl.querySelector(".upload-confirm-text");
+      const packStatusEl = document.getElementById(`pack-status-${productId}`);
 
       // Captured before anything overwrites them; the labels differ by variant
       // ("Select photos" vs "Select photo") and the reset has to put them back.
       const selectPhotosDefaultText = selectPhotosButton.textContent.trim();
       const uploadButtonDefaultText = uploadButton.textContent.trim();
-      const uploadConfirmDefaultText = uploadConfirmTextEl.textContent.trim();
 
       document
         .getElementById(`select-photos-modal-${productId}`)
         .classList.add(`variant-${variant}`);
 
-      // --- Packs (product quantity) ----------------------------------------
-      // Quantity means "how many identical copies of this photo set to make",
-      // so photo count never depends on it and a cart-side quantity edit can't
-      // desync anything. Different photos = a separate add-to-cart.
+      // --- Pack status ------------------------------------------------------
+      // One line item = one pack = one upload. The product page has no quantity
+      // selector on pack products, so a shopper wanting more than one pack adds
+      // them one at a time and the standing note on the page says so.
       //
-      // The product page renders two forms: Shopify's Shop Pay installments
-      // form (no quantity, no submit button) and the real add-to-cart form.
-      // Resolve via the add button so we always get the latter.
-      const supportsMultiPack = maxFiles > 1;
-      let addToCartForm = null;
-      let quantityInput = null;
-
-      function resolveQuantityInput() {
-        addToCartForm = document
-          .querySelector('.product-form__submit[type="submit"]')
-          ?.closest("form");
-        // Dawn renders <quantity-input> OUTSIDE the <form> and links the two
-        // with the input's form="..." attribute, so the input is not a
-        // descendant and querySelector on the form finds nothing. form.elements
-        // is the only lookup that works whether it is nested or associated.
-        let found = addToCartForm
-          ? addToCartForm.elements.namedItem("quantity")
-          : null;
-        // namedItem returns a RadioNodeList if several fields share the name.
-        if (found && !(found instanceof HTMLElement)) found = found[0] || null;
-        quantityInput = found || null;
+      // The "added" state exists because the post-add reset is otherwise
+      // completely silent: the button flips back to "Select photos" and Add to
+      // Cart re-greys behind the cart notification, which reads as the photos
+      // having been thrown away rather than as being ready for the next pack.
+      function setPackStatus(added) {
+        packStatusEl?.classList.toggle("added", added);
       }
 
-      function packCount() {
-        const n = Number(quantityInput?.value);
-        return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1;
-      }
+      // Clear the confirmation once they act on it. The standing note comes
+      // back, which is accurate whether or not they go on to choose photos.
+      selectPhotosButton.addEventListener("click", () => setPackStatus(false));
 
-      // The theme ships max="null" - an invalid value browsers ignore, so there
-      // is no cap - and labels the field "Quantity", which reads as a magnet
-      // count on a pack product: typing 6 on the 6-pack orders 36 magnets.
-      function applyQuantityFieldCopy() {
-        if (!supportsMultiPack || !quantityInput) return;
-        quantityInput.max = String(MAX_PACKS);
-        // Searched from the document, not the form - the label sits outside it
-        // alongside the input.
-        const label =
-          (quantityInput.id &&
-            document.querySelector(
-              `label[for="${CSS.escape(quantityInput.id)}"]`,
-            )) ||
-          quantityInput
-            .closest(".product-form__quantity, .product-form__input")
-            ?.querySelector(".quantity__label");
-        if (!label) return;
-        // The label also wraps a live "(N in cart)" span, so replace only its
-        // leading text node - setting textContent would delete that markup.
-        const textNode = Array.from(label.childNodes).find(
-          (n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim(),
-        );
-        if (textNode) textNode.textContent = "Number of packs ";
-        else label.prepend("Number of packs ");
-      }
-
-      function updateMultiPackNotice() {
-        if (!multiPackNoticeEl) return;
-        const packs = packCount();
-        const show = supportsMultiPack && packs > 1;
-        multiPackNoticeEl.classList.toggle("active", show);
-        multiPackNoticeEl.textContent = "";
-        if (!show) return;
-        const lead = document.createElement("p");
-        lead.textContent = `You're ordering ${packs} packs. The ${maxFiles} photos you choose here will be used for every pack — ${maxFiles * packs} magnets in total.`;
-        const hint = document.createElement("p");
-        hint.className = "multi-pack-notice-hint";
-        hint.textContent =
-          "Want different photos in each pack? Choose photos for one pack, add it to your cart, then start again.";
-        multiPackNoticeEl.append(lead, hint);
-      }
-
-      function applyUploadConfirmText() {
-        const packs = packCount();
-        uploadConfirmTextEl.textContent =
-          supportsMultiPack && packs > 1
-            ? `Are your photos looking good? These ${maxFiles} photos will be used for all ${packs} packs, and cannot be changed once uploaded.`
-            : uploadConfirmDefaultText;
-      }
-
-      resolveQuantityInput();
-      applyQuantityFieldCopy();
-      quantityInput?.addEventListener("change", updateMultiPackNotice);
-      // Re-read on open rather than once at init: quantity can change between
-      // visits to the modal.
-      selectPhotosButton.addEventListener("click", updateMultiPackNotice);
-
-      // Dawn re-renders the product form on variant change, which discards the
-      // label and max above and invalidates the input reference.
       if (
         typeof subscribe === "function" &&
         typeof PUB_SUB_EVENTS !== "undefined"
       ) {
-        subscribe(PUB_SUB_EVENTS.variantChange, () => {
-          resolveQuantityInput();
-          applyQuantityFieldCopy();
-          quantityInput?.addEventListener("change", updateMultiPackNotice);
-          updateMultiPackNotice();
-        });
-
         // Add to cart is AJAX with a cart-notification popup, so the page never
         // reloads and the uploader would otherwise stay stuck on "Photos
         // uploaded" with no way to start a second pack. cart.js publishes this
         // same event with source "cart-items" when a shopper edits quantity on
         // the cart page - that must not wipe an in-progress selection.
         subscribe(PUB_SUB_EVENTS.cartUpdate, (event) => {
+          console.log(
+            "[photo-upload-core] cartUpdate received, source:",
+            event?.source,
+          );
           if (event?.source === "product-form") resetUploader();
         });
+      } else {
+        // Worth shouting about: without pub/sub the uploader never resets, so
+        // the next add to cart carries the PREVIOUS pack's session id and
+        // ships the wrong photos on an order that looks entirely valid.
+        console.warn(
+          "[photo-upload-core] pub/sub unavailable - the uploader will not reset after add to cart",
+        );
       }
 
       // Orientation elements (rectangle only)
@@ -501,7 +423,6 @@
           return;
         }
         mediaUploadStatus.textContent = "";
-        applyUploadConfirmText();
         showConfirm(uploadConfirmEl, true);
       });
 
@@ -1058,7 +979,6 @@
         uploadProgressEl.classList.remove("active");
         uploadStatus.textContent = "";
         mediaUploadStatus.textContent = "";
-        uploadConfirmTextEl.textContent = uploadConfirmDefaultText;
         // The success path assigns .onclick on top of the click listener rather
         // than replacing it, so without clearing it the button would both
         // re-open the confirm panel and close the modal on the next pack.
@@ -1067,7 +987,12 @@
         selectPhotosButton.textContent = selectPhotosDefaultText;
         processThumbnails();
         updateUploadUI();
-        updateMultiPackNotice();
+        // Everything above silently undoes the visible signs of a successful
+        // upload, so say what happened and what to do next.
+        setPackStatus(true);
+        console.log(
+          "[photo-upload-core] resetUploader: pack added to cart, uploader ready for the next one",
+        );
         // cart-button-control listens for this to re-gate the cart buttons and
         // strip the previous pack's line item properties.
         document.dispatchEvent(

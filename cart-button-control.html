@@ -1,6 +1,6 @@
 <!--
   Cart Button Control
-  Version: 2026-07-31.1
+  Version: 2026-08-12.1
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
@@ -14,8 +14,12 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-07-31.1");
+    console.log("[cart-button-control] v2026-08-12.1");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
+    // Once a pack is in the cart the buttons re-gate immediately, and the
+    // message above reads as an error on the back of a success.
+    const NEXT_PACK_TOOLTIP = "Choose photos for your next pack";
+    let packInCart = false;
 
     const initCartButtonControl = () => {
       // Find Add to Cart button (Shopify uses dynamic IDs)
@@ -43,16 +47,18 @@
       }
 
       const gateButtons = (locked) => {
+        const lockedMessage = packInCart ? NEXT_PACK_TOOLTIP : TOOLTIP_MESSAGE;
+
         if (addToCartBtn) {
           addToCartBtn.disabled = locked ? true : originalAddToCartDisabled;
-          addToCartBtn.title = locked ? TOOLTIP_MESSAGE : originalAddToCartTitle;
+          addToCartBtn.title = locked ? lockedMessage : originalAddToCartTitle;
           if (locked) addToCartBtn.setAttribute("data-photos-required", "true");
           else addToCartBtn.removeAttribute("data-photos-required");
         }
 
         if (buyItNowBtn) {
           buyItNowBtn.disabled = locked ? true : originalBuyItNowDisabled;
-          buyItNowBtn.title = locked ? TOOLTIP_MESSAGE : originalBuyItNowTitle;
+          buyItNowBtn.title = locked ? lockedMessage : originalBuyItNowTitle;
           if (locked) buyItNowBtn.setAttribute("data-photos-required", "true");
           else buyItNowBtn.removeAttribute("data-photos-required");
         }
@@ -99,6 +105,9 @@
       // cart would silently carry the PREVIOUS pack's session - shipping the
       // wrong photos on an order that looks entirely valid.
       document.addEventListener("photosReset", function () {
+        // Only fires after a successful add to cart, so by here there is at
+        // least one pack in the cart and the tooltip should say so.
+        packInCart = true;
         gateButtons(true);
         const productForm =
           addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
