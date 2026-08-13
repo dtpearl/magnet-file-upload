@@ -1,6 +1,6 @@
 <!--
   Photo Upload Core
-  Version: 2026-08-12.1
+  Version: 2026-08-13.1
   Shared JavaScript for photo upload components.
   Include this section after photo-upload-styles and before variant sections.
 
@@ -15,19 +15,16 @@
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
-  console.log("[photo-upload-core] v2026-08-12.1");
+  console.log("[photo-upload-core] v2026-08-13.1");
   window.PhotoUploader = (function () {
     const SAFE_AREA_PERCENTAGE = 0.9;
     const OUTPUT_MIN_SHORT_SIDE = 2000;
-    // Rectangle magnet aspect ratio (wider:narrower). Update this one value
-    // to retune all rectangle variants + the replacement page.
-    // 83mm × 59mm = physical print size including wrap (54×78mm product + ~5mm wrap all sides).
+    // 83mm × 59mm physical print size incl. wrap. Drives every rectangle
+    // variant and the replacement page.
     const RECTANGLE_RATIO = 83 / 59;
 
-    // Draws the safe-print-area overlay over the image inside the given
-    // container. The container must be position:relative and contain an <img>
-    // with object-fit:contain. Removes any existing overlays first so this can
-    // be called repeatedly (e.g. on resize).
+    // Container must be position:relative holding an object-fit:contain <img>.
+    // Clears existing overlays first, so it is safe to re-run on resize.
     function drawSafeAreaOverlay(container, safeXFrac, safeYFrac) {
       safeXFrac = safeXFrac !== undefined ? safeXFrac : SAFE_AREA_PERCENTAGE;
       safeYFrac = safeYFrac !== undefined ? safeYFrac : SAFE_AREA_PERCENTAGE;
@@ -50,8 +47,6 @@
       const safeLeft = imgLeft + marginX;
       const safeTop = imgTop + marginY;
 
-      // Dimming overlays constrained to image bounds (letterbox stays
-      // undimmed). Static styling: .safe-area-overlay / .safe-area-border.
       const topO = document.createElement("div");
       topO.className = "safe-area-overlay";
       topO.style.cssText = `top:${imgTop}px;left:${imgLeft}px;width:${iW}px;height:${marginY}px;`;
@@ -98,9 +93,8 @@
       const dd = String(now.getDate()).padStart(2, "0");
       const hh = String(now.getHours()).padStart(2, "0");
       const min = String(now.getMinutes()).padStart(2, "0");
-      // Crockford base32 random suffix: 32^6 ≈ 1.07B combinations per minute.
-      // Alphabet excludes I, L, O, U so customers/staff reading session IDs
-      // aloud or copy-pasting from order properties can't confuse characters.
+      // Crockford base32: excludes I, L, O, U so an id can be read aloud or
+      // retyped without ambiguity.
       const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
       const bytes = crypto.getRandomValues(new Uint8Array(6));
       let rand = "";
@@ -111,12 +105,10 @@
     const packFolder = (packNumber) =>
       `pack-${String(packNumber).padStart(2, "0")}`;
 
-    // Every pack in the same cart shares one session id, so an order's photos
-    // all land in one Cloudinary folder with a numbered subfolder per pack.
-    // The cart is the source of truth rather than a stored identifier: there is
-    // nothing to keep in sync, and emptying the cart correctly starts a fresh
-    // session. Pack numbers come from max+1 so removing a pack leaves a hole
-    // rather than letting the next upload overwrite an existing folder.
+    // One session id per cart, so an order's photos land in one folder with a
+    // pack-NN/ subfolder each. Derived from the cart rather than stored, so
+    // there is nothing to keep in sync; max+1 leaves a numbering hole rather
+    // than overwriting when a pack is removed mid-cart.
     async function resolveUploadTarget() {
       let sessionId = null;
       let maxPack = 0;
@@ -132,8 +124,7 @@
           if (n > maxPack) maxPack = n;
         }
       } catch (err) {
-        // No cart endpoint (test harness) or a network failure. Fall through to
-        // a fresh session rather than blocking the upload.
+        // Test harness or network failure: fresh session beats blocking.
       }
       if (!sessionId) {
         sessionId = generateSessionId();
@@ -142,8 +133,7 @@
       return { sessionId, packNumber: maxPack + 1 };
     }
 
-    // HEIC → JPEG conversion via heic2any. Lazy-loaded from jsDelivr only when
-    // a HEIC file is encountered, so non-HEIC uploaders pay zero cost.
+    // Lazy-loaded only when a HEIC file appears, so others pay nothing.
     const HEIC2ANY_URL =
       "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
     let heic2anyPromise = null;
@@ -210,10 +200,12 @@
         hasOrientation,
         variant,
       } = config;
+      // NOT maxFiles on bulk, where one photo prints on 45 or 30 magnets.
+      // Falls back to maxFiles so a partial that omits it stays sane.
+      const magnetsPerUnit = Number(config.magnetsPerUnit) || maxFiles;
 
-      // Keep enough pre-crop resolution so the worst-case crop still yields
-      // OUTPUT_MIN_SHORT_SIDE on its short side. maxRatio is the most extreme
-      // crop aspect the user can pick (furthest from square).
+      // Enough pre-crop resolution that the most extreme crop the user can
+      // pick still yields OUTPUT_MIN_SHORT_SIDE on its short side.
       const maxRatio = hasOrientation
         ? Math.max(landscapeRatio, 1 / portraitRatio)
         : aspectRatio;
@@ -284,8 +276,7 @@
         processingIndicator.querySelector(".processing-text");
       const packStatusEl = document.getElementById(`pack-status-${productId}`);
 
-      // Captured before anything overwrites them; the labels differ by variant
-      // ("Select photos" vs "Select photo") and the reset has to put them back.
+      // Captured before the upload path overwrites them; labels differ by variant.
       const selectPhotosDefaultText = selectPhotosButton.textContent.trim();
       const uploadButtonDefaultText = uploadButton.textContent.trim();
 
@@ -293,32 +284,22 @@
         .getElementById(`select-photos-modal-${productId}`)
         .classList.add(`variant-${variant}`);
 
-      // --- Pack status ------------------------------------------------------
-      // One line item = one pack = one upload. The product page has no quantity
-      // selector on pack products, so a shopper wanting more than one pack adds
-      // them one at a time and the standing note on the page says so.
-      //
-      // The "added" state exists because the post-add reset is otherwise
-      // completely silent: the button flips back to "Select photos" and Add to
+      // The post-add reset is otherwise silent: the button reverts and Add to
       // Cart re-greys behind the cart notification, which reads as the photos
-      // having been thrown away rather than as being ready for the next pack.
+      // having been discarded rather than ready for the next pack.
       function setPackStatus(added) {
         packStatusEl?.classList.toggle("added", added);
       }
 
-      // Clear the confirmation once they act on it. The standing note comes
-      // back, which is accurate whether or not they go on to choose photos.
       selectPhotosButton.addEventListener("click", () => setPackStatus(false));
 
       if (
         typeof subscribe === "function" &&
         typeof PUB_SUB_EVENTS !== "undefined"
       ) {
-        // Add to cart is AJAX with a cart-notification popup, so the page never
-        // reloads and the uploader would otherwise stay stuck on "Photos
-        // uploaded" with no way to start a second pack. cart.js publishes this
-        // same event with source "cart-items" when a shopper edits quantity on
-        // the cart page - that must not wipe an in-progress selection.
+        // Add to cart is AJAX, so the page never reloads and the uploader would
+        // stay stuck on "Photos uploaded". The source filter matters: cart.js
+        // publishes this same event on cart-page quantity edits.
         subscribe(PUB_SUB_EVENTS.cartUpdate, (event) => {
           console.log(
             "[photo-upload-core] cartUpdate received, source:",
@@ -327,9 +308,8 @@
           if (event?.source === "product-form") resetUploader();
         });
       } else {
-        // Worth shouting about: without pub/sub the uploader never resets, so
-        // the next add to cart carries the PREVIOUS pack's session id and
-        // ships the wrong photos on an order that looks entirely valid.
+        // Without pub/sub the uploader never resets, so the next add to cart
+        // carries the previous pack's session id and ships the wrong photos.
         console.warn(
           "[photo-upload-core] pub/sub unavailable - the uploader will not reset after add to cart",
         );
@@ -373,10 +353,8 @@
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      // Only one confirmation is ever visible, and it takes the place of the
-      // footer actions so the pending choice is the only thing on offer. The
-      // panel lives in the footer, which can be off-screen when the click came
-      // from a thumbnail, so scroll it into view and move focus into it.
+      // One confirmation at a time, replacing the footer actions. It can be
+      // off-screen when the click came from a thumbnail, hence the scroll.
       const showConfirm = (el, show) => {
         confirmPanels.forEach((panel) =>
           panel.classList.toggle("active", panel === el && show),
@@ -477,7 +455,8 @@
                 sessionId,
                 productId,
                 variant,
-                packSize: maxFiles,
+                photoCount: maxFiles,
+                magnetsPerUnit,
                 packNumber,
               },
             }),
@@ -681,10 +660,8 @@
           };
           img.onload = () => {
             URL.revokeObjectURL(url);
-            // For orientation-aware products, match the default crop to the
-            // source image's own orientation so the first render looks as good
-            // as possible (portrait photos get a portrait magnet, landscape
-            // photos a landscape one). Square images fall back to landscape.
+            // Match the default crop to the source image's own orientation.
+            // Square images fall back to landscape.
             const orientation =
               hasOrientation && img.height > img.width
                 ? "portrait"
@@ -779,8 +756,8 @@
       function processThumbnails() {
         const container = document.querySelector(".main-thumbnail-container");
         if (!container) return;
-        // Rebuilding the grid drops the highlighted thumbnail, so a pending
-        // single-photo confirmation would no longer say which photo it means.
+        // Rebuilding the grid drops the highlight, so a pending confirmation
+        // would no longer say which photo it means.
         if (pendingRemoveIndex !== -1) showConfirm(removeOneConfirmEl, false);
         container.innerHTML = "";
 
@@ -929,8 +906,6 @@
           .forEach((el) => el.classList.remove("pending-remove"));
       }
 
-      // Marks the photo so the footer confirmation is unambiguous about which
-      // one is about to go, then asks before removing it.
       function requestRemoveFile(index) {
         if (index < 0 || index >= selectedFiles.length) return;
         uploadStatus.textContent = "";
@@ -964,9 +939,8 @@
         updateUploadUI();
       }
 
-      // Returns the uploader to its opening state so the shopper can choose a
-      // different set of photos for the next pack. Fired after a successful
-      // add to cart, which is AJAX here and so never reloads the page.
+      // Back to the opening state for the next pack. Fired after add to cart,
+      // which is AJAX here and never reloads.
       function resetUploader() {
         selectedFiles = [];
         croppedFiles = [];
@@ -979,22 +953,19 @@
         uploadProgressEl.classList.remove("active");
         uploadStatus.textContent = "";
         mediaUploadStatus.textContent = "";
-        // The success path assigns .onclick on top of the click listener rather
-        // than replacing it, so without clearing it the button would both
-        // re-open the confirm panel and close the modal on the next pack.
+        // The success path sets .onclick on top of the click listener, so
+        // uncleared the button both re-opens the panel and closes the modal.
         uploadButton.onclick = null;
         uploadButton.textContent = uploadButtonDefaultText;
         selectPhotosButton.textContent = selectPhotosDefaultText;
         processThumbnails();
         updateUploadUI();
-        // Everything above silently undoes the visible signs of a successful
-        // upload, so say what happened and what to do next.
+        // Everything above silently undoes the upload's visible signs.
         setPackStatus(true);
         console.log(
           "[photo-upload-core] resetUploader: pack added to cart, uploader ready for the next one",
         );
-        // cart-button-control listens for this to re-gate the cart buttons and
-        // strip the previous pack's line item properties.
+        // cart-button-control re-gates the buttons and strips the properties.
         document.dispatchEvent(
           new CustomEvent("photosReset", { detail: { productId } }),
         );

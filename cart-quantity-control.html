@@ -1,0 +1,151 @@
+<!--
+  Cart Quantity Control
+  Version: 2026-08-13.1
+  Cart page: replaces the quantity stepper with a static number on photo-upload
+  line items, so a pack cannot be multiplied into identical copies from the
+  cart. Other products keep their stepper.
+
+  Add to the cart template as a Custom Liquid section, ABOVE the cart items:
+  the style block below hides the steppers, and a browser can paint markup it
+  has already parsed before reaching a later <style>. Standalone - no dependency
+  on photo-upload-core or photo-upload-styles.
+
+  Gates on _photo_count > 1, written by cart-button-control.html. Bulk carries
+  1 and keeps its stepper, because there quantity means how many to make.
+
+  Cosmetic only: /cart/change.js can still set any quantity.
+-->
+<style>
+  /* Hidden from first paint, not after the fetch, so a stepper about to
+     disappear is never painted. visibility not display: the box survives, so
+     the row never reflows. :not(.no-js) leaves a JS-less visitor a usable
+     cart - Dawn swaps that class in the head. */
+  html:not(.no-js) cart-items quantity-input,
+  html:not(.no-js) .cart-items quantity-input,
+  html:not(.no-js) #main-cart-items quantity-input {
+    visibility: hidden;
+  }
+  /* Any verdict but "pack" reveals, including the give-up states - a failure
+     lands on the theme's own behaviour, not an uneditable cart. */
+  quantity-input[data-cart-qty-checked="open"],
+  quantity-input[data-cart-qty-checked="unknown"],
+  quantity-input[data-cart-qty-checked="mismatch"] {
+    visibility: visible;
+  }
+  /* Set by the script, so the number can be laid over the hidden stepper. */
+  .cart-qty-locked {
+    position: relative;
+  }
+  /* padding-left is the alignment tuning knob, in character widths. */
+  .cart-qty-fixed {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    padding-left: 4ch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+</style>
+<script>
+  (function () {
+    console.log("[cart-quantity-control] v2026-08-13.1");
+    // Written by cart-button-control.html. Keep the two in step.
+    const PHOTO_COUNT_PROPERTY = "_photo_count";
+    const DONE_ATTR = "data-cart-qty-checked";
+
+    // <cart-items> re-renders its innerHTML after a line changes, restoring
+    // every stepper - hence the observer rather than one pass on load.
+    function cartItemsRoot() {
+      return (
+        document.querySelector("cart-items") ||
+        document.querySelector(".cart-items") ||
+        document.getElementById("main-cart-items")
+      );
+    }
+
+    function steppers(root) {
+      return Array.from(root.querySelectorAll("quantity-input"));
+    }
+
+    function markAll(list, verdict) {
+      list.forEach((el) => el.setAttribute(DONE_ATTR, verdict));
+    }
+
+    async function apply() {
+      const root = cartItemsRoot();
+      if (!root) return;
+      const found = steppers(root);
+      if (!found.length || found.every((el) => el.hasAttribute(DONE_ATTR))) {
+        return;
+      }
+
+      let items = null;
+      try {
+        const cart = await fetch("/cart.js", {
+          headers: { Accept: "application/json" },
+        }).then((r) => r.json());
+        items = cart.items || [];
+      } catch (err) {
+        // Give up and reveal: back to pre-snippet behaviour, which costs
+        // nothing, rather than a cart nobody can edit.
+        console.warn(
+          "[cart-quantity-control] /cart.js failed, leaving steppers alone",
+          err,
+        );
+        markAll(found, "unknown");
+        return;
+      }
+
+      // /cart.js returns line items in render order, so position is the
+      // mapping. DOM ids would tie this to one theme's markup for no gain.
+      const current = steppers(root);
+      if (current.length !== items.length) {
+        console.warn(
+          `[cart-quantity-control] ${current.length} steppers vs ${items.length} line items - leaving them alone`,
+        );
+        markAll(current, "mismatch");
+        return;
+      }
+
+      current.forEach((stepper, i) => {
+        const props = items[i].properties || {};
+        // > 1, not merely present: bulk carries "1", a truthy string, so a
+        // presence check locks the stepper on the products that need it.
+        const isPack = Number(props[PHOTO_COUNT_PROPERTY]) > 1;
+        // The attribute is the whole mechanism - the stylesheet does the rest.
+        stepper.setAttribute(DONE_ATTR, isPack ? "pack" : "open");
+        if (!isPack) return;
+        // Stays in the DOM: removing it drops its updates[] field, and that
+        // array is positional - a gap shifts later lines onto wrong products.
+        const cell = stepper.parentNode;
+        cell.classList.add("cart-qty-locked");
+        if (cell.querySelector(".cart-qty-fixed")) return;
+        const fixed = document.createElement("span");
+        fixed.className = "cart-qty-fixed";
+        fixed.textContent = items[i].quantity;
+        cell.insertBefore(fixed, stepper);
+      });
+    }
+
+    function watch() {
+      const root = cartItemsRoot();
+      if (!root) return;
+      // Our own insertion re-triggers this, but apply() returns early once
+      // every stepper is marked, so it settles rather than looping.
+      const observer = new MutationObserver(() => apply());
+      observer.observe(root, { childList: true, subtree: true });
+    }
+
+    function start() {
+      apply();
+      watch();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", start);
+    } else {
+      start();
+    }
+  })();
+</script>

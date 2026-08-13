@@ -2185,6 +2185,11 @@
             hasOrientation,
             variant,
           } = config;
+          // Magnets printed per unit of line item quantity. Equal to maxFiles
+          // on packs - nine photos make nine magnets - but not on bulk, where
+          // one photo is printed on 45 or 30. Falls back to maxFiles so a
+          // partial that omits it still reports a sane number.
+          const magnetsPerUnit = Number(config.magnetsPerUnit) || maxFiles;
 
           // Keep enough pre-crop resolution so the worst-case crop still yields
           // OUTPUT_MIN_SHORT_SIDE on its short side.
@@ -2486,7 +2491,8 @@
                     sessionId,
                     productId,
                     variant,
-                    packSize: maxFiles,
+                    photoCount: maxFiles,
+                    magnetsPerUnit,
                     packNumber,
                   },
                 }),
@@ -3058,6 +3064,7 @@
         PhotoUploader.init({
           productId: "square-test",
           maxFiles: 9,
+          magnetsPerUnit: 9,
           aspectRatio: 1,
           hasOrientation: false,
           variant: "square",
@@ -3066,6 +3073,7 @@
         PhotoUploader.init({
           productId: "rect-test",
           maxFiles: 6,
+          magnetsPerUnit: 6,
           landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
           portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
           hasOrientation: true,
@@ -3075,6 +3083,7 @@
         PhotoUploader.init({
           productId: "bulk-sq-test",
           maxFiles: 1,
+          magnetsPerUnit: 45,
           aspectRatio: 1,
           hasOrientation: false,
           variant: "bulk-square",
@@ -3083,6 +3092,7 @@
         PhotoUploader.init({
           productId: "bulk-rect-test",
           maxFiles: 1,
+          magnetsPerUnit: 30,
           landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
           portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
           hasOrientation: true,

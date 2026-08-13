@@ -16,13 +16,14 @@ section is up to date.
 
 | File | Current version |
 | --- | --- |
-| [cart-button-control.html](cart-button-control.html) | 2026-08-12.1 |
+| [cart-button-control.html](cart-button-control.html) | 2026-08-13.1 |
+| [cart-quantity-control.html](cart-quantity-control.html) | 2026-08-13.1 |
 | [photo-upload-styles.html](photo-upload-styles.html) | 2026-08-12.1 |
-| [photo-upload-core.html](photo-upload-core.html) | 2026-08-12.1 |
-| [photo-upload-square.html](photo-upload-square.html) | 2026-08-12.1 |
-| [photo-upload-rectangle.html](photo-upload-rectangle.html) | 2026-08-12.1 |
-| [photo-upload-bulk-square.html](photo-upload-bulk-square.html) | 2026-08-12.1 |
-| [photo-upload-bulk-rectangle.html](photo-upload-bulk-rectangle.html) | 2026-08-12.1 |
+| [photo-upload-core.html](photo-upload-core.html) | 2026-08-13.1 |
+| [photo-upload-square.html](photo-upload-square.html) | 2026-08-13.1 |
+| [photo-upload-rectangle.html](photo-upload-rectangle.html) | 2026-08-13.1 |
+| [photo-upload-bulk-square.html](photo-upload-bulk-square.html) | 2026-08-13.1 |
+| [photo-upload-bulk-rectangle.html](photo-upload-bulk-rectangle.html) | 2026-08-13.1 |
 | [photo-upload-replacement.html](photo-upload-replacement.html) | 2026-07-31.1 |
 
 To see what changed between versions, use `git log <file>` on any individual

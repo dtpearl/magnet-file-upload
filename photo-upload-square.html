@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'square' %}
 <!--
   Photo Upload - Square Variant
-  Version: 2026-08-12.1
+  Version: 2026-08-13.1
   9 photos, 1:1 aspect ratio
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -27,12 +27,7 @@
       />
     </svg>
   </button>
-  <!--
-    Two states, toggled by photo-upload-core. The standing note replaces the
-    quantity selector, which is removed from this product template; the
-    confirmation makes the otherwise-silent post-add reset legible. Sits below
-    the button so both states occupy the same place on the page.
-  -->
+  <!-- Two states, toggled by photo-upload-core. -->
   <div id="pack-status-{{ product.id }}" class="pack-status">
     <p class="pack-status-note">
       One photo set per upload. Want more than one set? Just add them to your
@@ -255,10 +250,11 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    console.log("[photo-upload-square] v2026-08-12.1");
+    console.log("[photo-upload-square] v2026-08-13.1");
     PhotoUploader.init({
       productId: "{{ product.id }}",
       maxFiles: 9,
+      magnetsPerUnit: 9,
       aspectRatio: 1,
       hasOrientation: false,
       variant: "square",

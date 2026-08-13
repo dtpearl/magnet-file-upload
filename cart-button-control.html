@@ -1,6 +1,6 @@
 <!--
   Cart Button Control
-  Version: 2026-08-12.1
+  Version: 2026-08-13.1
   Disables Add to Cart and Buy it Now buttons until photos are uploaded.
   Works with all photo-upload variants (square, rectangle, bulk) via custom events.
 
@@ -14,10 +14,9 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-08-12.1");
+    console.log("[cart-button-control] v2026-08-13.1");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
-    // Once a pack is in the cart the buttons re-gate immediately, and the
-    // message above reads as an error on the back of a success.
+    // The message above reads as an error on the back of a success.
     const NEXT_PACK_TOOLTIP = "Choose photos for your next pack";
     let packInCart = false;
 
@@ -74,7 +73,8 @@
         const sessionId = e.detail?.sessionId;
         const productId = e.detail?.productId;
         const variant = e.detail?.variant;
-        const packSize = e.detail?.packSize;
+        const photoCount = e.detail?.photoCount;
+        const magnetsPerUnit = e.detail?.magnetsPerUnit;
         const packNumber = e.detail?.packNumber;
         const replacementUrl = buildReplacementUrl(sessionId, productId, variant);
         console.log("[cart-button-control] _product_id:", productId);
@@ -84,29 +84,32 @@
         if (productForm) {
           setHiddenProperty(productForm, "_session_id", sessionId);
           setHiddenProperty(productForm, "_replacement_url", replacementUrl);
-          setHiddenProperty(productForm, "_pack_size", packSize);
-          // Maps this line item to its shopify_uploads/{session}/pack-NN/
-          // subfolder, and lets the next upload in this cart pick max+1.
+          // Images in this line item's pack-NN/ folder, NOT a magnet count.
+          // cart-quantity-control.html gates on it - renaming breaks that.
+          setHiddenProperty(productForm, "_photo_count", photoCount);
+          // What gets printed. On bulk one photo becomes 45 or 30 magnets,
+          // so fulfilment multiplies THIS by quantity, never _photo_count.
+          setHiddenProperty(productForm, "_magnets_per_unit", magnetsPerUnit);
+          // Maps the line item to its pack-NN/ folder; next upload takes max+1.
           setHiddenProperty(productForm, "_pack_number", packNumber);
-          // Customer-visible (no leading underscore) so a shopper can catch a
-          // misunderstanding in the cart, while it still costs nothing. Only
-          // meaningful for packs - a single-magnet product has no pack for the
-          // photo to be repeated across.
+          // Customer-visible (no underscore). Bulk states what the one photo
+          // turns into, which is the surprising number on those products.
           setHiddenProperty(
             productForm,
             "Photos",
-            packSize > 1 ? `${packSize} photos, one set per pack` : null,
+            photoCount > 1
+              ? `${photoCount} photos, one set per pack`
+              : magnetsPerUnit > 1
+                ? `1 photo, printed on ${magnetsPerUnit} magnets`
+                : null,
           );
         }
       });
 
-      // Fired after a successful add to cart, once the uploader has reset for
-      // the next pack. Without stripping the properties here, the next add to
-      // cart would silently carry the PREVIOUS pack's session - shipping the
-      // wrong photos on an order that looks entirely valid.
+      // Without stripping these, the next add to cart carries the PREVIOUS
+      // pack's session - wrong photos on an order that looks entirely valid.
       document.addEventListener("photosReset", function () {
-        // Only fires after a successful add to cart, so by here there is at
-        // least one pack in the cart and the tooltip should say so.
+        // Only fires after a successful add, so a pack is now in the cart.
         packInCart = true;
         gateButtons(true);
         const productForm =
@@ -115,7 +118,8 @@
         [
           "_session_id",
           "_replacement_url",
-          "_pack_size",
+          "_photo_count",
+          "_magnets_per_unit",
           "_pack_number",
           "Photos",
         ].forEach((name) => removeHiddenProperty(productForm, name));
@@ -146,8 +150,7 @@
       input.value = value;
     };
 
-    // Removes the input outright rather than blanking it - an empty
-    // properties[...] field still reaches the order as an empty property.
+    // Removed, not blanked - an empty properties[...] still reaches the order.
     function removeHiddenProperty(form, name) {
       form.querySelector(`input[name="properties[${name}]"]`)?.remove();
     }

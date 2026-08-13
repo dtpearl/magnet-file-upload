@@ -1,7 +1,7 @@
 {% if product.metafields.custom.image_uploader_shape == 'bulk_square' %}
 <!--
   Photo Upload - Bulk Square Variant
-  Version: 2026-08-12.1
+  Version: 2026-08-13.1
   1 photo, 1:1 aspect ratio
   Requires: photo-upload-styles.html, photo-upload-core.html
 -->
@@ -16,11 +16,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5" />
     </svg>
   </button>
-  <!--
-    Confirmation only - no standing note, because this template keeps its
-    quantity selector and "one at a time" would be wrong here. The empty
-    container collapses to zero height until photo-upload-core adds .added.
-  -->
+  <!-- Confirmation only: this template keeps its quantity selector. -->
   <div id="pack-status-{{ product.id }}" class="pack-status">
     <p class="pack-status-added">
       <span class="pack-status-check" aria-hidden="true">✓</span>
@@ -146,10 +142,11 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("[photo-upload-bulk-square] v2026-08-12.1");
+    console.log("[photo-upload-bulk-square] v2026-08-13.1");
     PhotoUploader.init({
       productId: '{{ product.id }}',
       maxFiles: 1,
+      magnetsPerUnit: 45,
       aspectRatio: 1,
       hasOrientation: false,
       variant: 'bulk-square'
