@@ -1537,14 +1537,18 @@
       .upload-btn:hover {
         background-color: #7d7268;
       }
+      /* Column count is derived, not declared: fit as many tracks as will
+         hold the minimum and let the rest follow from the width available.
+         That covers every width and both orientations without a ladder of
+         breakpoints to keep in step. min(100%, ...) is what stops a track
+         exceeding its container on a phone narrower than the minimum. */
       .main-thumbnail-container {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
         justify-content: center;
         gap: 12px;
         margin: 24px auto 0;
         width: 100%;
-        max-width: 560px;
       }
       .main-thumbnail-container:empty {
         margin: 0;
@@ -1901,14 +1905,6 @@
           width: 22px;
           height: 22px;
         }
-        /* Two columns, not three. The 44px action pills are a fixed 96px wide,
-           so a tile under ~240px is mostly buttons; three columns only clears
-           that above 768px. */
-        .main-thumbnail-container {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px;
-          max-width: 100%;
-        }
         .upload-text h3 {
           font-size: 28px;
         }
@@ -1931,13 +1927,6 @@
         }
       }
       @media (max-width: 480px) {
-        /* One column. At two columns a 320px phone gave 141px tiles, and the
-           44px edit/delete pills then covered 68% of the tile width - too
-           small to check a crop on, which is what this grid is for. */
-        .main-thumbnail-container {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 12px;
-        }
         .crop-container {
           height: 280px;
         }
@@ -2018,13 +2007,11 @@
         .confirm-upload-btn {
           padding: 12px 24px;
         }
-        /* Tablets. The grid is capped at 560px, so three columns means 179px
-           tiles - and on touch the pills are always-on 44px, covering half of
-           one. Two columns keeps a tile worth reviewing a crop in. */
-        @media (min-width: 769px) {
-          .main-thumbnail-container {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
+        /* A touch tile has to carry the always-on 96px of pills, where a mouse
+           tile carries 72px that stay hidden until hover - so it needs the
+           larger minimum. Same rule, different floor. */
+        .main-thumbnail-container {
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
         }
       }
       /* Short viewports (phones in landscape). */
