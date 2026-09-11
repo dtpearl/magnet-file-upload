@@ -1,6 +1,6 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-09-11.1
+  Version: 2026-09-11.2
   Self-service page for replacing photos on an existing order.
   Requires: photo-upload-styles.html, photo-upload-core.html
 
@@ -56,9 +56,26 @@
     gap: 16px;
     margin-bottom: 24px;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     .replacement-grid {
       grid-template-columns: repeat(2, 1fr);
+    }
+    /* 48px/32px of padding left ~160px of text column on a 320px phone. */
+    .replacement-container {
+      padding: 32px 16px;
+    }
+    .replacement-complete {
+      padding: 40px 20px;
+    }
+    .replacement-slot-undo {
+      min-height: 36px;
+      padding: 8px 12px;
+    }
+    .replacement-slot-cta {
+      font-size: 14px;
+    }
+    #replacement-upload-btn {
+      min-height: 44px;
     }
   }
   /* With more than one pack the outer container holds sections, not slots, so

@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-09-11.1
+  Version: 2026-09-11.3
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -33,16 +33,32 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
+    /* dvh tracks the phone's collapsing browser toolbar; 100vh above is the
+       fallback for browsers without it. */
+    height: 100dvh;
     background-color: #f0e5d9;
     z-index: 1000;
+    /* Scrolling past the end of this must not carry on into the page behind. */
+    overscroll-behavior: contain;
   }
   .select-photos-modal.active, .edit-photos-modal.active {
     display: flex;
   }
+  /* Set by photo-upload-core while a modal is open. position:fixed rather than
+     overflow:hidden because iOS Safari ignores the latter on body. */
+  body[data-photo-upload-locked] {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+  }
   .crop-container {
     height: 500px;
+    /* As a flex item this shrinks, and in a short viewport (a phone held
+       sideways) it collapsed to ~13px - the photo vanished entirely. Hold a
+       floor you can actually crop in and let the modal scroll instead. */
+    min-height: 240px;
     background-color: #f0f0f0;
     overflow: hidden;
   }
@@ -166,6 +182,7 @@
   }
   .modal-content {
     box-sizing: border-box;
+    overscroll-behavior: contain;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -570,32 +587,18 @@
       padding: 16px;
     }
     .close-btn {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       top: 16px;
       right: 16px;
     }
     .close-btn svg {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
     }
     .main-thumbnail-container {
       gap: 8px;
       max-width: 100%;
-    }
-    .thumbnail-action-buttons {
-      opacity: 1;
-      gap: 8px;
-    }
-    .thumbnail-action-btn {
-      width: 36px;
-      height: 36px;
-      min-width: 36px;
-      min-height: 36px;
-    }
-    .thumbnail-action-btn svg {
-      width: 18px;
-      height: 18px;
     }
     .upload-text h3 {
       font-size: 28px;
@@ -664,18 +667,22 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
     }
-    .thumbnail-action-btn {
-      width: 32px;
-      height: 32px;
-      min-width: 32px;
-      min-height: 32px;
-    }
-    .thumbnail-action-btn svg {
-      width: 16px;
-      height: 16px;
-    }
+    /* Touch targets deliberately not reduced here - they inherit the 44px
+       from the 768px block. Fingers do not get smaller with the screen. */
     .crop-container {
       height: 280px;
+    }
+    /* Side by side, "Remove all files" wrapped onto three lines next to a
+       one-line "Upload". Stack them full width instead. */
+    .modal-footer-actions,
+    .upload-confirm-actions {
+      flex-direction: column;
+      width: 100%;
+      align-items: stretch;
+    }
+    .modal-footer-actions > *,
+    .upload-confirm-actions > * {
+      width: 100%;
     }
     .orientation-toggle-btn {
       padding: 6px 10px;
@@ -711,6 +718,75 @@
     .add-to-cart-btn,
     .confirm-upload-btn {
       font-size: 16px;
+    }
+  }
+
+  /* === Touch devices ===
+     Keyed to pointer type, not width: a phone held sideways is 844px wide and
+     was being served the mouse treatment - the per-photo edit/delete buttons
+     sat at opacity:0 waiting for a hover that can never happen, so the photo
+     controls were unreachable in landscape. */
+  @media (hover: none) {
+    .thumbnail-action-buttons {
+      opacity: 1;
+      gap: 8px;
+    }
+    .thumbnail-action-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .thumbnail-action-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .close-btn {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .crop-button,
+    .upload-btn,
+    .remove-all-files-btn,
+    .confirm-cancel-btn,
+    .add-to-cart-btn,
+    .confirm-upload-btn {
+      min-height: 44px;
+    }
+    .remove-all-files-btn,
+    .confirm-cancel-btn,
+    .add-to-cart-btn,
+    .confirm-upload-btn {
+      padding: 12px 24px;
+    }
+  }
+
+  /* === Short viewports (phones in landscape) ===
+     Trim the chrome around the cropper and keep Apply Crop pinned in view, so
+     the action isn't stranded below a scroll the customer may not notice. */
+  @media (max-height: 600px) {
+    .modal-header {
+      padding: 12px 24px;
+    }
+    .content-subtitle {
+      margin-bottom: 12px;
+    }
+    .crop-info {
+      margin-top: 8px;
+    }
+    .crop-controls {
+      position: sticky;
+      bottom: 0;
+      /* modal-content centres its children, which would leave this
+         floating as a content-width pill rather than a toolbar. */
+      align-self: stretch;
+      background-color: #f0e5d9;
+      padding: 12px 20px;
+      /* Above .safe-print-area's z-index:2000, whose full-bleed
+         box-shadow otherwise dims the bar into looking broken. */
+      z-index: 2001;
+      border-top: 1px solid #d6cec6;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
     }
   }
 </style>

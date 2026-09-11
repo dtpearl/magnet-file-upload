@@ -1316,8 +1316,10 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 100vw;
+        width: 100%;
         height: 100vh;
+        height: 100dvh;
+        overscroll-behavior: contain;
         background-color: #f0e5d9;
         z-index: 1000;
       }
@@ -1325,8 +1327,14 @@
       .edit-photos-modal.active {
         display: flex;
       }
+      body[data-photo-upload-locked] {
+        position: fixed;
+        width: 100%;
+        overflow: hidden;
+      }
       .crop-container {
         height: 500px;
+        min-height: 240px;
         background-color: #f0f0f0;
         overflow: hidden;
       }
@@ -1452,6 +1460,7 @@
       }
       .modal-content {
         box-sizing: border-box;
+        overscroll-behavior: contain;
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -1883,32 +1892,18 @@
           padding: 16px;
         }
         .close-btn {
-          width: 40px;
-          height: 40px;
+          width: 44px;
+          height: 44px;
           top: 16px;
           right: 16px;
         }
         .close-btn svg {
-          width: 20px;
-          height: 20px;
+          width: 22px;
+          height: 22px;
         }
         .main-thumbnail-container {
           gap: 8px;
           max-width: 100%;
-        }
-        .thumbnail-action-buttons {
-          opacity: 1;
-          gap: 8px;
-        }
-        .thumbnail-action-btn {
-          width: 36px;
-          height: 36px;
-          min-width: 36px;
-          min-height: 36px;
-        }
-        .thumbnail-action-btn svg {
-          width: 18px;
-          height: 18px;
         }
         .upload-text h3 {
           font-size: 28px;
@@ -1936,18 +1931,18 @@
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 6px;
         }
-        .thumbnail-action-btn {
-          width: 32px;
-          height: 32px;
-          min-width: 32px;
-          min-height: 32px;
-        }
-        .thumbnail-action-btn svg {
-          width: 16px;
-          height: 16px;
-        }
         .crop-container {
           height: 280px;
+        }
+        .modal-footer-actions,
+        .upload-confirm-actions {
+          flex-direction: column;
+          width: 100%;
+          align-items: stretch;
+        }
+        .modal-footer-actions > *,
+        .upload-confirm-actions > * {
+          width: 100%;
         }
         .orientation-toggle-btn {
           padding: 6px 10px;
@@ -1980,6 +1975,67 @@
         .add-to-cart-btn,
         .confirm-upload-btn {
           font-size: 16px;
+        }
+      }
+      /* Touch devices - keyed to pointer type, not width. */
+      @media (hover: none) {
+        .thumbnail-action-buttons {
+          opacity: 1;
+          gap: 8px;
+        }
+        .thumbnail-action-btn {
+          width: 44px;
+          height: 44px;
+          min-width: 44px;
+          min-height: 44px;
+        }
+        .thumbnail-action-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+        .close-btn {
+          min-width: 44px;
+          min-height: 44px;
+        }
+        .crop-button,
+        .upload-btn,
+        .remove-all-files-btn,
+        .confirm-cancel-btn,
+        .add-to-cart-btn,
+        .confirm-upload-btn {
+          min-height: 44px;
+        }
+        .remove-all-files-btn,
+        .confirm-cancel-btn,
+        .add-to-cart-btn,
+        .confirm-upload-btn {
+          padding: 12px 24px;
+        }
+      }
+      /* Short viewports (phones in landscape). */
+      @media (max-height: 600px) {
+        .modal-header {
+          padding: 12px 24px;
+        }
+        .content-subtitle {
+          margin-bottom: 12px;
+        }
+        .crop-info {
+          margin-top: 8px;
+        }
+        .crop-controls {
+          position: sticky;
+          bottom: 0;
+          /* modal-content centres its children, which would leave this
+             floating as a content-width pill rather than a toolbar. */
+          align-self: stretch;
+          background-color: #f0e5d9;
+          padding: 12px 20px;
+          /* Above .safe-print-area's z-index:2000, whose full-bleed
+             box-shadow otherwise dims the bar into looking broken. */
+          z-index: 2001;
+          border-top: 1px solid #d6cec6;
+          box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
         }
       }
     </style>
@@ -2081,17 +2137,41 @@
           container.appendChild(border);
         }
 
+        let lockedScrollY = 0;
+
+        function lockBackgroundScroll() {
+          if (document.body.hasAttribute("data-photo-upload-locked")) return;
+          lockedScrollY = window.scrollY || window.pageYOffset || 0;
+          document.body.style.top = `-${lockedScrollY}px`;
+          document.body.setAttribute("data-photo-upload-locked", "");
+        }
+
+        function unlockBackgroundScroll() {
+          if (!document.body.hasAttribute("data-photo-upload-locked")) return;
+          document.body.removeAttribute("data-photo-upload-locked");
+          document.body.style.top = "";
+          window.scrollTo(0, lockedScrollY);
+        }
+
+        function anyModalOpen() {
+          return !!document.querySelector(
+            ".select-photos-modal.active, .edit-photos-modal.active",
+          );
+        }
+
         function openModal(modalId) {
           const modal = document.getElementById(modalId);
           if (modal && modal.parentNode !== document.body) {
             document.body.appendChild(modal);
           }
           modal.classList.add("active");
+          lockBackgroundScroll();
         }
 
         function closeModal(modalId) {
           const modal = document.getElementById(modalId);
           modal.classList.remove("active");
+          if (!anyModalOpen()) unlockBackgroundScroll();
         }
 
         function generateSessionId() {
