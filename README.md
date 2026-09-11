@@ -18,7 +18,7 @@ section is up to date.
 | --- | --- |
 | [cart-button-control.html](cart-button-control.html) | 2026-08-13.1 |
 | [cart-quantity-control.html](cart-quantity-control.html) | 2026-08-13.1 |
-| [photo-upload-styles.html](photo-upload-styles.html) | 2026-09-11.3 |
+| [photo-upload-styles.html](photo-upload-styles.html) | 2026-09-11.4 |
 | [photo-upload-core.html](photo-upload-core.html) | 2026-09-11.1 |
 | [photo-upload-square.html](photo-upload-square.html) | 2026-08-13.1 |
 | [photo-upload-rectangle.html](photo-upload-rectangle.html) | 2026-08-13.1 |
