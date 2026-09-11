@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-08-12.1
+  Version: 2026-09-11.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -680,6 +680,37 @@
     .orientation-toggle-btn {
       padding: 6px 10px;
       font-size: 12px;
+    }
+  }
+
+  /* Desktop type scale. The base sizes above are tuned for phones; from 769px
+     up (the complement of the 768px mobile breakpoint) informational copy goes
+     to 18px, with headings and buttons lifted to keep the hierarchy apart.
+     Mobile is deliberately left on the base sizes. */
+  @media (min-width: 769px) {
+    .crop-info,
+    .content-subtitle,
+    .pack-status-note,
+    .pack-status-added,
+    .post-selection-info,
+    .progress-text,
+    .upload-complete p,
+    .upload-confirm-text,
+    .processing-text {
+      font-size: 18px;
+    }
+    .modal-title {
+      font-size: 26px;
+    }
+    .upload-text .or-text {
+      font-size: 28px;
+    }
+    .upload-btn,
+    .remove-all-files-btn,
+    .confirm-cancel-btn,
+    .add-to-cart-btn,
+    .confirm-upload-btn {
+      font-size: 16px;
     }
   }
 </style>

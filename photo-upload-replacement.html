@@ -1,6 +1,6 @@
 <!--
   Photo Upload - Replacement
-  Version: 2026-07-31.1
+  Version: 2026-09-11.1
   Self-service page for replacing photos on an existing order.
   Requires: photo-upload-styles.html, photo-upload-core.html
 
@@ -187,6 +187,18 @@
   #replacement-upload-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* Desktop type scale — matches the 769px breakpoint in photo-upload-styles so
+     the replacement page and the upload modals share one body size. */
+  @media (min-width: 769px) {
+    .replacement-slot-loading,
+    .replacement-slot-missing {
+      font-size: 18px;
+    }
+    .replacement-pack-title {
+      font-size: 20px;
+    }
   }
 </style>
 
