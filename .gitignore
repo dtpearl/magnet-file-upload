@@ -7,3 +7,6 @@ magnet-file-upload.code-workspace
 # Useful while a piece of work is in flight, but not part of the deployed
 # snippets and not worth carrying in history once the work has landed.
 notes/
+# Local Liquid harness
+tools/node_modules/
+dist/

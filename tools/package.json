@@ -1,0 +1,18 @@
+{
+  "name": "magnet-file-upload-tools",
+  "private": true,
+  "type": "module",
+  "description": "Local Liquid rendering and layout checks for theme/snippets - no Shopify store required.",
+  "scripts": {
+    "dev": "node serve.mjs",
+    "verify": "node verify-parity.mjs",
+    "build": "node render.mjs --all --out ../dist",
+    "check": "node check-layout.mjs"
+  },
+  "dependencies": {
+    "liquidjs": "^10.21.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

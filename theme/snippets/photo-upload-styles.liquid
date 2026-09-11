@@ -1,0 +1,794 @@
+<!--
+  Photo Upload Styles
+  Version: 2026-09-11.5
+  Shared CSS for photo upload components (all variants including bulk).
+  Include this section before photo-upload-core and variant sections.
+-->
+<style>
+  .button {
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  .select-photos-button {
+    font-family: Cardo, serif;
+    text-transform: uppercase;
+    letter-spacing: 0.225em;
+    background-color: #95887a;
+    opacity: 0.8;
+    width: 100%;
+    max-width: 440px;
+  }
+  .select-photos-button:hover {
+    background-color: #95887a !important;
+  }
+  .upload-icon {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    margin-left: 1em;
+  }
+  .select-photos-modal, .edit-photos-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    /* dvh tracks the phone's collapsing browser toolbar; 100vh above is the
+       fallback for browsers without it. */
+    height: 100dvh;
+    background-color: #f0e5d9;
+    z-index: 1000;
+    /* Scrolling past the end of this must not carry on into the page behind. */
+    overscroll-behavior: contain;
+  }
+  .select-photos-modal.active, .edit-photos-modal.active {
+    display: flex;
+  }
+  /* Set by photo-upload-core while a modal is open. position:fixed rather than
+     overflow:hidden because iOS Safari ignores the latter on body. */
+  body[data-photo-upload-locked] {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+  }
+  .crop-container {
+    height: 500px;
+    /* As a flex item this shrinks, and in a short viewport (a phone held
+       sideways) it collapsed to ~13px - the photo vanished entirely. Hold a
+       floor you can actually crop in and let the modal scroll instead. */
+    min-height: 240px;
+    background-color: #f0f0f0;
+    overflow: hidden;
+  }
+  #image-to-crop {
+    display: block;
+    max-width: 100%;
+  }
+  .crop-info {
+    color: #6b7280;
+    font-size: 14px;
+    text-align: center;
+    margin: 16px 0 0;
+  }
+  .crop-controls {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px 20px;
+    gap: 10px;
+    border-top: 1px solid #eee;
+  }
+  .crop-button {
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    border: none;
+  }
+  .crop-button.cancel {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+  .crop-button.apply {
+    background-color: #374151;
+    color: white;
+  }
+  .crop-button.reset {
+    background-color: #d6cec6;
+    color: #4b5563;
+  }
+  .crop-button:hover {
+    opacity: 0.9;
+  }
+  .orientation-toggle {
+    display: flex;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #d6cec6;
+    padding: 3px;
+    margin-right: auto;
+    gap: 2px;
+  }
+  .orientation-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 16px;
+    background-color: transparent;
+    color: #7d7268;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .orientation-toggle-btn:hover {
+    color: #4b5563;
+  }
+  .orientation-toggle-btn.active {
+    background-color: #95887a;
+    color: white;
+  }
+  .orientation-toggle-btn.active:hover {
+    background-color: #7d7268;
+  }
+  .orientation-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  .modal-header {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    width: 100%;
+  }
+  .modal-title-container {
+    display: flex;
+    width: 100%;
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #374151;
+  }
+  .close-btn {
+    width: 48px;
+    height: 48px;
+    background-color: #6b7280;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    position: absolute;
+    top: 24px;
+    right: 48px;
+  }
+  .close-btn:hover {
+    background-color: #4b5563;
+  }
+  .close-btn svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+  }
+  .modal-content {
+    box-sizing: border-box;
+    overscroll-behavior: contain;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px;
+    overflow: auto;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .content-subtitle {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .hidden-file-input {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+  }
+  .upload-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 448px;
+    width: 100%;
+  }
+  .upload-area:hover {
+    cursor: grab;
+  }
+  .upload-area.dragover {
+    background-color: #e5e7eb;
+  }
+  .upload-text {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .upload-text h3 {
+    font-size: 36px;
+    font-weight: 300;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+  .upload-text .or-text {
+    color: #9ca3af;
+    font-size: 24px;
+    margin-top: 24px;
+  }
+  .upload-status {
+    color: #a33;
+    padding: 14px 16px;
+    margin: 20px 0;
+    line-height: 1.5;
+    max-width: 480px;
+    text-align: center;
+  }
+  .upload-status:empty {
+    padding: 0;
+    margin: 0;
+  }
+  .upload-btn {
+    background-color: #95887a;
+    color: white;
+    padding: 16px 32px;
+    border: none;
+    border-radius: 9999px;
+    font-family: Cardo, serif;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .upload-btn:hover {
+    background-color: #7d7268;
+  }
+  /* Column count is derived, not declared: fit as many tracks as will
+     hold the minimum and let the rest follow from the width available.
+     That covers every width and both orientations without a ladder of
+     breakpoints to keep in step. min(100%, ...) is what stops a track
+     exceeding its container on a phone narrower than the minimum. */
+  .main-thumbnail-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    justify-content: center;
+    gap: 12px;
+    margin: 24px auto 0;
+    width: 100%;
+  }
+  .main-thumbnail-container:empty {
+    margin: 0;
+  }
+  .main-thumbnail-container.single-image {
+    grid-template-columns: minmax(0, 320px);
+  }
+  .main-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .main-thumbnail-img-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #e3d9cf;
+    border-radius: 8px;
+    transition: box-shadow 0.2s;
+    width: 100%;
+  }
+  /* Thumbnail containers are square so portrait and landscape magnets occupy
+     the same footprint. Square magnets fill the container; rectangle magnets
+     are inscribed in the square at their physical aspect ratio (letterboxed). */
+  .main-thumbnail-img-container {
+    aspect-ratio: 1 / 1;
+  }
+  .variant-rectangle .main-thumbnail,
+  .variant-bulk-rectangle .main-thumbnail {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 83 / 59;
+  }
+  .variant-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail,
+  .variant-bulk-rectangle .main-thumbnail-img-container[data-orientation="portrait"] .main-thumbnail {
+    width: auto;
+    height: 100%;
+    aspect-ratio: 59 / 83;
+  }
+  @media (hover: hover) {
+    .main-thumbnail-img-container:hover {
+      box-shadow: 0 0 0 2px rgba(149, 136, 122, 0.6), 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+    .main-thumbnail-img-container:hover .main-thumbnail {
+      transform: scale(1.03);
+    }
+  }
+  /* The photo awaiting a remove confirmation. Declared after :hover so it wins
+     at equal specificity and the marker survives the pointer moving away.
+     Greyscale rather than dimming alone, so the marker reads the same whatever
+     the photo happens to look like. */
+  .main-thumbnail-img-container.pending-remove {
+    box-shadow: 0 0 0 3px #a33, 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  .main-thumbnail-img-container.pending-remove .main-thumbnail {
+    filter: grayscale(1);
+    opacity: 0.5;
+    transform: none;
+  }
+  /* Product-page message below the Select photos button. Two states: a
+     standing note about one photo set per upload, and a confirmation shown
+     after a set reaches the cart. Deliberately unstyled itself so it collapses
+     to nothing on the bulk variants, which carry only the confirmation. */
+  .pack-status {
+    width: 100%;
+    max-width: 440px;
+  }
+  .pack-status-note,
+  .pack-status-added {
+    box-sizing: border-box;
+    margin: 12px 0 0;
+    padding: 12px 16px;
+    border: 1px solid #c9bdb0;
+    border-radius: 8px;
+    background-color: #e9ded2;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .pack-status-added {
+    display: none;
+  }
+  .pack-status.added .pack-status-note {
+    display: none;
+  }
+  .pack-status.added .pack-status-added {
+    display: block;
+  }
+  .pack-status-check {
+    color: #95887a;
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .post-selection-info {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    color: #6b7280;
+    font-size: 14px;
+    margin-top: 16px;
+    gap: 4px;
+  }
+  .modal-footer {
+    box-sizing: border-box;
+    padding: 24px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 96px;
+  }
+  .modal-footer-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: center;
+    width: 100%;
+  }
+  .remove-all-files-btn, .confirm-cancel-btn {
+    background-color: transparent;
+    color: #6b7280;
+    padding: 8px 24px;
+    border: 1px solid #9ca3af;
+    border-radius: 8px;
+    font-family: Cardo, serif;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .remove-all-files-btn { display: none; }
+  .remove-all-files-btn:hover, .confirm-cancel-btn:hover {
+    background-color: #6b7280;
+    color: white;
+    border-color: #6b7280;
+  }
+  .add-to-cart-btn, .confirm-upload-btn {
+    background-color: #374151;
+    color: white;
+    padding: 8px 24px;
+    border: none;
+    border-radius: 8px;
+    font-family: Cardo, serif;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .add-to-cart-btn:hover, .confirm-upload-btn:hover {
+    background-color: #1f2937;
+  }
+  .add-to-cart-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
+  .upload-progress {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .upload-progress.active {
+    display: flex;
+  }
+  .progress-bar-track {
+    width: 100%;
+    height: 6px;
+    background-color: #c9bdb0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background-color: #95887a;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-size: 14px;
+    color: #6b7280;
+  }
+  .upload-complete {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+  }
+  .upload-complete.active {
+    display: flex;
+  }
+  .upload-complete svg {
+    width: 40px;
+    height: 40px;
+    color: #95887a;
+  }
+  .upload-complete p {
+    font-size: 14px;
+    margin: 0;
+  }
+  .upload-confirm {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .upload-confirm.active {
+    display: flex;
+  }
+  .upload-confirm-text {
+    font-size: 14px;
+    color: #374151;
+    text-align: center;
+  }
+  .upload-confirm-actions {
+    display: flex;
+    gap: 16px;
+  }
+  .thumbnail-action-buttons {
+    position: absolute;
+    bottom: 5%;
+    right: 5%;
+    display: flex;
+    gap: 0.5em;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+  }
+  .main-thumbnail-img-container:hover .thumbnail-action-buttons,
+  .main-thumbnail-img-container:focus-within .thumbnail-action-buttons {
+    opacity: 1;
+  }
+  .thumbnail-action-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .thumbnail-action-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  /* Keyboard focus rings: white on the dark thumbnail pills, ink elsewhere. */
+  .thumbnail-action-btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  .remove-all-files-btn:focus-visible,
+  .confirm-cancel-btn:focus-visible,
+  .add-to-cart-btn:focus-visible,
+  .confirm-upload-btn:focus-visible,
+  .upload-btn:focus-visible {
+    outline: 2px solid #374151;
+    outline-offset: 2px;
+  }
+  .processing-indicator {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 0;
+  }
+  .processing-indicator.active {
+    display: flex;
+  }
+  .processing-spinner {
+    width: 32px;
+    height: 32px;
+  }
+  .processing-text {
+    font-size: 14px;
+    color: #6b7280;
+  }
+  .bulk-click-instruction {
+    display: none;
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) {
+    .select-photos-modal {
+      flex-direction: column;
+      align-items: stretch;
+      overflow: auto;
+    }
+    .modal-content {
+      overflow: unset;
+      padding: 16px;
+    }
+    .modal-header {
+      padding: 16px;
+    }
+    .close-btn {
+      width: 44px;
+      height: 44px;
+      top: 16px;
+      right: 16px;
+    }
+    .close-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+    .upload-text h3 {
+      font-size: 28px;
+    }
+    .upload-text .or-text {
+      font-size: 18px;
+    }
+    .modal-footer {
+      padding: 16px;
+      margin-bottom: 48px;
+    }
+    .crop-container {
+      height: 350px;
+    }
+    .orientation-toggle {
+      margin-bottom: 10px;
+    }
+    .crop-controls {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+
+  /* === Safe-area overlays (added dynamically by photo-upload-core) ===
+     Only positioning (top/left/width/height) is set inline by JS. */
+  .safe-area-overlay {
+    display: block;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .safe-area-overlay.safe-area-border {
+    background: transparent;
+    border: 2px dashed rgba(0, 120, 255, 0.8);
+    box-sizing: border-box;
+  }
+  .safe-print-container {
+    display: block;
+    position: absolute;
+    pointer-events: none;
+  }
+  .safe-print-label {
+    display: block;
+    position: absolute;
+    top: -8px;
+    left: 4px;
+    background: rgba(0, 120, 255, 0.8);
+    color: white;
+    padding: 2px 6px;
+    font-size: 12px;
+    border-radius: 3px;
+  }
+  .safe-print-area {
+    display: block;
+    position: absolute;
+    border: 2px dashed rgba(0, 120, 255, 0.8);
+    background: transparent;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 2000;
+  }
+
+  @media (max-width: 480px) {
+    /* Touch targets deliberately not reduced here - they inherit the 44px
+       from the 768px block. Fingers do not get smaller with the screen. */
+    .crop-container {
+      height: 280px;
+    }
+    /* Side by side, "Remove all files" wrapped onto three lines next to a
+       one-line "Upload". Stack them full width instead. */
+    .modal-footer-actions,
+    .upload-confirm-actions {
+      flex-direction: column;
+      width: 100%;
+      align-items: stretch;
+    }
+    .modal-footer-actions > *,
+    .upload-confirm-actions > * {
+      width: 100%;
+    }
+    .orientation-toggle-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  }
+
+  /* Desktop type scale. The base sizes above are tuned for phones; from 769px
+     up (the complement of the 768px mobile breakpoint) informational copy goes
+     to 18px, with headings and buttons lifted to keep the hierarchy apart.
+     Mobile is deliberately left on the base sizes. */
+  @media (min-width: 769px) {
+    .crop-info,
+    .content-subtitle,
+    .pack-status-note,
+    .pack-status-added,
+    .post-selection-info,
+    .progress-text,
+    .upload-complete p,
+    .upload-confirm-text,
+    .processing-text {
+      font-size: 18px;
+    }
+    .modal-title {
+      font-size: 26px;
+    }
+    .upload-text .or-text {
+      font-size: 28px;
+    }
+    .upload-btn,
+    .remove-all-files-btn,
+    .confirm-cancel-btn,
+    .add-to-cart-btn,
+    .confirm-upload-btn {
+      font-size: 16px;
+    }
+  }
+
+  /* === Touch devices ===
+     Keyed to pointer type, not width: a phone held sideways is 844px wide and
+     was being served the mouse treatment - the per-photo edit/delete buttons
+     sat at opacity:0 waiting for a hover that can never happen, so the photo
+     controls were unreachable in landscape. */
+  @media (hover: none) {
+    .thumbnail-action-buttons {
+      opacity: 1;
+      gap: 8px;
+    }
+    .thumbnail-action-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .thumbnail-action-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .close-btn {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .crop-button,
+    .upload-btn,
+    .remove-all-files-btn,
+    .confirm-cancel-btn,
+    .add-to-cart-btn,
+    .confirm-upload-btn {
+      min-height: 44px;
+    }
+    .remove-all-files-btn,
+    .confirm-cancel-btn,
+    .add-to-cart-btn,
+    .confirm-upload-btn {
+      padding: 12px 24px;
+    }
+    /* A touch tile has to carry the always-on 96px of pills, where a mouse
+       tile carries 72px that stay hidden until hover - so it needs the
+       larger minimum. Same rule, different floor. */
+    .main-thumbnail-container {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    }
+  }
+
+  /* === Short viewports (phones in landscape) ===
+     Trim the chrome around the cropper and keep Apply Crop pinned in view, so
+     the action isn't stranded below a scroll the customer may not notice. */
+  @media (max-height: 600px) {
+    .modal-header {
+      padding: 12px 24px;
+    }
+    .content-subtitle {
+      margin-bottom: 12px;
+    }
+    .crop-info {
+      margin-top: 8px;
+    }
+    .crop-controls {
+      position: sticky;
+      bottom: 0;
+      /* modal-content centres its children, which would leave this
+         floating as a content-width pill rather than a toolbar. */
+      align-self: stretch;
+      background-color: #f0e5d9;
+      padding: 12px 20px;
+      /* Above .safe-print-area's z-index:2000, whose full-bleed
+         box-shadow otherwise dims the bar into looking broken. */
+      z-index: 2001;
+      border-top: 1px solid #d6cec6;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    }
+  }
+</style>

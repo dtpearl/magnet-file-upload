@@ -1,0 +1,165 @@
+<!--
+  Cart Button Control
+  Version: 2026-08-13.1
+  Disables Add to Cart and Buy it Now buttons until photos are uploaded.
+  Works with all photo-upload variants (square, rectangle, bulk) via custom events.
+
+-->
+<style>
+  /* Visual styling for disabled cart buttons */
+  button[data-photos-required="true"] {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+</style>
+<script>
+  (function () {
+    console.log("[cart-button-control] v2026-08-13.1");
+    const TOOLTIP_MESSAGE = "Please select and upload your photos first";
+    // The message above reads as an error on the back of a success.
+    const NEXT_PACK_TOOLTIP = "Choose photos for your next pack";
+    let packInCart = false;
+
+    const initCartButtonControl = () => {
+      // Find Add to Cart button (Shopify uses dynamic IDs)
+      const addToCartBtn = document.querySelector(
+        'button[name="add"].product-form__submit, .product-form__submit[type="submit"]',
+      );
+
+      // Find Buy it Now button
+      const buyItNowBtn = document.querySelector(
+        ".shopify-payment-button button, .shopify-payment-button__button",
+      );
+
+      // Store original button states and titles
+      const originalAddToCartDisabled = addToCartBtn?.disabled || false;
+      const originalAddToCartTitle = addToCartBtn?.title || "";
+      const originalBuyItNowDisabled = buyItNowBtn?.disabled || false;
+      const originalBuyItNowTitle = buyItNowBtn?.title || "";
+
+      // Check if this product requires photo upload
+      const hasPhotoUploader = document.querySelector(".file-upload-container");
+
+      if (!hasPhotoUploader) {
+        // No photo uploader on this product, leave buttons as-is
+        return;
+      }
+
+      const gateButtons = (locked) => {
+        const lockedMessage = packInCart ? NEXT_PACK_TOOLTIP : TOOLTIP_MESSAGE;
+
+        if (addToCartBtn) {
+          addToCartBtn.disabled = locked ? true : originalAddToCartDisabled;
+          addToCartBtn.title = locked ? lockedMessage : originalAddToCartTitle;
+          if (locked) addToCartBtn.setAttribute("data-photos-required", "true");
+          else addToCartBtn.removeAttribute("data-photos-required");
+        }
+
+        if (buyItNowBtn) {
+          buyItNowBtn.disabled = locked ? true : originalBuyItNowDisabled;
+          buyItNowBtn.title = locked ? lockedMessage : originalBuyItNowTitle;
+          if (locked) buyItNowBtn.setAttribute("data-photos-required", "true");
+          else buyItNowBtn.removeAttribute("data-photos-required");
+        }
+      };
+
+      // Disable buttons initially with tooltip
+      gateButtons(true);
+
+      // Listen for photos uploaded event
+      document.addEventListener("photosUploaded", function (e) {
+        gateButtons(false);
+
+        const sessionId = e.detail?.sessionId;
+        const productId = e.detail?.productId;
+        const variant = e.detail?.variant;
+        const photoCount = e.detail?.photoCount;
+        const magnetsPerUnit = e.detail?.magnetsPerUnit;
+        const packNumber = e.detail?.packNumber;
+        const replacementUrl = buildReplacementUrl(sessionId, productId, variant);
+        console.log("[cart-button-control] _product_id:", productId);
+        console.log("[cart-button-control] _replacement_url:", replacementUrl);
+        const productForm =
+          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
+        if (productForm) {
+          setHiddenProperty(productForm, "_session_id", sessionId);
+          setHiddenProperty(productForm, "_replacement_url", replacementUrl);
+          // Images in this line item's pack-NN/ folder, NOT a magnet count.
+          // cart-quantity-control.html gates on it - renaming breaks that.
+          setHiddenProperty(productForm, "_photo_count", photoCount);
+          // What gets printed. On bulk one photo becomes 45 or 30 magnets,
+          // so fulfilment multiplies THIS by quantity, never _photo_count.
+          setHiddenProperty(productForm, "_magnets_per_unit", magnetsPerUnit);
+          // Maps the line item to its pack-NN/ folder; next upload takes max+1.
+          setHiddenProperty(productForm, "_pack_number", packNumber);
+          // Customer-visible (no underscore). Bulk states what the one photo
+          // turns into, which is the surprising number on those products.
+          setHiddenProperty(
+            productForm,
+            "Photos",
+            photoCount > 1
+              ? `${photoCount} photos, one set per pack`
+              : magnetsPerUnit > 1
+                ? `1 photo, printed on ${magnetsPerUnit} magnets`
+                : null,
+          );
+        }
+      });
+
+      // Without stripping these, the next add to cart carries the PREVIOUS
+      // pack's session - wrong photos on an order that looks entirely valid.
+      document.addEventListener("photosReset", function () {
+        // Only fires after a successful add, so a pack is now in the cart.
+        packInCart = true;
+        gateButtons(true);
+        const productForm =
+          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
+        if (!productForm) return;
+        [
+          "_session_id",
+          "_replacement_url",
+          "_photo_count",
+          "_magnets_per_unit",
+          "_pack_number",
+          "Photos",
+        ].forEach((name) => removeHiddenProperty(productForm, name));
+      });
+    };
+
+    function buildReplacementUrl(sessionId, productId, variant) {
+      if (!sessionId || !productId || !variant) return null;
+      const url = new URL(
+        "/pages/upload-your-photos",
+        window.location.origin,
+      );
+      url.searchParams.set("session", sessionId);
+      url.searchParams.set("product", productId);
+      url.searchParams.set("variant", variant);
+      return url.toString();
+    }
+
+    function setHiddenProperty(form, name, value) {
+      if (!value) return;
+      let input = form.querySelector(`input[name="properties[${name}]"]`);
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "hidden";
+        input.name = `properties[${name}]`;
+        form.appendChild(input);
+      }
+      input.value = value;
+    };
+
+    // Removed, not blanked - an empty properties[...] still reaches the order.
+    function removeHiddenProperty(form, name) {
+      form.querySelector(`input[name="properties[${name}]"]`)?.remove();
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initCartButtonControl);
+    } else {
+      initCartButtonControl();
+    }
+  })();
+</script>

@@ -1,0 +1,834 @@
+<!--
+  Photo Upload - Replacement
+  Version: 2026-09-11.2
+  Self-service page for replacing photos on an existing order.
+  Requires: photo-upload-styles.html, photo-upload-core.html
+
+  URL params (all required): session, product, variant.
+  Redirects to / if any are missing or the variant is not one of
+  square | rectangle | bulk-square | bulk-rectangle.
+
+  The session is the whole order, so the page renders every pack it finds
+  under shopify_uploads/{session}/pack-NN/ - one section each.
+
+  Production URL: https://luxmagnetco.com/pages/upload-your-photos
+
+  The URL to send to a customer lives on the order's line item under
+  properties[_replacement_url] and is also logged to the browser console
+  during upload (cart-button-control.html logs "[cart-button-control]
+  _replacement_url: ..." when the photosUploaded event fires).
+-->
+<script>
+  (function () {
+    // Don't redirect in the Shopify theme editor (designMode), otherwise the
+    // editor can't open the page without URL params and gets kicked to /.
+    if (window.Shopify && window.Shopify.designMode) return;
+    const params = new URLSearchParams(window.location.search);
+    const validVariants = ["square", "rectangle", "bulk-square", "bulk-rectangle"];
+    if (
+      !params.get("session") ||
+      !params.get("product") ||
+      !validVariants.includes(params.get("variant"))
+    ) {
+      window.location.replace("/");
+    }
+  })();
+</script>
+
+<style>
+  .replacement-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    text-align: center;
+  }
+  .replacement-title {
+    font-size: 28px;
+    margin: 0 0 8px;
+  }
+  .replacement-subtitle {
+    color: #555;
+    margin: 0 0 24px;
+  }
+  .replacement-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) {
+    .replacement-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    /* 48px/32px of padding left ~160px of text column on a 320px phone. */
+    .replacement-container {
+      padding: 32px 16px;
+    }
+    .replacement-complete {
+      padding: 40px 20px;
+    }
+    .replacement-slot-undo {
+      min-height: 36px;
+      padding: 8px 12px;
+    }
+    .replacement-slot-cta {
+      font-size: 14px;
+    }
+    #replacement-upload-btn {
+      min-height: 44px;
+    }
+  }
+  /* With more than one pack the outer container holds sections, not slots, so
+     it stops being a grid and each pack brings its own. */
+  .replacement-grid.replacement-grid-packed {
+    display: block;
+  }
+  .replacement-pack {
+    margin-bottom: 32px;
+  }
+  .replacement-pack-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .replacement-slot {
+    position: relative;
+    background: #f5f5f5;
+    border-radius: 8px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: outline 0.15s;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  .replacement-slot:hover {
+    outline-color: #2563eb;
+  }
+  .replacement-slot-loading {
+    cursor: default;
+  }
+  .replacement-slot-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .replacement-slot-loading,
+  .replacement-slot-missing {
+    color: #666;
+    padding: 12px;
+    font-size: 14px;
+  }
+  .replacement-slot-missing {
+    color: #a33;
+  }
+  .replacement-slot-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .replacement-slot-badge-replaced {
+    background: rgba(0, 120, 255, 0.85);
+  }
+  .replacement-slot-undo {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+  }
+  .replacement-slot-undo:hover {
+    background: #fff;
+  }
+  .replacement-slot-cta {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #555;
+    text-decoration: underline;
+  }
+  .replacement-progress {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .replacement-status {
+    color: #a33;
+    min-height: 1.2em;
+    margin-bottom: 8px;
+  }
+  .replacement-complete {
+    padding: 80px 48px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    margin: 32px auto;
+    max-width: 720px;
+  }
+  .replacement-complete h2 {
+    font-size: 32px;
+    margin: 0 0 20px;
+  }
+  .replacement-complete p {
+    font-size: 18px;
+    line-height: 1.5;
+    margin: 0;
+    color: #444;
+  }
+  #replacement-upload-btn {
+    padding: 12px 32px;
+    font-size: 16px;
+  }
+  #replacement-upload-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Desktop type scale — matches the 769px breakpoint in photo-upload-styles so
+     the replacement page and the upload modals share one body size. */
+  @media (min-width: 769px) {
+    .replacement-slot-loading,
+    .replacement-slot-missing {
+      font-size: 18px;
+    }
+    .replacement-pack-title {
+      font-size: 20px;
+    }
+  }
+</style>
+
+<div class="replacement-container file-upload-container" data-replacement="true">
+  <h2 class="replacement-title">Upload your photos</h2>
+  <p class="replacement-subtitle">
+    Click a photo to replace it. Photos marked <strong>Keep</strong> stay as
+    they are. Click <strong>Undo</strong> on a replaced photo to restore the
+    original.
+  </p>
+  <div id="replacement-grid" class="replacement-grid"></div>
+  <div id="replacement-status" class="replacement-status"></div>
+  <div id="replacement-progress" class="replacement-progress">
+    <div class="progress-bar-track" style="flex: 1;">
+      <div id="replacement-progress-fill" class="progress-bar-fill"></div>
+    </div>
+    <span id="replacement-progress-text" class="progress-text"></span>
+  </div>
+  <button id="replacement-upload-btn" class="add-to-cart-btn" disabled>
+    Upload photos
+  </button>
+  <div id="replacement-complete" class="replacement-complete" style="display: none;">
+    <h2>Photos uploaded successfully!</h2>
+    <p>We'll use these when preparing your order. You can close this page.</p>
+  </div>
+</div>
+
+<div id="edit-photos-modal" class="edit-photos-modal">
+  <button
+    id="edit-modal-close-btn"
+    class="close-btn"
+    aria-label="Close modal"
+    title="Close"
+  >
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M6 18L18 6M6 6l12 12"
+      ></path>
+    </svg>
+  </button>
+
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Crop your photo</h2>
+      </div>
+    </div>
+    <p class="content-subtitle">Position your photo to get the perfect shot</p>
+    <div class="crop-container">
+      <img id="image-to-crop" src="" alt="Photo to crop" />
+    </div>
+    <p class="crop-info">
+      The dashed blue box indicates the safe print area. Content outside this area
+      may be trimmed during printing and magnet construction.
+    </p>
+    <div class="crop-controls">
+      <div
+        id="replacement-orientation-toggle"
+        class="orientation-toggle"
+        style="display: none;"
+      >
+        <button
+          id="orientation-landscape"
+          class="orientation-toggle-btn active"
+          title="Landscape"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+          </svg>
+          Landscape
+        </button>
+        <button
+          id="orientation-portrait"
+          class="orientation-toggle-btn"
+          title="Portrait"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="2" width="12" height="20" rx="2" />
+          </svg>
+          Portrait
+        </button>
+      </div>
+      <button id="crop-reset" class="crop-button reset">Reset</button>
+      <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+      <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  console.log("[photo-upload-replacement] v2026-07-31.1");
+
+  // Replacement-page flow. Depends on PhotoUploader (photo-upload-core) for
+  // shared helpers: drawSafeAreaOverlay, openModal, closeModal,
+  // uploadToCloudinary, maybeConvertHeic, OUTPUT_MIN_SHORT_SIDE.
+  function initReplacement(config) {
+    const {
+      session,
+      maxFiles,
+      aspectRatio,
+      landscapeRatio,
+      portraitRatio,
+      hasOrientation,
+      variant,
+    } = config;
+
+    function safeAreaFracs(orient) {
+      if (variant === "square" || variant === "bulk-square") return [50 / 55, 50 / 55];
+      return orient === "portrait" ? [54 / 59, 78 / 83] : [78 / 83, 54 / 59];
+    }
+
+    const CLOUDINARY_BASE =
+      "https://res.cloudinary.com/djzc7ih0g/image/upload";
+
+    // An order can contain several packs, all under one session id with a
+    // numbered subfolder each. Slots stay a single flat list - each one knows
+    // which pack and which position within it - so the crop, undo, readiness
+    // and upload logic below is unchanged by the introduction of packs.
+    const MAX_PACKS = 10;
+    let slots = [];
+    let packs = [];
+
+    const packFolder = (n) => `pack-${String(n).padStart(2, "0")}`;
+
+    function packPath(pack) {
+      // pack === null means the legacy flat layout, where photos sat directly
+      // in shopify_uploads/{session}/. Kept so pre-existing sessions still open.
+      return pack === null ? "" : `${packFolder(pack)}/`;
+    }
+
+    function probe(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    // Probes every pack number rather than stopping at the first gap: removing
+    // a pack from the cart leaves a hole, and pack 3 must still be found when
+    // pack 2 is absent.
+    async function discoverPacks() {
+      const found = [];
+      const results = await Promise.all(
+        Array.from({ length: MAX_PACKS }, (_, i) =>
+          probe(
+            `${CLOUDINARY_BASE}/shopify_uploads/${session}/${packFolder(i + 1)}/01.jpg`,
+          ),
+        ),
+      );
+      results.forEach((ok, i) => ok && found.push(i + 1));
+      if (found.length) return found;
+      const legacy = await probe(
+        `${CLOUDINARY_BASE}/shopify_uploads/${session}/01.jpg`,
+      );
+      return legacy ? [null] : [];
+    }
+
+    const gridEl = document.getElementById("replacement-grid");
+    const uploadBtn = document.getElementById("replacement-upload-btn");
+    const statusEl = document.getElementById("replacement-status");
+    const progressEl = document.getElementById("replacement-progress");
+    const progressFillEl = document.getElementById(
+      "replacement-progress-fill",
+    );
+    const progressTextEl = document.getElementById(
+      "replacement-progress-text",
+    );
+    const completeEl = document.getElementById("replacement-complete");
+
+    const imageToCrop = document.getElementById("image-to-crop");
+    const cropCancel = document.getElementById("crop-cancel");
+    const cropApply = document.getElementById("crop-apply");
+    const cropReset = document.getElementById("crop-reset");
+    const editModalCloseBtn = document.getElementById("edit-modal-close-btn");
+    const orientationLandscapeBtn = hasOrientation
+      ? document.getElementById("orientation-landscape")
+      : null;
+    const orientationPortraitBtn = hasOrientation
+      ? document.getElementById("orientation-portrait")
+      : null;
+
+    let currentCropperInstance = null;
+    let currentCropSlot = -1;
+    let currentOrientation = "landscape";
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
+    document.body.appendChild(fileInput);
+
+    // Filenames in shopify_uploads/{session}/ are just the zero-padded slot
+    // number now (no productId, no orientation). For rectangle variants we
+    // read orientation from the image's natural dimensions instead.
+    function fetchOriginal(slot) {
+      const paddedIndex = String(slot.slotInPack + 1).padStart(2, "0");
+      const url = `${CLOUDINARY_BASE}/shopify_uploads/${session}/${packPath(slot.pack)}${paddedIndex}.jpg`;
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const orientation = hasOrientation
+            ? img.naturalWidth >= img.naturalHeight
+              ? "landscape"
+              : "portrait"
+            : null;
+          resolve({ url, orientation });
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    function getRatio(orientation) {
+      if (hasOrientation) {
+        return orientation === "portrait" ? portraitRatio : landscapeRatio;
+      }
+      return aspectRatio;
+    }
+
+    function updateOrientationToggle() {
+      if (!hasOrientation) return;
+      if (currentOrientation === "landscape") {
+        orientationLandscapeBtn.classList.add("active");
+        orientationPortraitBtn.classList.remove("active");
+      } else {
+        orientationLandscapeBtn.classList.remove("active");
+        orientationPortraitBtn.classList.add("active");
+      }
+    }
+
+    function renderSlot(slot) {
+      const target = slot.gridEl || gridEl;
+      const existing = target.querySelector(`[data-slot="${slot.index}"]`);
+      if (existing) existing.remove();
+
+      const el = document.createElement("div");
+      el.className = `replacement-slot replacement-slot-${slot.status}`;
+      el.dataset.slot = slot.index;
+      const slotOrient = slot.replacedOrientation || slot.originalOrientation || "landscape";
+      el.dataset.orientation = slotOrient;
+
+      if (slot.status === "loading") {
+        el.innerHTML = `<div class="replacement-slot-loading">Loading photo ${slot.slotInPack + 1}…</div>`;
+      } else if (slot.status === "missing") {
+        el.innerHTML = `<div class="replacement-slot-missing">Photo ${slot.slotInPack + 1}: original not found<span class="replacement-slot-cta">Click to upload a replacement</span></div>`;
+        el.addEventListener("click", () => pickFile(slot.index));
+      } else {
+        const img = document.createElement("img");
+        img.src = slot.previewUrl || slot.originalUrl;
+        img.className = "replacement-slot-img";
+        const [rx, ry] = safeAreaFracs(slotOrient);
+        const redraw = () => PhotoUploader.drawSafeAreaOverlay(el, rx, ry);
+        if (img.complete && img.naturalWidth) {
+          requestAnimationFrame(redraw);
+        } else {
+          img.addEventListener("load", redraw);
+        }
+        el.appendChild(img);
+
+        const badge = document.createElement("div");
+        badge.className = `replacement-slot-badge replacement-slot-badge-${slot.status}`;
+        badge.textContent = slot.status === "replaced" ? "Replaced" : "Keep";
+        el.appendChild(badge);
+
+        // Whole slot click = open file picker (replace this slot).
+        el.addEventListener("click", () => pickFile(slot.index));
+
+        if (slot.status === "replaced") {
+          const undoBtn = document.createElement("button");
+          undoBtn.className = "replacement-slot-undo";
+          undoBtn.textContent = "Undo";
+          undoBtn.title = "Restore the original photo";
+          undoBtn.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+            slot.status = "kept";
+            slot.replacedBlob = null;
+            slot.replacedOrientation = null;
+            slot.previewUrl = null;
+            renderSlot(slot);
+            updateReadiness();
+          });
+          el.appendChild(undoBtn);
+        }
+      }
+
+      target.appendChild(el);
+    }
+
+    function pickFile(slotIndex) {
+      fileInput.value = "";
+      fileInput.onchange = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        statusEl.textContent = "";
+        try {
+          const usable = await PhotoUploader.maybeConvertHeic(file);
+          openCropModal(slotIndex, usable);
+        } catch (err) {
+          statusEl.textContent =
+            "Couldn't process that file. The format may not be supported — please try a JPEG or PNG.";
+        }
+      };
+      fileInput.click();
+    }
+
+    function openCropModal(slotIndex, file) {
+      currentCropSlot = slotIndex;
+      const slot = slots[slotIndex];
+      if (hasOrientation) {
+        currentOrientation =
+          slot.replacedOrientation || slot.originalOrientation || "landscape";
+        updateOrientationToggle();
+      }
+      const ratio = getRatio(currentOrientation);
+      const objectUrl = URL.createObjectURL(file);
+
+      imageToCrop.onload = function () {
+        currentCropperInstance = new Cropper(imageToCrop, {
+          aspectRatio: ratio,
+          viewMode: 1,
+          guides: true,
+          autoCropArea: 0.8,
+          movable: true,
+          rotatable: true,
+          scalable: true,
+          zoomable: true,
+          ready: () => drawSafeArea(),
+          cropmove: () => drawSafeArea(),
+        });
+      };
+      imageToCrop.src = objectUrl;
+      PhotoUploader.openModal("edit-photos-modal");
+    }
+
+    function closeCropModal() {
+      if (currentCropperInstance) {
+        currentCropperInstance.destroy();
+        currentCropperInstance = null;
+      }
+      imageToCrop.src = "";
+      currentCropSlot = -1;
+      PhotoUploader.closeModal("edit-photos-modal");
+    }
+
+    // Live "Safe Print Area" overlay drawn over the crop box, kept in sync with
+    // the square/rectangle pages (photo-upload-core drawSafeArea). The 0.9 inset
+    // is the same for both — there is no square/rectangle difference here. Reuses
+    // the shared .safe-print-* styles from photo-upload-styles.
+    const SAFE_AREA_PERCENTAGE = 0.9;
+
+    function drawSafeArea() {
+      if (!currentCropperInstance) return;
+      const existing = document.querySelector(".safe-print-container");
+      if (existing) existing.remove();
+
+      const cropBox = currentCropperInstance.getCropBoxData();
+      const safeW = cropBox.width * SAFE_AREA_PERCENTAGE;
+      const safeH = cropBox.height * SAFE_AREA_PERCENTAGE;
+      const safeLeft = (cropBox.width * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+      const safeTop = (cropBox.height * (1 - SAFE_AREA_PERCENTAGE)) / 2;
+
+      const container = document.createElement("div");
+      container.className = "safe-print-container";
+      container.style.cssText = `left:${cropBox.left}px;top:${cropBox.top}px;width:${cropBox.width}px;height:${cropBox.height}px;`;
+
+      const label = document.createElement("div");
+      label.className = "safe-print-label";
+      label.textContent = "Safe Print Area";
+      container.appendChild(label);
+
+      const area = document.createElement("div");
+      area.className = "safe-print-area";
+      area.style.cssText = `left:${safeLeft}px;top:${safeTop}px;width:${safeW}px;height:${safeH}px;`;
+      container.appendChild(area);
+
+      document.querySelector(".cropper-container").appendChild(container);
+    }
+
+    if (cropApply) {
+      cropApply.addEventListener("click", () => {
+        if (!currentCropperInstance) return;
+        const cropData = currentCropperInstance.getData();
+        const srcW = Math.round(cropData.width);
+        const srcH = Math.round(cropData.height);
+        const shortSide = Math.min(srcW, srcH);
+        const scale = Math.min(PhotoUploader.OUTPUT_MIN_SHORT_SIDE / shortSide, 1);
+        const width = Math.round(srcW * scale);
+        const height = Math.round(srcH * scale);
+
+        const croppedCanvas = currentCropperInstance.getCroppedCanvas({
+          width,
+          height,
+          fillColor: "#fff",
+        });
+
+        const slotIndex = currentCropSlot;
+        croppedCanvas.toBlob(
+          (blob) => {
+            const slot = slots[slotIndex];
+            if (slot.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+            slot.status = "replaced";
+            slot.replacedBlob = blob;
+            slot.replacedOrientation = hasOrientation
+              ? currentOrientation
+              : null;
+            slot.previewUrl = URL.createObjectURL(blob);
+            closeCropModal();
+            renderSlot(slot);
+            updateReadiness();
+          },
+          "image/jpeg",
+          0.92,
+        );
+      });
+    }
+
+    if (cropCancel) cropCancel.addEventListener("click", closeCropModal);
+    if (editModalCloseBtn)
+      editModalCloseBtn.addEventListener("click", closeCropModal);
+
+    // Reset returns the image and crop box to their initial state, undoing any
+    // zoom, move, or rotate the customer applied.
+    if (cropReset)
+      cropReset.addEventListener("click", () => {
+        if (!currentCropperInstance) return;
+        currentCropperInstance.reset();
+        requestAnimationFrame(drawSafeArea);
+      });
+
+    if (hasOrientation && orientationLandscapeBtn) {
+      orientationLandscapeBtn.addEventListener("click", () => {
+        if (!currentCropperInstance || currentOrientation === "landscape")
+          return;
+        currentOrientation = "landscape";
+        updateOrientationToggle();
+        currentCropperInstance.setAspectRatio(landscapeRatio);
+        drawSafeArea();
+      });
+    }
+    if (hasOrientation && orientationPortraitBtn) {
+      orientationPortraitBtn.addEventListener("click", () => {
+        if (!currentCropperInstance || currentOrientation === "portrait")
+          return;
+        currentOrientation = "portrait";
+        updateOrientationToggle();
+        currentCropperInstance.setAspectRatio(portraitRatio);
+        drawSafeArea();
+      });
+    }
+
+    function updateReadiness() {
+      const anyLoading = slots.some((s) => s.status === "loading");
+      const anyMissing = slots.some((s) => s.status === "missing");
+      const anyReplaced = slots.some((s) => s.status === "replaced");
+      uploadBtn.disabled = anyLoading || anyMissing || !anyReplaced;
+    }
+
+    uploadBtn.addEventListener("click", async () => {
+      uploadBtn.disabled = true;
+      statusEl.textContent = "";
+      progressEl.style.display = "flex";
+      progressFillEl.style.display = "block";
+      progressFillEl.style.width = "0%";
+
+      try {
+        for (let i = 0; i < slots.length; i++) {
+          const slot = slots[i];
+          progressTextEl.textContent = `Uploading ${i + 1} of ${slots.length}…`;
+          progressFillEl.style.width = `${(i / slots.length) * 100}%`;
+
+          let blob;
+          if (slot.status === "replaced") {
+            blob = slot.replacedBlob;
+          } else if (slot.status === "kept") {
+            const res = await fetch(slot.originalUrl);
+            if (!res.ok) throw new Error(`Could not fetch original ${i + 1}`);
+            blob = await res.blob();
+          } else {
+            throw new Error(`Slot ${i + 1} has no photo`);
+          }
+
+          const fileName = `${packPath(slot.pack)}replacements/${String(
+            slot.slotInPack + 1,
+          ).padStart(2, "0")}`;
+          await PhotoUploader.uploadToCloudinary(blob, fileName, session);
+        }
+        progressFillEl.style.width = "100%";
+        await new Promise((r) => setTimeout(r, 300));
+        progressEl.style.display = "none";
+        gridEl.style.display = "none";
+        uploadBtn.style.display = "none";
+        document
+          .querySelectorAll(".replacement-title, .replacement-subtitle")
+          .forEach((el) => (el.style.display = "none"));
+        completeEl.style.display = "block";
+      } catch (err) {
+        progressEl.style.display = "none";
+        statusEl.textContent = "Upload failed. Please try again.";
+        uploadBtn.disabled = false;
+      }
+    });
+
+    // Builds one section per pack, then loads every slot. Slots are numbered
+    // globally (so crop/undo/upload can address them by a single index) but
+    // labelled by their position within their own pack.
+    function buildSlots() {
+      slots = [];
+      gridEl.innerHTML = "";
+      const multiple = packs.length > 1;
+      gridEl.classList.toggle("replacement-grid-packed", multiple);
+
+      packs.forEach((pack, packIdx) => {
+        let target = gridEl;
+        if (multiple) {
+          const section = document.createElement("section");
+          section.className = "replacement-pack";
+          const heading = document.createElement("h3");
+          heading.className = "replacement-pack-title";
+          heading.textContent = `Pack ${packIdx + 1} of ${packs.length}`;
+          section.appendChild(heading);
+          target = document.createElement("div");
+          target.className = "replacement-grid";
+          section.appendChild(target);
+          gridEl.appendChild(section);
+        }
+        for (let i = 0; i < maxFiles; i++) {
+          slots.push({
+            index: slots.length,
+            pack,
+            slotInPack: i,
+            gridEl: target,
+            status: "loading",
+            originalUrl: null,
+            originalOrientation: null,
+            replacedBlob: null,
+            replacedOrientation: null,
+            previewUrl: null,
+          });
+        }
+      });
+    }
+
+    (async () => {
+      packs = await discoverPacks();
+      if (!packs.length) {
+        statusEl.textContent =
+          "We couldn't find the photos for this order. Please check the link, or get in touch and we'll help.";
+        uploadBtn.style.display = "none";
+        return;
+      }
+      buildSlots();
+      slots.forEach((slot) => renderSlot(slot));
+      slots.forEach(async (slot) => {
+        const result = await fetchOriginal(slot);
+        if (result) {
+          slot.status = "kept";
+          slot.originalUrl = result.url;
+          slot.originalOrientation = result.orientation;
+        } else {
+          slot.status = "missing";
+        }
+        renderSlot(slot);
+        updateReadiness();
+      });
+      updateReadiness();
+    })();
+
+    window.addEventListener("resize", () => {
+      gridEl.querySelectorAll(".replacement-slot").forEach((el) => {
+        const [x, y] = safeAreaFracs(el.dataset.orientation || "landscape");
+        PhotoUploader.drawSafeAreaOverlay(el, x, y);
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const session = params.get("session");
+    const variant = params.get("variant");
+
+    const configs = {
+      square: { maxFiles: 9, aspectRatio: 1, hasOrientation: false },
+      rectangle: {
+        maxFiles: 6,
+        landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+        portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
+        hasOrientation: true,
+      },
+      "bulk-square": { maxFiles: 1, aspectRatio: 1, hasOrientation: false },
+      "bulk-rectangle": {
+        maxFiles: 1,
+        landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+        portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
+        hasOrientation: true,
+      },
+    };
+    const cfg = configs[variant];
+    if (!cfg) return;
+
+    if (cfg.hasOrientation) {
+      document.getElementById("replacement-orientation-toggle").style.display = "flex";
+    }
+
+    initReplacement({
+      session,
+      variant,
+      ...cfg,
+    });
+  });
+</script>

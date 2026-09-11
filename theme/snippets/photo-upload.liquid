@@ -1,0 +1,32 @@
+{% comment %}
+  Photo Upload - product page entry point
+  Version: 2026-09-12.1
+
+  The single line a product template needs:
+
+      {% render 'photo-upload', product: product %}
+
+  Add it to both product templates. Everything below is shared, so a change to
+  any snippet reaches both without re-pasting.
+
+  IMPORTANT: {% render %} has an isolated scope - unlike the deprecated
+  {% include %}, it does NOT inherit the parent's variables. `product` must be
+  passed in above and threaded down to each variant below. Omit it and the
+  metafield guards quietly evaluate false, rendering nothing at all, with no
+  error to tell you why.
+
+  The four variant snippets are self-selecting: each opens with
+  {% if product.metafields.custom.image_uploader_shape == '<shape>' %}, so
+  exactly one produces output. No conditional is needed here.
+
+  Not included, because they belong on other templates:
+    cart-quantity-control  -> cart template, above the cart items
+    photo-upload-replacement -> the replacement page template
+{% endcomment %}
+{% render 'photo-upload-styles' %}
+{% render 'photo-upload-core' %}
+{% render 'photo-upload-square', product: product %}
+{% render 'photo-upload-rectangle', product: product %}
+{% render 'photo-upload-bulk-square', product: product %}
+{% render 'photo-upload-bulk-rectangle', product: product %}
+{% render 'cart-button-control' %}
