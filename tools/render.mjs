@@ -87,7 +87,7 @@ export async function renderVariant(key) {
 }
 
 export async function renderCart() {
-  const body = await engine.renderFile('photo-upload-cart', { cart: CART });
+  const body = await engine.renderFile('cart-quantity-control', { cart: CART });
   return page({
     title: 'Cart - Liquid harness',
     nav: nav(),
@@ -114,7 +114,7 @@ export async function renderReplacement() {
            this harness sets <code>Shopify.designMode</code> to hold it in place. Slots stay
            empty unless the session points at real Cloudinary uploads.`,
     body: `<script>window.Shopify = window.Shopify || {}; window.Shopify.designMode = true;</script>`
-      + (await engine.renderFile('photo-upload-replacement-page', {})),
+      + (await engine.renderFile('photo-upload-replacement', {})),
   });
 }
 

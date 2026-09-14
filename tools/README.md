@@ -30,11 +30,18 @@ became.
 - Each variant's metafield guard selects exactly one snippet.
 - Forgetting `product:` renders nothing rather than erroring — the trap that
   makes this refactor fail silently, asserted so it stays documented.
-- `theme/snippets` and `custom-liquid` produce byte-identical output.
-- The two trees have not drifted apart.
+- Each of the four shapes produces the same markup and JS as the files in
+  `custom-liquid/`, which are what is deployed today.
+- No CSS rule was lost when the stylesheets were merged (checked rule by rule).
 
-Run it before committing a snippet change. While both trees exist they must stay
-in sync, and nothing else will tell you if they don't.
+The snippets are consolidated, so they are no longer copies of the files in
+`custom-liquid/`. The comparison is therefore on rendered output, normalising
+whitespace, HTML comments, version stamps, JS quote style and trailing commas —
+each documented in the file with the reason it is safe to ignore.
+
+Run it before committing a snippet change. `custom-liquid/` is the reference
+implementation, so as long as you keep it this is what proves the snippets still
+do what the deployed code does.
 
 ## `npm run check`
 

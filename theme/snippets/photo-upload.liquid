@@ -1,32 +1,560 @@
 {% comment %}
-  Photo Upload - product page entry point
-  Version: 2026-09-12.1
+  Photo Upload - product page
+  Version: 2026-09-14.1
 
-  The single line a product template needs:
+  The single line both product templates need:
 
       {% render 'photo-upload', product: product %}
 
-  Add it to both product templates. Everything below is shared, so a change to
-  any snippet reaches both without re-pasting.
+  Pulls in the shared CSS and JS itself, so paste order is no longer something
+  you can get wrong.
 
   IMPORTANT: {% render %} has an isolated scope - unlike the deprecated
-  {% include %}, it does NOT inherit the parent's variables. `product` must be
-  passed in above and threaded down to each variant below. Omit it and the
-  metafield guards quietly evaluate false, rendering nothing at all, with no
-  error to tell you why.
+  {% include %} it does not inherit the parent's variables. `product` must be
+  passed in above. Omit it and the case below matches nothing, rendering an
+  empty page with no error to tell you why. There is a regression test for this
+  in tools/verify-parity.mjs.
 
-  The four variant snippets are self-selecting: each opens with
-  {% if product.metafields.custom.image_uploader_shape == '<shape>' %}, so
-  exactly one produces output. No conditional is needed here.
+  One markup body serves all four shapes. Everything that varies between them is
+  assigned in the case block below, so a change to the shared modal - headers,
+  footers, confirmations, the cropper - is one edit rather than four.
 
-  Not included, because they belong on other templates:
-    cart-quantity-control  -> cart template, above the cart items
-    photo-upload-replacement -> the replacement page template
+    shape            max_files  magnets  orientation  shape_word
+    square                   9        9  no           square
+    rectangle                6        6  yes          rectangular
+    bulk_square              1       45  no           square
+    bulk_rectangle           1       30  yes          rectangular
+
+  Packs upload a set of photos at a fixed count. Bulk products upload one photo
+  and keep the theme's quantity selector, so `magnets` there is how many magnets
+  one unit yields, not how many photos are wanted.
+
+  Not included, they live on other templates:
+    cart-quantity-control    -> cart template, above the items
+    photo-upload-replacement -> the replacement page section
 {% endcomment %}
 {% render 'photo-upload-styles' %}
 {% render 'photo-upload-core' %}
-{% render 'photo-upload-square', product: product %}
-{% render 'photo-upload-rectangle', product: product %}
-{% render 'photo-upload-bulk-square', product: product %}
-{% render 'photo-upload-bulk-rectangle', product: product %}
-{% render 'cart-button-control' %}
+
+{%- assign shape = product.metafields.custom.image_uploader_shape -%}
+{%- assign is_pack = false -%}
+{%- assign is_bulk = false -%}
+{%- assign has_orientation = false -%}
+{%- case shape -%}
+  {%- when 'square' -%}
+    {%- assign is_pack = true -%}
+    {%- assign max_files = 9 -%}
+    {%- assign magnets = 9 -%}
+    {%- assign shape_word = 'square' -%}
+  {%- when 'rectangle' -%}
+    {%- assign is_pack = true -%}
+    {%- assign has_orientation = true -%}
+    {%- assign max_files = 6 -%}
+    {%- assign magnets = 6 -%}
+    {%- assign shape_word = 'rectangular' -%}
+  {%- when 'bulk_square' -%}
+    {%- assign is_bulk = true -%}
+    {%- assign max_files = 1 -%}
+    {%- assign magnets = 45 -%}
+    {%- assign shape_word = 'square' -%}
+  {%- when 'bulk_rectangle' -%}
+    {%- assign is_bulk = true -%}
+    {%- assign has_orientation = true -%}
+    {%- assign max_files = 1 -%}
+    {%- assign magnets = 30 -%}
+    {%- assign shape_word = 'rectangular' -%}
+{%- endcase -%}
+
+{%- if is_pack or is_bulk -%}
+{%- if is_bulk -%}{%- assign variant_name = shape | replace: '_', '-' -%}{%- else -%}{%- assign variant_name = shape -%}{%- endif -%}
+
+<div class="file-upload-container" data-product-id="{{ product.id }}">
+  <button
+    class="button select-photos-button"
+    id="select-photos-button-{{ product.id }}"
+    onclick="PhotoUploader.openModal('select-photos-modal-{{ product.id }}')"
+  >
+    Select photo{% unless is_bulk %}s{% endunless %}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="upload-icon"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1.75A2.25 2.25 0 006.25 20.5h11.5A2.25 2.25 0 0020 18.25V16.5"
+      />
+    </svg>
+  </button>
+  {%- comment -%}
+    Packs carry a standing note plus a confirmation. Bulk carries only the
+    confirmation, because there the quantity selector already says you can order
+    more than one.
+  {%- endcomment -%}
+  <div id="pack-status-{{ product.id }}" class="pack-status">
+    {%- unless is_bulk %}
+    <p class="pack-status-note">
+      One photo set per upload. Want more than one set? Just add them to your
+      cart one set at a time.
+    </p>
+    {%- endunless %}
+    <p class="pack-status-added">
+      <span class="pack-status-check" aria-hidden="true">✓</span>
+      {%- if is_bulk %}
+      <strong>Photo added to your cart.</strong> Ready for another — choose a
+      photo to start.
+      {%- else %}
+      <strong>Photos added to your cart.</strong> Ready for your next pack —
+      choose photos to start another.
+      {%- endif %}
+    </p>
+  </div>
+</div>
+
+<div id="select-photos-modal-{{ product.id }}" class="select-photos-modal">
+  <button
+    class="close-btn"
+    onclick="PhotoUploader.closeModal('select-photos-modal-{{ product.id }}')"
+    aria-label="Close modal"
+    title="Close"
+  >
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M6 18L18 6M6 6l12 12"
+      ></path>
+    </svg>
+  </button>
+
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2 class="modal-title">Select your photo{% unless is_bulk %}s{% endunless %}</h2>
+      </div>
+    </div>
+
+    <div class="upload-area">
+      <input
+        title="File Input"
+        type="file"
+        id="actual-file-input-{{ product.id }}"
+        class="hidden-file-input"
+        accept="image/*"
+        {%- unless is_bulk %}
+        multiple
+        {%- endunless %}
+      />
+      <div class="upload-text">
+        <h3>drag & drop</h3>
+        <h3>your photo{% unless is_bulk %}s{% endunless %}</h3>
+        <p class="or-text">or</p>
+      </div>
+      <button id="custom-upload-button-{{ product.id }}" class="upload-btn">
+        Upload from camera roll or PC
+      </button>
+      <div id="upload-status-{{ product.id }}" class="upload-status"></div>
+      <div id="file-count-display-{{ product.id }}">{% unless is_bulk %}0/{{ max_files }} photos selected{% endunless %}</div>
+      <div id="processing-indicator" class="processing-indicator">
+        <svg class="processing-spinner" viewBox="0 0 50 50">
+          <circle
+            cx="25"
+            cy="25"
+            r="20"
+            fill="none"
+            stroke="#d6cec6"
+            stroke-width="5"
+          />
+          <circle
+            cx="25"
+            cy="25"
+            r="20"
+            fill="none"
+            stroke="#95887a"
+            stroke-width="5"
+            stroke-dasharray="31.4 94.2"
+            stroke-linecap="round"
+          >
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 25 25"
+              to="360 25 25"
+              dur="0.8s"
+              repeatCount="indefinite"
+            />
+          </circle>
+        </svg>
+        <span class="processing-text">Processing photo{% unless is_bulk %}s{% endunless %}...</span>
+      </div>
+    </div>
+
+    <div class="main-thumbnail-container{% if is_bulk %} single-image{% endif %}"></div>
+
+    {%- if is_bulk %}
+    <p class="content-subtitle bulk-click-instruction">Click your photo to resize or crop</p>
+    {%- endif %}
+    <div class="post-selection-info">
+      {%- if is_bulk %}
+      <div>Your chosen photo has been cropped to fit on {{ shape_word }} magnets.</div>
+      <div>
+        The area outside the dotted lines will wrap around the edges of your
+        magnets.
+      </div>
+      <div>Please review before placing your order.</div>
+      {%- else %}
+      <div>
+        Your {{ max_files }} chosen photos have been cropped to fit on {{ shape_word }} magnets.
+      </div>
+      <div>
+        The area outside the dotted lines will wrap around the edges of your
+        magnets.
+      </div>
+      <div>
+        Click any photo to resize or crop. Please review before placing your
+        order.
+      </div>
+      {%- endif %}
+    </div>
+
+    <div class="modal-footer">
+      <div
+        id="media-upload-status-{{ product.id }}"
+        class="upload-status"
+      ></div>
+      <div id="upload-progress" class="upload-progress">
+        <div class="progress-bar-track">
+          <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        </div>
+        <span id="progress-text" class="progress-text">Uploading{% unless is_bulk %} 0/{{ max_files }}{% endunless %}...</span>
+      </div>
+      <div id="upload-complete" class="upload-complete">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        <p>Photo{% unless is_bulk %}s{% endunless %} uploaded successfully!</p>
+      </div>
+      {%- comment -%}
+        On bulk, remove-one and remove-all reach the same single photo, so both
+        read the same.
+      {%- endcomment -%}
+      <div id="remove-one-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">
+          {%- if is_bulk %}Remove selected photo? This cannot be undone.
+          {%- else %}Remove the highlighted photo? This cannot be undone.{% endif %}
+        </p>
+        <div class="upload-confirm-actions">
+          <button id="remove-one-cancel-btn" class="confirm-cancel-btn">
+            Go back
+          </button>
+          <button id="remove-one-confirm-btn" class="confirm-upload-btn">
+            Yes, remove
+          </button>
+        </div>
+      </div>
+      <div id="remove-all-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">
+          {%- if is_bulk %}Remove selected photo? This cannot be undone.
+          {%- else %}Remove all photos? This cannot be undone.{% endif %}
+        </p>
+        <div class="upload-confirm-actions">
+          <button id="remove-all-cancel-btn" class="confirm-cancel-btn">
+            Go back
+          </button>
+          <button id="remove-all-confirm-btn" class="confirm-upload-btn">
+            Yes, remove{% unless is_bulk %} all{% endunless %}
+          </button>
+        </div>
+      </div>
+      <div id="upload-confirm" class="upload-confirm">
+        <p class="upload-confirm-text">
+          {%- if is_bulk %}Is your photo looking good? Once uploaded it cannot be changed.
+          {%- else %}Are your photos looking good? Once uploaded they cannot be changed.{% endif %}
+        </p>
+        <div class="upload-confirm-actions">
+          <button id="confirm-cancel-btn" class="confirm-cancel-btn">
+            Go back
+          </button>
+          <button id="confirm-upload-btn" class="confirm-upload-btn">
+            Yes, upload
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer-actions">
+        <button id="remove-all-files-btn" class="remove-all-files-btn">
+          {%- if is_bulk %}Remove photo{% else %}Remove all files{% endif -%}
+        </button>
+        <button id="upload-btn-main" class="add-to-cart-btn" disabled>
+          Upload
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="edit-photos-modal" class="edit-photos-modal">
+    <button
+      id="edit-modal-close-btn"
+      class="close-btn"
+      aria-label="Close modal"
+      title="Close"
+    >
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        ></path>
+      </svg>
+    </button>
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-container">
+          <h2 class="modal-title">Crop your photo</h2>
+        </div>
+      </div>
+      <p class="content-subtitle">
+        Position your photo to get the perfect shot
+      </p>
+      <div class="crop-container">
+        <img id="image-to-crop" src="" alt="Photo to crop" />
+      </div>
+      <p class="crop-info">
+        The dashed blue box indicates the safe print area. Content outside this
+        area may be trimmed during printing and magnet construction.
+      </p>
+      <div class="crop-controls">
+        {%- if has_orientation %}
+        <div class="orientation-toggle">
+          <button
+            id="orientation-landscape"
+            class="orientation-toggle-btn active"
+            title="Landscape"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+            </svg>
+            Landscape
+          </button>
+          <button
+            id="orientation-portrait"
+            class="orientation-toggle-btn"
+            title="Portrait"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="6" y="2" width="12" height="20" rx="2" />
+            </svg>
+            Portrait
+          </button>
+        </div>
+        {%- endif %}
+        <button id="crop-reset" class="crop-button reset">Reset</button>
+        <button id="crop-cancel" class="crop-button cancel">Cancel</button>
+        <button id="crop-apply" class="crop-button apply">Apply Crop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("[photo-upload-{{ variant_name }}] v2026-09-14.1");
+    PhotoUploader.init({
+      productId: "{{ product.id }}",
+      maxFiles: {{ max_files }},
+      magnetsPerUnit: {{ magnets }},
+      {%- if has_orientation %}
+      landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
+      portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
+      {%- else %}
+      aspectRatio: 1,
+      {%- endif %}
+      hasOrientation: {{ has_orientation }},
+      variant: "{{ variant_name }}",
+    });
+  });
+</script>
+{%- endif -%}
+
+
+{%- comment -%}
+  ===========================================================================
+  Cart button control - was cart-button-control.html, folded in here because it
+  is product-page-only and always deployed alongside the uploader. Disables Add
+  to Cart and Buy it Now until photos are uploaded, for every variant, via the
+  custom events photo-upload-core fires. Self-guards on .file-upload-container,
+  so it is inert on products without an uploader.
+  ===========================================================================
+{%- endcomment -%}
+<script>
+  (function () {
+    console.log("[cart-button-control] v2026-08-13.1");
+    const TOOLTIP_MESSAGE = "Please select and upload your photos first";
+    // The message above reads as an error on the back of a success.
+    const NEXT_PACK_TOOLTIP = "Choose photos for your next pack";
+    let packInCart = false;
+
+    const initCartButtonControl = () => {
+      // Find Add to Cart button (Shopify uses dynamic IDs)
+      const addToCartBtn = document.querySelector(
+        'button[name="add"].product-form__submit, .product-form__submit[type="submit"]',
+      );
+
+      // Find Buy it Now button
+      const buyItNowBtn = document.querySelector(
+        ".shopify-payment-button button, .shopify-payment-button__button",
+      );
+
+      // Store original button states and titles
+      const originalAddToCartDisabled = addToCartBtn?.disabled || false;
+      const originalAddToCartTitle = addToCartBtn?.title || "";
+      const originalBuyItNowDisabled = buyItNowBtn?.disabled || false;
+      const originalBuyItNowTitle = buyItNowBtn?.title || "";
+
+      // Check if this product requires photo upload
+      const hasPhotoUploader = document.querySelector(".file-upload-container");
+
+      if (!hasPhotoUploader) {
+        // No photo uploader on this product, leave buttons as-is
+        return;
+      }
+
+      const gateButtons = (locked) => {
+        const lockedMessage = packInCart ? NEXT_PACK_TOOLTIP : TOOLTIP_MESSAGE;
+
+        if (addToCartBtn) {
+          addToCartBtn.disabled = locked ? true : originalAddToCartDisabled;
+          addToCartBtn.title = locked ? lockedMessage : originalAddToCartTitle;
+          if (locked) addToCartBtn.setAttribute("data-photos-required", "true");
+          else addToCartBtn.removeAttribute("data-photos-required");
+        }
+
+        if (buyItNowBtn) {
+          buyItNowBtn.disabled = locked ? true : originalBuyItNowDisabled;
+          buyItNowBtn.title = locked ? lockedMessage : originalBuyItNowTitle;
+          if (locked) buyItNowBtn.setAttribute("data-photos-required", "true");
+          else buyItNowBtn.removeAttribute("data-photos-required");
+        }
+      };
+
+      // Disable buttons initially with tooltip
+      gateButtons(true);
+
+      // Listen for photos uploaded event
+      document.addEventListener("photosUploaded", function (e) {
+        gateButtons(false);
+
+        const sessionId = e.detail?.sessionId;
+        const productId = e.detail?.productId;
+        const variant = e.detail?.variant;
+        const photoCount = e.detail?.photoCount;
+        const magnetsPerUnit = e.detail?.magnetsPerUnit;
+        const packNumber = e.detail?.packNumber;
+        const replacementUrl = buildReplacementUrl(sessionId, productId, variant);
+        console.log("[cart-button-control] _product_id:", productId);
+        console.log("[cart-button-control] _replacement_url:", replacementUrl);
+        const productForm =
+          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
+        if (productForm) {
+          setHiddenProperty(productForm, "_session_id", sessionId);
+          setHiddenProperty(productForm, "_replacement_url", replacementUrl);
+          // Images in this line item's pack-NN/ folder, NOT a magnet count.
+          // cart-quantity-control.html gates on it - renaming breaks that.
+          setHiddenProperty(productForm, "_photo_count", photoCount);
+          // What gets printed. On bulk one photo becomes 45 or 30 magnets,
+          // so fulfilment multiplies THIS by quantity, never _photo_count.
+          setHiddenProperty(productForm, "_magnets_per_unit", magnetsPerUnit);
+          // Maps the line item to its pack-NN/ folder; next upload takes max+1.
+          setHiddenProperty(productForm, "_pack_number", packNumber);
+          // Customer-visible (no underscore). Bulk states what the one photo
+          // turns into, which is the surprising number on those products.
+          setHiddenProperty(
+            productForm,
+            "Photos",
+            photoCount > 1
+              ? `${photoCount} photos, one set per pack`
+              : magnetsPerUnit > 1
+                ? `1 photo, printed on ${magnetsPerUnit} magnets`
+                : null,
+          );
+        }
+      });
+
+      // Without stripping these, the next add to cart carries the PREVIOUS
+      // pack's session - wrong photos on an order that looks entirely valid.
+      document.addEventListener("photosReset", function () {
+        // Only fires after a successful add, so a pack is now in the cart.
+        packInCart = true;
+        gateButtons(true);
+        const productForm =
+          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
+        if (!productForm) return;
+        [
+          "_session_id",
+          "_replacement_url",
+          "_photo_count",
+          "_magnets_per_unit",
+          "_pack_number",
+          "Photos",
+        ].forEach((name) => removeHiddenProperty(productForm, name));
+      });
+    };
+
+    function buildReplacementUrl(sessionId, productId, variant) {
+      if (!sessionId || !productId || !variant) return null;
+      const url = new URL(
+        "/pages/upload-your-photos",
+        window.location.origin,
+      );
+      url.searchParams.set("session", sessionId);
+      url.searchParams.set("product", productId);
+      url.searchParams.set("variant", variant);
+      return url.toString();
+    }
+
+    function setHiddenProperty(form, name, value) {
+      if (!value) return;
+      let input = form.querySelector(`input[name="properties[${name}]"]`);
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "hidden";
+        input.name = `properties[${name}]`;
+        form.appendChild(input);
+      }
+      input.value = value;
+    };
+
+    // Removed, not blanked - an empty properties[...] still reaches the order.
+    function removeHiddenProperty(form, name) {
+      form.querySelector(`input[name="properties[${name}]"]`)?.remove();
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initCartButtonControl);
+    } else {
+      initCartButtonControl();
+    }
+  })();
+</script>

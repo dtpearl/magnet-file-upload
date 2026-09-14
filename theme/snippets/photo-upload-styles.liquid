@@ -1,8 +1,10 @@
 <!--
   Photo Upload Styles
-  Version: 2026-09-11.5
-  Shared CSS for photo upload components (all variants including bulk).
-  Include this section before photo-upload-core and variant sections.
+  Version: 2026-09-14.1
+  Every CSS rule in the project: the upload modals and cropper, the
+  replacement page, and the cart button states. Rendered by photo-upload and
+  photo-upload-replacement, which pull it in themselves - there is no paste
+  order to get right any more.
 -->
 <style>
   .button {
@@ -790,5 +792,202 @@
       border-top: 1px solid #d6cec6;
       box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
     }
+  }
+
+  /* === Replacement page ===
+     Moved here from photo-upload-replacement so every rule in the project
+     lives in one file. Checked before moving: no selector here appears in
+     the sheet above, so nothing can override and the order does not matter.
+     Appended rather than interleaved so the cascade is provably unchanged. */
+  .replacement-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    text-align: center;
+  }
+  .replacement-title {
+    font-size: 28px;
+    margin: 0 0 8px;
+  }
+  .replacement-subtitle {
+    color: #555;
+    margin: 0 0 24px;
+  }
+  .replacement-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) {
+    .replacement-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    /* 48px/32px of padding left ~160px of text column on a 320px phone. */
+    .replacement-container {
+      padding: 32px 16px;
+    }
+    .replacement-complete {
+      padding: 40px 20px;
+    }
+    .replacement-slot-undo {
+      min-height: 36px;
+      padding: 8px 12px;
+    }
+    .replacement-slot-cta {
+      font-size: 14px;
+    }
+    #replacement-upload-btn {
+      min-height: 44px;
+    }
+  }
+  /* With more than one pack the outer container holds sections, not slots, so
+     it stops being a grid and each pack brings its own. */
+  .replacement-grid.replacement-grid-packed {
+    display: block;
+  }
+  .replacement-pack {
+    margin-bottom: 32px;
+  }
+  .replacement-pack-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .replacement-slot {
+    position: relative;
+    background: #f5f5f5;
+    border-radius: 8px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: outline 0.15s;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  .replacement-slot:hover {
+    outline-color: #2563eb;
+  }
+  .replacement-slot-loading {
+    cursor: default;
+  }
+  .replacement-slot-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .replacement-slot-loading,
+  .replacement-slot-missing {
+    color: #666;
+    padding: 12px;
+    font-size: 14px;
+  }
+  .replacement-slot-missing {
+    color: #a33;
+  }
+  .replacement-slot-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .replacement-slot-badge-replaced {
+    background: rgba(0, 120, 255, 0.85);
+  }
+  .replacement-slot-undo {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+  }
+  .replacement-slot-undo:hover {
+    background: #fff;
+  }
+  .replacement-slot-cta {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #555;
+    text-decoration: underline;
+  }
+  .replacement-progress {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .replacement-status {
+    color: #a33;
+    min-height: 1.2em;
+    margin-bottom: 8px;
+  }
+  .replacement-complete {
+    padding: 80px 48px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    margin: 32px auto;
+    max-width: 720px;
+  }
+  .replacement-complete h2 {
+    font-size: 32px;
+    margin: 0 0 20px;
+  }
+  .replacement-complete p {
+    font-size: 18px;
+    line-height: 1.5;
+    margin: 0;
+    color: #444;
+  }
+  #replacement-upload-btn {
+    padding: 12px 32px;
+    font-size: 16px;
+  }
+  #replacement-upload-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Desktop type scale — matches the 769px breakpoint in photo-upload-styles so
+     the replacement page and the upload modals share one body size. */
+  @media (min-width: 769px) {
+    .replacement-slot-loading,
+    .replacement-slot-missing {
+      font-size: 18px;
+    }
+    .replacement-pack-title {
+      font-size: 20px;
+    }
+  }
+
+  /* === Cart button control ===
+     Moved from cart-button-control so the product page has a single
+     stylesheet. Styles the Add to Cart / Buy it Now buttons while they
+     are disabled pending an upload. */
+  /* Visual styling for disabled cart buttons */
+  button[data-photos-required="true"] {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
   }
 </style>

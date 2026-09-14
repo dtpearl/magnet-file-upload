@@ -8,41 +8,83 @@ luxmagnetco.myshopify.com.
 | Path | What it is |
 | --- | --- |
 | `custom-liquid/` | The blocks as deployed today, pasted by hand into Custom Liquid sections. Still the live approach. |
-| `theme/snippets/` | The same code as theme snippets, rendered with `{% render %}`. Not deployed yet. |
+| `theme/snippets/` | The same functionality consolidated into five theme snippets. Not deployed yet. |
 | `tools/` | Local Liquid harness — render and test the snippets with no Shopify store. See [tools/README.md](tools/README.md). |
 
-Both trees are kept byte-identical; `cd tools && npm run verify` checks that and
-fails if they drift.
+`custom-liquid/` is the reference implementation: `cd tools && npm run verify`
+renders both and asserts the snippets produce the same markup, JS and CSS, so
+the consolidation provably changed nothing that reaches the browser.
 
 ## Two ways to deploy
 
 **Today — Custom Liquid blocks.** Each file in `custom-liquid/` is pasted into a
-Custom Liquid section. The snag is that most go into *two* product templates, so
-every change has to be applied twice, carefully.
+Custom Liquid section. Most go into *two* product templates, so every change has
+to be applied twice, and nothing warns you if you update one and forget the other.
 
-**Ready when you are — theme snippets.** Copy `theme/snippets/*.liquid` into the
-theme's `snippets/` folder (Online Store → Themes → ⋯ → Edit code; duplicate the
-theme first and publish once it previews cleanly). Each template then holds one
-line:
+**Ready when you are — theme snippets.** `theme/snippets/` holds the same
+functionality consolidated into five files:
 
-| Template | Line |
+| Snippet | Holds | Goes on |
+| --- | --- | --- |
+| `photo-upload-styles` | Every CSS rule in the project | pulled in automatically |
+| `photo-upload-core` | All shared JS | pulled in automatically |
+| `photo-upload` | All four shapes + cart button control | both product templates |
+| `photo-upload-replacement` | The replacement page | the replacement page |
+| `cart-quantity-control` | Quantity lock | cart template |
+
+### Installing them (browser only — no CLI needed)
+
+1. Online Store → Themes → **duplicate the theme first**
+2. On the duplicate: ⋯ → **Edit code**
+3. **Snippets** → "Add a new snippet" for each of the five. Name them without the
+   extension — type `photo-upload-styles`, not `photo-upload-styles.liquid`
+4. Wire up three call sites:
+
+| Where | Line |
 | --- | --- |
-| Both product templates | `{% render 'photo-upload', product: product %}` |
-| Cart template, above the items | `{% render 'photo-upload-cart' %}` |
-| Replacement page | `{% render 'photo-upload-replacement-page' %}` |
+| Both product templates (the existing Custom Liquid block) | `{% render 'photo-upload', product: product %}` |
+| Cart template, above the items | `{% render 'cart-quantity-control' %}` |
+| Replacement page | see below |
 
-A change to a snippet then reaches both product templates with no re-pasting.
+5. Preview the duplicate, then publish
+
+`photo-upload` and `photo-upload-replacement` pull in the styles and core
+themselves, so **paste order is no longer something you can get wrong.**
+
+### The replacement page as a section
+
+Sections appear in the theme editor and can be added to templates by dragging;
+snippets cannot. For the replacement page that is the nicer fit. Edit code →
+**Sections** → "Add a new section" named `photo-upload-replacement`, containing:
+
+```liquid
+{% render 'photo-upload-replacement' %}
+
+{% schema %}
+{
+  "name": "Photo replacement",
+  "presets": [{ "name": "Photo replacement" }]
+}
+{% endschema %}
+```
+
+The `presets` array is what makes it appear under **Add section**. Then in the
+theme editor, open the page, use **Create template** so it is not added site-wide,
+and add the section. It will look sparse in the editor because it needs
+`?session=…&product=…&variant=…` to render slots — that is expected, and a
+`designMode` guard stops it redirecting you out of the editor.
+
+The product page cannot be a section: it has to sit inline next to Add to Cart,
+which is what the Custom Liquid block in step 4 is doing.
 
 > **`{% render %}` has an isolated scope.** Unlike the deprecated `{% include %}`
-> it does not inherit the parent's variables, so `product` must be passed in and
-> threaded down — the wrappers already do this. Omit it and the metafield guards
-> quietly evaluate false: no output, no error, nothing to tell you why. There is
-> a regression test for exactly this in `npm run verify`.
+> it does not inherit the parent's variables, so `product` must be passed in.
+> Omit it and nothing renders — no output, no error. `npm run verify` has a
+> regression test for exactly this.
 
 Once on snippets the 50 KB ceiling stops applying — it is a limit on the Custom
-Liquid *setting value*, not on theme files — so the replacement flow that was
-split out of core to fit it could be recombined. Confirm the theme file limit
-before relying on that.
+Liquid *setting value*, not on theme files — which is what made merging the CSS
+into one sheet possible at all.
 
 ## Local testing
 
@@ -52,7 +94,7 @@ before relying on that.
 
 Renders `theme/snippets` on every request, so editing a snippet and refreshing is
 the whole loop — nothing is uploaded to Shopify. `npm run verify` proves the
-snippets match `custom-liquid/`; `npm run check` drives the upload flow across 10
+snippets still produce what `custom-liquid/` produces; `npm run check` drives the upload flow across 10
 viewports in headless Chromium. Details in [tools/README.md](tools/README.md).
 
 `custom-liquid/test.html` still tests the pasted blocks, but it carries a
@@ -107,6 +149,17 @@ snippets are live:**
 3. **Replacement page undo.** Needs a real order — open a replacement URL on a
    phone and check the Undo pill is comfortably tappable and doesn't collide with
    the Keep/Replaced badge in the opposite corner.
+
+
+### theme/snippets versions
+
+| Snippet | Current version |
+| --- | --- |
+| [photo-upload-styles.liquid](theme/snippets/photo-upload-styles.liquid) | 2026-09-14.1 |
+| [photo-upload-core.liquid](theme/snippets/photo-upload-core.liquid) | 2026-09-11.1 |
+| [photo-upload.liquid](theme/snippets/photo-upload.liquid) | 2026-09-14.1 |
+| [photo-upload-replacement.liquid](theme/snippets/photo-upload-replacement.liquid) | 2026-09-14.1 |
+| [cart-quantity-control.liquid](theme/snippets/cart-quantity-control.liquid) | 2026-08-13.1 |
 
 To see what changed between versions, use `git log <file>` on any individual
 snippet.
