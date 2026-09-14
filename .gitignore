@@ -10,3 +10,4 @@ notes/
 # Local Liquid harness
 tools/node_modules/
 dist/
+tools/.chromium-libs/

@@ -13,16 +13,32 @@
 //
 //   npm run check
 //
-// Needs Chromium: npx playwright install chromium
-// On Linux it also needs system libs once: sudo npx playwright install-deps chromium
+// Needs Chromium once:  npx playwright install chromium
+// On Linux it also needs a few shared libraries. If you have root:
+//     sudo npx playwright install-deps chromium
+// If you do not, this works entirely in userspace and installs nothing
+// system-wide:
+//     npm run setup-libs
 
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 8781;
 const BASE = `http://127.0.0.1:${PORT}`;
+
+// Point the dynamic linker at the userspace libraries from `npm run setup-libs`
+// if they are there. Must happen before chromium.launch(), which spawns the
+// browser as a child process and passes this environment down to it.
+const HERE_ = path.dirname(fileURLToPath(import.meta.url));
+const LIB_PATH = path.join(HERE_, '.chromium-libs', 'root', 'usr', 'lib', 'x86_64-linux-gnu');
+const HAVE_LOCAL_LIBS = fs.existsSync(LIB_PATH);
+if (HAVE_LOCAL_LIBS) {
+  process.env.LD_LIBRARY_PATH = LIB_PATH +
+    (process.env.LD_LIBRARY_PATH ? `:${process.env.LD_LIBRARY_PATH}` : '');
+}
 
 let chromium;
 try {
@@ -79,7 +95,9 @@ try {
   stop();
   const libs = /error while loading shared libraries|libnspr4|libnss3|libasound/.test(String(err));
   console.error(`\n  Could not launch Chromium.\n${libs
-    ? '  Missing system libraries. Once, with sudo:\n    sudo npx playwright install-deps chromium\n'
+    ? (HAVE_LOCAL_LIBS
+        ? `  tools/.chromium-libs exists but a library is still missing:\n    ${String(err).split('\n').find(l => /libraries/.test(l)) || ''}\n  Try re-running:  npm run setup-libs\n`
+        : '  Missing shared libraries. No root needed:\n    npm run setup-libs\n')
     : `  ${String(err).split('\n')[0]}\n    npx playwright install chromium\n`}`);
   process.exit(1);
 }

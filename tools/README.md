@@ -19,6 +19,7 @@ than assuming it.
 | `npm run verify` | Proves the snippets behave and match `custom-liquid/`. Fast, no browser. |
 | `npm run check` | Drives the real upload flow across 10 viewports in headless Chromium. |
 | `npm run build` | Writes static HTML to `../dist/`. |
+| `npm run setup-libs` | One-off, Linux only: fetches Chromium's shared libraries without root. |
 
 `npm run dev` re-renders on every request, so there is no build step and no
 second copy of the markup to keep in step — which is what `custom-liquid/test.html`
@@ -49,9 +50,16 @@ Needs Chromium once:
 
     npx playwright install chromium
 
-On Linux it also needs system libraries once:
+On Linux it also needs a few shared libraries. Playwright's own
+`install-deps` requires root, so if you don't have sudo use this instead:
 
-    sudo npx playwright install-deps chromium
+    npm run setup-libs
+
+That downloads the packages as a normal user and unpacks them into
+`tools/.chromium-libs` (gitignored), which `npm run check` adds to the
+library path automatically. Nothing is installed system-wide, and nothing
+outside `tools/` is touched. `npm run dev` and `npm run verify` need none of
+this - they don't use a browser.
 
 It asserts no horizontal overflow, no sub-44px touch target on a coarse pointer,
 no crushed crop container, no scrolling behind an open modal, no wrapped footer

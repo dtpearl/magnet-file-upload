@@ -95,7 +95,8 @@ into one sheet possible at all.
 Renders `theme/snippets` on every request, so editing a snippet and refreshing is
 the whole loop — nothing is uploaded to Shopify. `npm run verify` proves the
 snippets still produce what `custom-liquid/` produces; `npm run check` drives the upload flow across 10
-viewports in headless Chromium. Details in [tools/README.md](tools/README.md).
+viewports in headless Chromium. Details in [tools/README.md](tools/README.md). The browser checks need a one-off
+`npm run setup-libs` on Linux, which needs no root.
 
 `custom-liquid/test.html` still tests the pasted blocks, but it carries a
 hand-maintained copy of the shared CSS that has to be updated alongside
