@@ -11,3 +11,4 @@ notes/
 tools/node_modules/
 dist/
 tools/.chromium-libs/
+tools/.deploy-config.json

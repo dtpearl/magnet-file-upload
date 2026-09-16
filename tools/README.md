@@ -20,6 +20,7 @@ than assuming it.
 | `npm run check` | Drives the real upload flow across 10 viewports in headless Chromium. |
 | `npm run build` | Writes static HTML to `../dist/`. |
 | `npm run setup-libs` | One-off, Linux only: fetches Chromium's shared libraries without root. |
+| `npm run deploy` | Pushes the five snippets to a Shopify theme. |
 
 `npm run dev` re-renders on every request, so there is no build step and no
 second copy of the markup to keep in step — which is what `custom-liquid/test.html`
@@ -71,3 +72,49 @@ regression is caught rather than rediscovered.
 Blink is not WebKit. The iOS scroll lock and `100dvh` behaviour cannot be
 reached from any desktop browser or from this harness — see **Before deploying**
 in the root README.
+
+## Deploying with the Shopify CLI
+
+Removes the paste step. One-off setup:
+
+    npm install -g @shopify/cli     # no root needed under nvm
+    shopify auth login              # opens a browser once
+    echo '{"store":"your-store.myshopify.com"}' > tools/.deploy-config.json
+
+Then, from `tools/`:
+
+| Command | Target |
+| --- | --- |
+| `npm run deploy` | Prompts you to pick a theme — safest |
+| `npm run deploy -- --theme 12345` | A specific theme by id or name |
+| `npm run deploy -- --live` | The published theme; asks you to type `live` |
+| `npm run deploy -- --print` | Prints the command, runs nothing |
+
+`shopify theme list` shows theme ids and which one is live.
+
+### Two flags the script fixes for you
+
+`--only` limits the upload to our five snippets, and `--nodelete` stops remote
+files being removed. The first matters more than it looks: a bare
+`shopify theme push` uploads the **whole** local directory over the remote
+theme, and this directory holds only snippets — so without `--only` it would
+delete every template, section and asset in the theme. Never run a bare push
+from here.
+
+### If the CLI rejects the directory
+
+`theme push` expects a directory matching Shopify's theme structure, and
+`theme/` here holds only `snippets/`. If it refuses, pull a full theme somewhere
+**outside** this repo and point the script at it:
+
+    mkdir -p ~/shopify-themes && cd ~/shopify-themes
+    shopify theme pull --store your-store.myshopify.com
+
+then add the path to `tools/.deploy-config.json`:
+
+    { "store": "your-store.myshopify.com",
+      "themePath": "/home/you/shopify-themes/your-theme" }
+
+The script copies the snippets in before pushing, so that checkout never needs
+editing by hand and can be deleted and re-pulled whenever. It stays out of git
+either way.

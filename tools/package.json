@@ -8,7 +8,8 @@
     "verify": "node verify-parity.mjs",
     "build": "node render.mjs --all --out ../dist",
     "check": "node check-layout.mjs",
-    "setup-libs": "node setup-chromium-libs.mjs"
+    "setup-libs": "node setup-chromium-libs.mjs",
+    "deploy": "node deploy.mjs"
   },
   "dependencies": {
     "liquidjs": "^10.21.1"
