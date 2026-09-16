@@ -14,16 +14,20 @@
 //               asset in the theme.
 //   --nodelete  never removes remote files that are absent locally.
 //
-// `shopify theme push` expects a directory matching Shopify's theme structure.
-// theme/ here holds only snippets/, which may or may not satisfy that check. If
-// it complains, pull a full theme somewhere outside this repo and point at it:
+// Why the script creates empty config/, layout/ and templates/ folders in theme/:
 //
-//   shopify theme pull --store your-store.myshopify.com   (in ~/shopify-themes)
-//   then add "themePath": "/home/you/shopify-themes/your-theme"
-//   to tools/.deploy-config.json
+//   `shopify theme push` only treats a folder as a theme if it contains all
+//   three (checked in CLI 4.8.0). theme/ holds just snippets/, so without them
+//   every deploy stops on "It doesn't seem like you're running this command in
+//   a theme directory. Do you want to proceed?" Answering yes is harmless, but
+//   clicking through a warning on every deploy trains you to click through the
+//   one that matters. The folders stay empty, --only still limits the upload to
+//   our five snippets, and git does not track empty folders, so nothing appears
+//   in the repo. Safe to delete; the next deploy recreates them.
 //
-// The script copies the snippets in before pushing, so the checkout never needs
-// editing by hand and can be deleted and re-pulled whenever.
+// Optional: to push from a full theme checkout instead, pull one outside this
+// repo and add "themePath": "/home/you/shopify-themes/your-theme" to
+// tools/.deploy-config.json. The snippets are copied in before each push.
 
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -70,6 +74,11 @@ if (cfg.themePath) {
     fs.copyFileSync(path.join(REPO_THEME, f), dest);
   }
   console.log(`\n  synced ${FILES.length} snippets into ${pushPath}`);
+}
+
+// See the note at the top of this file.
+for (const d of ['config', 'layout', 'templates']) {
+  fs.mkdirSync(path.join(pushPath, d), { recursive: true });
 }
 
 for (const f of FILES) {

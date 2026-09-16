@@ -101,11 +101,28 @@ theme, and this directory holds only snippets — so without `--only` it would
 delete every template, section and asset in the theme. Never run a bare push
 from here.
 
-### If the CLI rejects the directory
+### Why empty folders appear in `theme/`
 
-`theme push` expects a directory matching Shopify's theme structure, and
-`theme/` here holds only `snippets/`. If it refuses, pull a full theme somewhere
-**outside** this repo and point the script at it:
+`shopify theme push` only accepts a folder as a theme if it contains
+`config/`, `layout/` and `templates/`. `theme/` holds just `snippets/`, so every
+deploy used to stop on *"It doesn't seem like you're running this command in a
+theme directory. Do you want to proceed?"* Saying yes was harmless, but getting
+used to clicking through a warning on every deploy is how you miss the one that
+matters.
+
+So `npm run deploy` creates those three folders, empty, before it pushes. They
+change nothing about what gets uploaded — `--only` still limits that to the
+five snippets — and git doesn't track empty folders, so they never show up in a
+commit. Delete them whenever; the next deploy puts them back.
+
+They are one more reason never to run a bare `shopify theme push` from
+`theme/`: without `--nodelete`, empty `layout/` and `templates/` folders tell
+Shopify the theme has no layouts or templates.
+
+### Pushing from a full theme checkout (optional)
+
+Not needed, but if you ever want to, pull a theme **outside** this repo and
+point the script at it:
 
     mkdir -p ~/shopify-themes && cd ~/shopify-themes
     shopify theme pull --store your-store.myshopify.com
