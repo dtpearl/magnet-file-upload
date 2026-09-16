@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-09-11.5
+  Version: 2026-09-16.1
   Shared CSS for photo upload components (all variants including bulk).
   Include this section before photo-upload-core and variant sections.
 -->
@@ -624,8 +624,15 @@
 
   /* === Safe-area overlays (added dynamically by photo-upload-core) ===
      Only positioning (top/left/width/height) is set inline by JS. */
+  /* display is !important on the overlays below because some themes ship a
+     `div:empty { display: none }` rule, and every one of these is an empty div -
+     it draws nothing but its own box. That selector is (0,1,1) and beats a bare
+     class, so on such a theme the overlays were created, sized and styled
+     correctly and then never rendered at all: getBoundingClientRect returned
+     0x0 while the inline style still said width:211px. Defending a component's
+     own internals from unknown host CSS is what !important is for. */
   .safe-area-overlay {
-    display: block;
+    display: block !important;
     position: absolute;
     background: rgba(0, 0, 0, 0.25);
     pointer-events: none;
@@ -637,12 +644,12 @@
     box-sizing: border-box;
   }
   .safe-print-container {
-    display: block;
+    display: block !important;
     position: absolute;
     pointer-events: none;
   }
   .safe-print-label {
-    display: block;
+    display: block !important;
     position: absolute;
     top: -8px;
     left: 4px;
@@ -653,7 +660,7 @@
     border-radius: 3px;
   }
   .safe-print-area {
-    display: block;
+    display: block !important;
     position: absolute;
     border: 2px dashed rgba(0, 120, 255, 0.8);
     background: transparent;
