@@ -94,7 +94,7 @@ is the exact change, so the prose only has to say what and why.
   verdict string "pack" becomes "locked", and the <style> block is replaced
   wholesale (it uses :is(), fine in every browser Dawn supports).
 
-### 2026-11-18  (hash: fill in on commit)  Put the modal scrollbar at the screen edge
+### 2026-11-18  ca66999  Put the modal scrollbar at the screen edge
 
 - Snippets: photo-upload-styles.liquid
 - Blocks: photo-upload-styles.html, and the CSS copy in test.html
