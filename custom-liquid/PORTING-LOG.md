@@ -92,5 +92,17 @@ is the exact change, so the prose only has to say what and why.
   changes are shape-independent and go in cart-button-control.html once. In
   cart-quantity-control.html the gate becomes "property present", the
   verdict string "pack" becomes "locked", and the <style> block is replaced
-  wholesale (it uses :is(), fine in every browser Dawn supports). The `magnets` constant (45/30)
+  wholesale (it uses :is(), fine in every browser Dawn supports).
+
+### 2026-11-18  (hash: fill in on commit)  Put the modal scrollbar at the screen edge
+
+- Snippets: photo-upload-styles.liquid
+- Blocks: photo-upload-styles.html, and the CSS copy in test.html
+- What changed: on desktop `.modal-content` is the scroller, and its 720px
+  max-width with auto margins placed its scrollbar mid-screen on a laptop.
+  The max-width and margin are gone; the cap is now the horizontal padding,
+  `max(32px, calc((100% - 720px) / 2 + 32px))`, so the element spans the modal
+  and the content box is the same 656px, centred, as before.
+- Porting notes: one rule, `.modal-content`, in the shared stylesheet. The
+  mobile override at 768px is untouched. The `magnets` constant (45/30)
   remains only as the fallback for a bulk product with no tier option.

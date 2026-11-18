@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-09-16.1
+  Version: 2026-11-18.1
   Every CSS rule in the project: the upload modals and cropper, the
   replacement page, and the cart button states. Rendered by photo-upload and
   photo-upload-replacement, which pull it in themselves - there is no paste
@@ -189,11 +189,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px;
+    /* This is the scroller on desktop, so it spans the whole modal and its
+       scrollbar sits at the screen edge. The 720px cap that used to be a
+       max-width (which parked the scrollbar mid-screen on a laptop) is now
+       the horizontal padding: at any width over 720px the content box is the
+       same 656px, centred, as before. Below 768px the mobile rule overrides
+       the padding and the modal itself scrolls. */
+    padding: 32px max(32px, calc((100% - 720px) / 2 + 32px));
     overflow: auto;
     width: 100%;
-    max-width: 720px;
-    margin: 0 auto;
   }
   .content-subtitle {
     color: #6b7280;
