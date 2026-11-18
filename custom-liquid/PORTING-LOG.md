@@ -68,4 +68,29 @@ is the exact change, so the prose only has to say what and why.
 
 ## Entries
 
-_None yet. The snippets still match `custom-liquid/`._
+### 2026-11-18  (hash: fill in on commit)  Sell bulk magnets in tiers and lock their cart quantity
+
+- Snippets: photo-upload.liquid, cart-quantity-control.liquid
+- Blocks: photo-upload-bulk-square.html, photo-upload-bulk-rectangle.html,
+  cart-button-control.html, cart-quantity-control.html
+- What changed: the two bulk products now carry a "Number of magnets" option
+  whose values are whole sheets (45/90/180/270/450 square, 30/60/120/180/300
+  rectangle). The product snippet builds a JSON map of variant id to magnet
+  count and per-magnet price, renders a note under Select photo with the
+  selected tier's per-magnet price, and the cart button control reads the
+  chosen variant at upload, on every variant change and at submit, writing its
+  count to `_magnets_per_unit` and the "Photos" property. The cart snippet
+  locks every photo line, not just packs, since the tier is now the quantity
+  and the theme's quantity selector is removed from the bulk template. The same
+  snippet also fixes a bug the blocks still have: the reveal rule for unlocked
+  steppers was less specific than the hide rules and never won, so every
+  stepper in the cart stayed hidden. The verdict is now part of the hide
+  selector and there is no reveal rule.
+- Porting notes: the tier map is Liquid over `product.options`,
+  `product.variants`, `variant.price` and the `money` filter, and must go in
+  both bulk blocks (the pack blocks are untouched). The cart button control
+  changes are shape-independent and go in cart-button-control.html once. In
+  cart-quantity-control.html the gate becomes "property present", the
+  verdict string "pack" becomes "locked", and the <style> block is replaced
+  wholesale (it uses :is(), fine in every browser Dawn supports). The `magnets` constant (45/30)
+  remains only as the fallback for a bulk product with no tier option.

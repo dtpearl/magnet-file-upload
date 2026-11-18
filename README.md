@@ -162,9 +162,9 @@ snippets are live:**
 | --- | --- |
 | [photo-upload-styles.liquid](theme/snippets/photo-upload-styles.liquid) | 2026-09-16.1 |
 | [photo-upload-core.liquid](theme/snippets/photo-upload-core.liquid) | 2026-09-11.1 |
-| [photo-upload.liquid](theme/snippets/photo-upload.liquid) | 2026-09-14.1 |
+| [photo-upload.liquid](theme/snippets/photo-upload.liquid) | 2026-11-18.1 |
 | [photo-upload-replacement.liquid](theme/snippets/photo-upload-replacement.liquid) | 2026-09-14.1 |
-| [cart-quantity-control.liquid](theme/snippets/cart-quantity-control.liquid) | 2026-08-13.1 |
+| [cart-quantity-control.liquid](theme/snippets/cart-quantity-control.liquid) | 2026-11-18.1 |
 
 To see what changed between versions, use `git log <file>` on any individual
 snippet.

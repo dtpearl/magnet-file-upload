@@ -25,6 +25,11 @@ export const engine = new Liquid({
   cache: false,
 });
 
+// Shopify's money filter takes integer cents and formats per the store's
+// setting. The stub keeps the surface rendering locally; its output is only
+// ever read by eye here, never compared against the store.
+engine.registerFilter('money', cents => '$' + (Number(cents) / 100).toFixed(2));
+
 // A minimal product page. Deliberately not a theme: just enough chrome for the
 // snippets to attach to, so anything that breaks here is the snippets' doing.
 function page({ title, body, nav = '', note = '' }) {
@@ -63,19 +68,30 @@ const nav = () =>
   ['<a href="/">index</a>', ...Object.keys(VARIANTS).map(k => `<a href="/${k}">${k}</a>`),
    '<a href="/cart">cart</a>', '<a href="/replacement">replacement</a>'].join('');
 
-// Stand-in for the Shopify product form. cart-button-control looks for
-// [name="add"] inside a form near .file-upload-container.
-const PRODUCT_FORM = `
+// Stand-in for the Shopify product form. The cart button control looks for
+// [name="add"] inside a form near .file-upload-container, and reads the chosen
+// variant from [name="id"]. Dawn uses a hidden input and fires change on it;
+// a <select> here does the same natively, so the tier can be switched by hand.
+function productForm(product) {
+  const variants = product.variants
+    ? `<label style="font-size:12px;color:#6b7280">Variant
+         <select name="id">${product.variants.map(v =>
+           `<option value="${v.id}">${v.title} - $${(v.price / 100).toFixed(2)}</option>`).join('')}
+         </select></label>`
+    : `<input type="hidden" name="id" value="${product.id}-default" />`;
+  return `
   <div class="harness-form">
     <form id="test-product-form" class="product-form" onsubmit="return false">
+      ${variants}
       <button type="submit" class="product-form__submit" name="add">Add to cart</button>
     </form>
     <span style="font-size:12px;color:#6b7280">Stand-in Shopify product form.</span>
   </div>`;
+}
 
 export async function renderVariant(key) {
   const product = productFor(key);
-  const body = PRODUCT_FORM + (await engine.renderFile('photo-upload', { product }));
+  const body = productForm(product) + (await engine.renderFile('photo-upload', { product }));
   return page({
     title: `${VARIANTS[key].label} - Liquid harness`,
     body,
@@ -91,17 +107,20 @@ export async function renderCart() {
   return page({
     title: 'Cart - Liquid harness',
     nav: nav(),
-    note: `Cart snippet. The stepper is hidden on line items whose
-           <code>_photo_count</code> is above 1; bulk and non-photo products keep theirs.`,
-    body: body + CART.items.map(i => `
+    note: `Cart snippet, inside a <code>.cart-items</code> root with <code>/cart.js</code>
+           served from the fixtures, so the lock really runs. The stepper is hidden on every line item that carries
+           <code>_photo_count</code> - packs and bulk bundles alike; products without
+           photos keep theirs.`,
+    body: body + '<div class="cart-items">' + CART.items.map(i => `
       <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin:8px 0">
-        <strong>${i.title}</strong> - _photo_count: ${i.properties._photo_count ?? '(none)'}
+        <strong>${i.title}</strong> - _photo_count: ${i.properties._photo_count ?? '(none)'},
+        _magnets_per_unit: ${i.properties._magnets_per_unit ?? '(none)'}
         <quantity-input class="quantity" style="display:block;margin-top:8px">
           <button name="minus" type="button">-</button>
           <input class="quantity__input" type="number" value="${i.quantity}" min="0" />
           <button name="plus" type="button">+</button>
         </quantity-input>
-      </div>`).join(''),
+      </div>`).join('') + '</div>',
   });
 }
 

@@ -1,6 +1,6 @@
 {% comment %}
   Photo Upload - product page
-  Version: 2026-09-14.1
+  Version: 2026-11-18.1
 
   The single line both product templates need:
 
@@ -26,8 +26,12 @@
     bulk_rectangle           1       30  yes          rectangular
 
   Packs upload a set of photos at a fixed count. Bulk products upload one photo
-  and keep the theme's quantity selector, so `magnets` there is how many magnets
-  one unit yields, not how many photos are wanted.
+  and sell it in tiers: each value of the product's "Number of magnets" option is
+  a whole number of sheets and starts with the magnet count ("30 magnets"). The
+  map built below carries the count and the per-magnet price for every variant,
+  so `magnets` is only the fallback for a bulk product without that option. The
+  theme's quantity selector is removed from the bulk template, so quantity is
+  always 1 and the chosen tier is the quantity.
 
   Not included, they live on other templates:
     cart-quantity-control    -> cart template, above the items
@@ -68,6 +72,45 @@
 {%- if is_pack or is_bulk -%}
 {%- if is_bulk -%}{%- assign variant_name = shape | replace: '_', '-' -%}{%- else -%}{%- assign variant_name = shape -%}{%- endif -%}
 
+{%- comment -%}
+  Bulk tiers, one JSON object keyed by variant id:
+
+      {"1234":{"magnets":30,"each":"$6.33"}, ...}
+
+  `each` is price / magnets in integer cents, rounded half up as (2p + n) / 2n,
+  so it matches the figure a person writes in the description. Shopify's
+  divided_by already floors integers; the explicit floor is for the local
+  harness, whose Liquid divides as a float, so both show the same cents. A variant whose
+  option value does not start with a number falls back to `magnets`.
+{%- endcomment -%}
+{%- assign selected_magnets = magnets -%}
+{%- if is_bulk -%}
+  {%- assign tier_index = -1 -%}
+  {%- for name in product.options -%}
+    {%- if name == 'Number of magnets' -%}{%- assign tier_index = forloop.index0 -%}{%- endif -%}
+  {%- endfor -%}
+  {%- assign selected_id = product.selected_or_first_available_variant.id -%}
+  {%- capture tiers_json -%}
+    {
+    {%- for v in product.variants -%}
+      {%- assign n = 0 -%}
+      {%- if tier_index > -1 -%}
+        {%- assign n = v.options[tier_index] | split: ' ' | first | plus: 0 -%}
+      {%- endif -%}
+      {%- if n < 1 -%}{%- assign n = magnets -%}{%- endif -%}
+      {%- assign n2 = n | times: 2 -%}
+      {%- assign each = v.price | times: 2 | plus: n | divided_by: n2 | floor | money -%}
+      "{{ v.id }}":{"magnets":{{ n }},"each":{{ each | json }}}
+      {%- unless forloop.last -%},{%- endunless -%}
+      {%- if v.id == selected_id -%}
+        {%- assign selected_magnets = n -%}
+        {%- assign selected_each = each -%}
+      {%- endif -%}
+    {%- endfor -%}
+    }
+  {%- endcapture -%}
+{%- endif -%}
+
 <div class="file-upload-container" data-product-id="{{ product.id }}">
   <button
     class="button select-photos-button"
@@ -91,17 +134,28 @@
     </svg>
   </button>
   {%- comment -%}
-    Packs carry a standing note plus a confirmation. Bulk carries only the
-    confirmation, because there the quantity selector already says you can order
-    more than one.
+    A standing note plus a confirmation shown once a set reaches the cart. On
+    packs the note says one set per upload. On bulk it is the per-magnet price
+    of the selected tier, which the cart button control below keeps current as
+    the customer changes variant.
   {%- endcomment -%}
   <div id="pack-status-{{ product.id }}" class="pack-status">
-    {%- unless is_bulk %}
+    {%- if is_bulk %}
+    <p
+      class="pack-status-note bulk-tier-note"
+      data-tiers="{{ tiers_json | strip | escape }}"
+      data-selected="{{ selected_id }}"
+    >
+      <strong><span data-each>{{ selected_each }}</span> per magnet</strong> on
+      this bundle. One photo or design, printed on
+      <span data-magnets>{{ selected_magnets }}</span> magnets.
+    </p>
+    {%- else %}
     <p class="pack-status-note">
       One photo set per upload. Want more than one set? Just add them to your
       cart one set at a time.
     </p>
-    {%- endunless %}
+    {%- endif %}
     <p class="pack-status-added">
       <span class="pack-status-check" aria-hidden="true">✓</span>
       {%- if is_bulk %}
@@ -379,11 +433,11 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    console.log("[photo-upload-{{ variant_name }}] v2026-09-14.1");
+    console.log("[photo-upload-{{ variant_name }}] v2026-11-18.1");
     PhotoUploader.init({
       productId: "{{ product.id }}",
       maxFiles: {{ max_files }},
-      magnetsPerUnit: {{ magnets }},
+      magnetsPerUnit: {{ selected_magnets }},
       {%- if has_orientation %}
       landscapeRatio: PhotoUploader.RECTANGLE_RATIO,
       portraitRatio: 1 / PhotoUploader.RECTANGLE_RATIO,
@@ -403,17 +457,56 @@
   Cart button control - was cart-button-control.html, folded in here because it
   is product-page-only and always deployed alongside the uploader. Disables Add
   to Cart and Buy it Now until photos are uploaded, for every variant, via the
-  custom events photo-upload-core fires. Self-guards on .file-upload-container,
+  custom events photo-upload-core fires. On bulk it also resolves the selected
+  tier to a magnet count, writes it to the line item, and keeps the per-magnet
+  note in step with the variant picker. Self-guards on .file-upload-container,
   so it is inert on products without an uploader.
   ===========================================================================
 {%- endcomment -%}
 <script>
   (function () {
-    console.log("[cart-button-control] v2026-08-13.1");
+    console.log("[cart-button-control] v2026-11-18.1");
     const TOOLTIP_MESSAGE = "Please select and upload your photos first";
     // The message above reads as an error on the back of a success.
     const NEXT_PACK_TOOLTIP = "Choose photos for your next pack";
     let packInCart = false;
+    // The last successful upload, kept so the line item properties can be
+    // rewritten if the customer changes tier after uploading.
+    let uploaded = null;
+
+    // Bulk tiers, written by the Liquid above as {variantId: {magnets, each}}.
+    // Absent on packs, where magnets per unit is fixed.
+    const tierNote = document.querySelector(".bulk-tier-note");
+    let tiers = null;
+    try {
+      tiers = tierNote ? JSON.parse(tierNote.dataset.tiers) : null;
+    } catch (err) {
+      console.warn("[cart-button-control] could not read bulk tiers", err);
+    }
+
+    // The theme writes the chosen variant to the form's id field; the URL
+    // carries it too. The Liquid-rendered default is the last resort, for a
+    // form that has not been touched.
+    function currentVariantId(form) {
+      return (
+        form?.querySelector('[name="id"]')?.value ||
+        new URL(window.location.href).searchParams.get("variant") ||
+        tierNote?.dataset.selected ||
+        null
+      );
+    }
+
+    function currentTier(form) {
+      if (!tiers) return null;
+      return tiers[currentVariantId(form)] || null;
+    }
+
+    function updateTierNote(form) {
+      const tier = currentTier(form);
+      if (!tierNote || !tier) return;
+      tierNote.querySelector("[data-each]").textContent = tier.each;
+      tierNote.querySelector("[data-magnets]").textContent = tier.magnets;
+    }
 
     const initCartButtonControl = () => {
       // Find Add to Cart button (Shopify uses dynamic IDs)
@@ -461,51 +554,84 @@
       // Disable buttons initially with tooltip
       gateButtons(true);
 
-      // Listen for photos uploaded event
-      document.addEventListener("photosUploaded", function (e) {
-        gateButtons(false);
+      const productFormOf = () =>
+        addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
 
-        const sessionId = e.detail?.sessionId;
-        const productId = e.detail?.productId;
-        const variant = e.detail?.variant;
-        const photoCount = e.detail?.photoCount;
-        const magnetsPerUnit = e.detail?.magnetsPerUnit;
-        const packNumber = e.detail?.packNumber;
+      // Written at upload, and again whenever the tier changes or the form
+      // submits, so the order carries the magnets of the variant actually
+      // bought rather than the one selected when the photo went up.
+      function writeProperties(productForm) {
+        if (!uploaded || !productForm) return;
+        const { sessionId, productId, variant, photoCount, packNumber } = uploaded;
+        const tier = currentTier(productForm);
+        const magnetsPerUnit = tier ? tier.magnets : uploaded.magnetsPerUnit;
         const replacementUrl = buildReplacementUrl(sessionId, productId, variant);
         console.log("[cart-button-control] _product_id:", productId);
         console.log("[cart-button-control] _replacement_url:", replacementUrl);
-        const productForm =
-          addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");
-        if (productForm) {
-          setHiddenProperty(productForm, "_session_id", sessionId);
-          setHiddenProperty(productForm, "_replacement_url", replacementUrl);
-          // Images in this line item's pack-NN/ folder, NOT a magnet count.
-          // cart-quantity-control.html gates on it - renaming breaks that.
-          setHiddenProperty(productForm, "_photo_count", photoCount);
-          // What gets printed. On bulk one photo becomes 45 or 30 magnets,
-          // so fulfilment multiplies THIS by quantity, never _photo_count.
-          setHiddenProperty(productForm, "_magnets_per_unit", magnetsPerUnit);
-          // Maps the line item to its pack-NN/ folder; next upload takes max+1.
-          setHiddenProperty(productForm, "_pack_number", packNumber);
-          // Customer-visible (no underscore). Bulk states what the one photo
-          // turns into, which is the surprising number on those products.
-          setHiddenProperty(
-            productForm,
-            "Photos",
-            photoCount > 1
-              ? `${photoCount} photos, one set per pack`
-              : magnetsPerUnit > 1
-                ? `1 photo, printed on ${magnetsPerUnit} magnets`
-                : null,
-          );
-        }
+        console.log("[cart-button-control] _magnets_per_unit:", magnetsPerUnit);
+        setHiddenProperty(productForm, "_session_id", sessionId);
+        setHiddenProperty(productForm, "_replacement_url", replacementUrl);
+        // Images in this line item's pack-NN/ folder, NOT a magnet count.
+        // cart-quantity-control gates on it - renaming breaks that.
+        setHiddenProperty(productForm, "_photo_count", photoCount);
+        // What gets printed. On bulk one photo becomes the chosen tier's
+        // count, so fulfilment reads THIS, never _photo_count.
+        setHiddenProperty(productForm, "_magnets_per_unit", magnetsPerUnit);
+        // Maps the line item to its pack-NN/ folder; next upload takes max+1.
+        setHiddenProperty(productForm, "_pack_number", packNumber);
+        // Customer-visible (no underscore). Bulk states what the one photo
+        // turns into, which is the surprising number on those products.
+        setHiddenProperty(
+          productForm,
+          "Photos",
+          photoCount > 1
+            ? `${photoCount} photos, one set per pack`
+            : magnetsPerUnit > 1
+              ? `1 photo, printed on ${magnetsPerUnit} magnets`
+              : null,
+        );
+      }
+
+      // Listen for photos uploaded event
+      document.addEventListener("photosUploaded", function (e) {
+        gateButtons(false);
+        uploaded = e.detail || {};
+        writeProperties(productFormOf());
       });
+
+      // Dawn fires change on the form's id field when the variant changes,
+      // and publishes variantChange where pub/sub exists. Either way the note
+      // and any already-written properties follow the new tier.
+      const onVariantChange = () => {
+        const productForm = productFormOf();
+        updateTierNote(productForm);
+        writeProperties(productForm);
+      };
+      document.addEventListener("change", onVariantChange);
+      if (
+        typeof subscribe === "function" &&
+        typeof PUB_SUB_EVENTS !== "undefined" &&
+        PUB_SUB_EVENTS.variantChange
+      ) {
+        subscribe(PUB_SUB_EVENTS.variantChange, onVariantChange);
+      }
+      // Capture on document runs before the theme's own submit handler reads
+      // the form, so the properties can never be a tier behind.
+      document.addEventListener(
+        "submit",
+        (e) => {
+          if (e.target === productFormOf()) writeProperties(e.target);
+        },
+        true,
+      );
+      updateTierNote(productFormOf());
 
       // Without stripping these, the next add to cart carries the PREVIOUS
       // pack's session - wrong photos on an order that looks entirely valid.
       document.addEventListener("photosReset", function () {
         // Only fires after a successful add, so a pack is now in the cart.
         packInCart = true;
+        uploaded = null;
         gateButtons(true);
         const productForm =
           addToCartBtn?.closest("form") || buyItNowBtn?.closest("form");

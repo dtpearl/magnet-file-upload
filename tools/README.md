@@ -19,6 +19,7 @@ than assuming it.
 | `npm run verify` | Proves the snippets behave, and reports drift from `custom-liquid/`. Fast, no browser. |
 | `npm run drift` | Unified diff of what the snippets render versus the frozen `custom-liquid/` blocks. |
 | `npm run check` | Drives the real upload flow across 10 viewports in headless Chromium. |
+| `npm run check-tiers` | Bulk tiers and the cart lock: the right numbers reach the line item. Headless Chromium. |
 | `npm run build` | Writes static HTML to `../dist/`. |
 | `npm run setup-libs` | One-off, Linux only: fetches Chromium's shared libraries without root. |
 | `npm run deploy` | Pushes the five snippets to a Shopify theme. |
@@ -86,6 +87,18 @@ It asserts no horizontal overflow, no sub-44px touch target on a coarse pointer,
 no crushed crop container, no scrolling behind an open modal, no wrapped footer
 buttons, and a minimum thumbnail width — the defects fixed on 2026-09-11, so a
 regression is caught rather than rediscovered.
+
+## `npm run check-tiers`
+
+Same Chromium setup as `npm run check`. Opens the bulk rectangle page, changes
+the tier, dispatches the core's `photosUploaded` event with the detail it would
+carry (so nothing is uploaded anywhere), and asserts the per-magnet note and
+the `properties[...]` inputs follow the selected variant at upload, on a later
+change, and at submit. Then the pack page, to prove it is untouched, and the
+cart page, where the harness serves `/cart.js` from the fixtures so the lock
+really runs: pack and bulk lines lose their stepper, a plain product keeps
+its own. That last assertion is what found the stepper-reveal bug fixed on
+2026-11-18.
 
 ## What it cannot do
 

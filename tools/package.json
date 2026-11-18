@@ -9,6 +9,7 @@
     "drift": "node drift.mjs",
     "build": "node render.mjs --all --out ../dist",
     "check": "node check-layout.mjs",
+    "check-tiers": "node check-tiers.mjs",
     "setup-libs": "node setup-chromium-libs.mjs",
     "deploy": "node deploy.mjs"
   },

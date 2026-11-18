@@ -7,6 +7,7 @@
 
 import http from 'node:http';
 import { ROUTES } from './render.mjs';
+import { CART } from './fixtures.mjs';
 
 const portFlag = process.argv.indexOf('--port');
 const PORT = portFlag === -1 ? 8080 : Number(process.argv[portFlag + 1]);
@@ -14,6 +15,11 @@ const HOST = '127.0.0.1';
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${HOST}`);
+  // The cart snippet fetches the live cart to decide which steppers to lock.
+  if (url.pathname === '/cart.js') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify(CART));
+  }
   const route = ROUTES[url.pathname.replace(/\/$/, '') || '/'];
   if (!route) {
     res.writeHead(404, { 'content-type': 'text/plain' });

@@ -1,17 +1,21 @@
 <!--
   Cart Quantity Control
-  Version: 2026-08-13.1
+  Version: 2026-11-18.1
   Cart page: replaces the quantity stepper with a static number on photo-upload
   line items, so a pack cannot be multiplied into identical copies from the
-  cart. Other products keep their stepper.
+  cart, and a bulk bundle cannot be multiplied past the tier that priced it.
+  Other products keep their stepper.
 
   Add to the cart template as a Custom Liquid section, ABOVE the cart items:
   the style block below hides the steppers, and a browser can paint markup it
   has already parsed before reaching a later <style>. Standalone - no dependency
   on photo-upload-core or photo-upload-styles.
 
-  Gates on _photo_count > 1, written by cart-button-control.html. Bulk carries
-  1 and keeps its stepper, because there quantity means how many to make.
+  Gates on _photo_count being present at all, written by the cart button
+  control in photo-upload. Packs carry the set size, bulk carries 1; both lock.
+  Until 2026-11-18 bulk kept its stepper because quantity meant how many to
+  make - the tier variants (45, 90, 180 ... magnets) now carry that meaning, and
+  two lines of a smaller tier would cost more than one line of the larger.
 
   Cosmetic only: /cart/change.js can still set any quantity.
 -->
@@ -19,18 +23,18 @@
   /* Hidden from first paint, not after the fetch, so a stepper about to
      disappear is never painted. visibility not display: the box survives, so
      the row never reflows. :not(.no-js) leaves a JS-less visitor a usable
-     cart - Dawn swaps that class in the head. */
-  html:not(.no-js) cart-items quantity-input,
-  html:not(.no-js) .cart-items quantity-input,
-  html:not(.no-js) #main-cart-items quantity-input {
+     cart - Dawn swaps that class in the head.
+
+     The verdict is part of the selector: a stepper is hidden while unchecked
+     and once locked, and any other verdict ("open", or the give-up states
+     "unknown" and "mismatch") simply stops matching, so a failure lands on the
+     theme's own behaviour rather than an uneditable cart. Until 2026-11-18 the
+     reveal was a separate, less specific rule, which these ancestor selectors
+     always outranked - so every stepper in the cart stayed hidden, photos or
+     not. */
+  html:not(.no-js) :is(cart-items, .cart-items, #main-cart-items) quantity-input:not([data-cart-qty-checked]),
+  html:not(.no-js) :is(cart-items, .cart-items, #main-cart-items) quantity-input[data-cart-qty-checked="locked"] {
     visibility: hidden;
-  }
-  /* Any verdict but "pack" reveals, including the give-up states - a failure
-     lands on the theme's own behaviour, not an uneditable cart. */
-  quantity-input[data-cart-qty-checked="open"],
-  quantity-input[data-cart-qty-checked="unknown"],
-  quantity-input[data-cart-qty-checked="mismatch"] {
-    visibility: visible;
   }
   /* Set by the script, so the number can be laid over the hidden stepper. */
   .cart-qty-locked {
@@ -49,8 +53,8 @@
 </style>
 <script>
   (function () {
-    console.log("[cart-quantity-control] v2026-08-13.1");
-    // Written by cart-button-control.html. Keep the two in step.
+    console.log("[cart-quantity-control] v2026-11-18.1");
+    // Written by the cart button control in photo-upload. Keep the two in step.
     const PHOTO_COUNT_PROPERTY = "_photo_count";
     const DONE_ATTR = "data-cart-qty-checked";
 
@@ -110,12 +114,12 @@
 
       current.forEach((stepper, i) => {
         const props = items[i].properties || {};
-        // > 1, not merely present: bulk carries "1", a truthy string, so a
-        // presence check locks the stepper on the products that need it.
-        const isPack = Number(props[PHOTO_COUNT_PROPERTY]) > 1;
+        // Present at all: packs carry the set size, bulk carries "1", and
+        // every photo line locks. Products without photos have no property.
+        const isLocked = PHOTO_COUNT_PROPERTY in props;
         // The attribute is the whole mechanism - the stylesheet does the rest.
-        stepper.setAttribute(DONE_ATTR, isPack ? "pack" : "open");
-        if (!isPack) return;
+        stepper.setAttribute(DONE_ATTR, isLocked ? "locked" : "open");
+        if (!isLocked) return;
         // Stays in the DOM: removing it drops its updates[] field, and that
         // array is positional - a gap shifts later lines onto wrong products.
         const cell = stepper.parentNode;
