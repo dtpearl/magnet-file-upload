@@ -1,10 +1,17 @@
-// Proves the consolidated snippets in theme/snippets behave identically to the
-// files in custom-liquid, which are what is deployed today. custom-liquid is the
-// reference implementation: as long as it is kept, this is the check that says
-// the refactor did not change what reaches the browser.
+// Proves the consolidated snippets in theme/snippets behave, and reports how far
+// they have moved from the files in custom-liquid, which are what the pasted
+// Custom Liquid blocks deploy.
 //
-// The snippets are no longer copies of those files, so this compares RENDERED
-// OUTPUT rather than source. Three things are normalised away, each deliberate:
+// custom-liquid is FROZEN at the parity commit named in
+// custom-liquid/PORTING-LOG.md. Until the snippets change, the two render
+// identically and this says so. Once the snippets move on, the difference is
+// expected and is reported as DRIFT rather than FAIL - with one exception: drift
+// with no entry in the porting log fails, because the log is what lets the
+// blocks catch up later, and a missing entry is easiest to add in the commit
+// that created the drift.
+//
+// The snippets are not copies of the legacy files, so this compares RENDERED
+// OUTPUT rather than source. Five things are normalised away, each deliberate:
 //
 //   whitespace     - the four variant files were formatted differently from one
 //                    another; one merged body cannot reproduce both styles, and
@@ -19,25 +26,21 @@
 //                    the bulk files did not. Valid either way in every browser
 //                    this runs in.
 //
-// One intentional difference is asserted separately rather than ignored: the
-// product page now also carries the replacement page's CSS, because all CSS was
+// One intentional difference is handled separately rather than ignored: the
+// product page carries the replacement page's CSS too, because all CSS was
 // merged into one stylesheet. So CSS is checked for completeness (nothing lost)
 // while markup and JS are checked for exact equality.
+//
+// `npm run drift` shows the actual differences as a diff.
 
 import { Liquid } from 'liquidjs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { engine } from './render.mjs';
 import { VARIANTS, productFor } from './fixtures.mjs';
+import { TARGETS, norm, noCss, cssOf, stripComments, portingLogEntries } from './targets.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const legacy = new Liquid({ root: path.join(HERE, '..', 'custom-liquid'), extname: '.html', cache: false });
-
-const stripComments = s => s.replace(/<!--[\s\S]*?-->/g, '');
-const stripVersions = s => s.replace(/v?20\d\d-\d\d-\d\d\.\d+/g, 'VERSION');
-const cssOf  = s => [...s.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
-const noCss  = s => s.replace(/<style>[\s\S]*?<\/style>/g, '');
-const norm   = s => stripVersions(stripComments(s)).replace(/\s+/g, '').replace(/'/g, '"').replace(/,(?=[}\]])/g, '');
 
 let failures = 0;
 const ok = (label, pass, detail = '') => {
@@ -78,57 +81,48 @@ console.log('\nforgetting to pass product');
   ok('renders no uploader without product', !out.includes('data-product-id='));
 }
 
-// --- 4. parity with what is deployed today -----------------------------------
-console.log('\nparity: theme/snippets vs custom-liquid');
-const LEGACY_PRODUCT = ['photo-upload-styles', 'photo-upload-core',
-  'photo-upload-square', 'photo-upload-rectangle',
-  'photo-upload-bulk-square', 'photo-upload-bulk-rectangle', 'cart-button-control'];
-
-for (const key of Object.keys(VARIANTS)) {
-  const product = productFor(key);
-  const now = await engine.renderFile('photo-upload', { product });
-  const parts = [];
-  for (const n of LEGACY_PRODUCT) parts.push(await legacy.renderFile(n, { product }));
-  const before = parts.join('\n');
+// --- 4. drift from the frozen custom-liquid blocks ---------------------------
+console.log('\ndrift: theme/snippets vs custom-liquid (frozen, see custom-liquid/PORTING-LOG.md)');
+let drifted = 0;
+for (const [name, target] of Object.entries(TARGETS)) {
+  const [now, before] = await Promise.all([target.now(), target.before()]);
 
   const a = norm(noCss(now)), b = norm(noCss(before));
   let where = '';
   if (a !== b) {
     let i = 0; while (i < a.length && a[i] === b[i]) i++;
-    where = ` first differs at ${i}: got ...${a.slice(Math.max(0,i-50), i+50)}... expected ...${b.slice(Math.max(0,i-50), i+50)}...`;
+    where = `first differs at ${i}: now ...${a.slice(Math.max(0, i - 40), i + 40)}...`;
   }
-  ok(`${key}: markup and JS identical`, a === b,
-     `${a.length} vs ${b.length} chars.${where}`);
 
-  // CSS is a superset now and the blocks were appended, so the old sheet is no
+  // CSS is a superset and the blocks were appended, so the old sheet is no
   // longer one contiguous run. Check rule by rule instead of as a substring.
   const nowCss = norm(cssOf(now));
-  const rules = cssOf(before).split('}').map(r => norm(r)).filter(r => r.length > 8);
+  // Comments go before the split: one containing a brace would otherwise
+  // leave a half-comment fragment that matches nothing.
+  const rules = stripComments(cssOf(before)).split('}').map(r => norm(r)).filter(r => r.length > 8);
   const missing = rules.filter(r => !nowCss.includes(r));
-  ok(`${key}: no CSS lost`, missing.length === 0,
-     `${rules.length} rules checked${missing.length ? `, missing: ${missing[0].slice(0,60)}` : ''}`);
+
+  const same = a === b && missing.length === 0;
+  if (!same) drifted++;
+  const detail = same
+    ? `${a.length} chars, ${rules.length} CSS rules`
+    : [a !== b ? `markup/JS ${a.length} vs ${b.length} chars, ${where}` : '',
+       missing.length ? `${missing.length} CSS rule(s) from the blocks no longer present` : ''].filter(Boolean).join('; ');
+  console.log(`  ${same ? 'SAME ' : 'DRIFT'}  ${name}  ${detail}`);
 }
 
-// cart page
 {
-  const now = await engine.renderFile('cart-quantity-control', {});
-  const before = await legacy.renderFile('cart-quantity-control', {});
-  ok('cart: identical', norm(now) === norm(before));
-}
-
-// replacement page
-{
-  const now = await engine.renderFile('photo-upload-replacement', {});
-  const before = (await Promise.all(
-    ['photo-upload-styles', 'photo-upload-core', 'photo-upload-replacement']
-      .map(n => legacy.renderFile(n, {})))).join('\n');
-  ok('replacement: markup and JS identical', norm(noCss(now)) === norm(noCss(before)),
-     `${norm(noCss(now)).length} vs ${norm(noCss(before)).length} chars`);
-  const nowCss2 = norm(cssOf(now));
-  const rules2 = cssOf(before).split('}').map(r => norm(r)).filter(r => r.length > 8);
-  const missing2 = rules2.filter(r => !nowCss2.includes(r));
-  ok('replacement: no CSS lost', missing2.length === 0,
-     `${rules2.length} rules checked${missing2.length ? `, missing: ${missing2[0].slice(0,60)}` : ''}`);
+  const entries = await portingLogEntries();
+  if (entries < 0) {
+    ok('custom-liquid/PORTING-LOG.md exists', false, 'the file is missing');
+  } else if (drifted && entries === 0) {
+    ok('drift is recorded in custom-liquid/PORTING-LOG.md', false,
+       `${drifted} target(s) differ from the blocks but the log has no entries`);
+  } else if (drifted) {
+    console.log(`  NOTE   ${drifted} target(s) drifted, ${entries} entr${entries === 1 ? 'y' : 'ies'} in the porting log. \`npm run drift\` shows the diff.`);
+  } else {
+    console.log(`  NOTE   no drift: the blocks would render exactly what the snippets do`);
+  }
 }
 
 console.log(`\n${failures ? `${failures} FAILED` : 'all checks passed'}\n`);

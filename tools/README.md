@@ -16,7 +16,8 @@ than assuming it.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Dev server on <http://127.0.0.1:8080>. Edit a snippet, refresh. |
-| `npm run verify` | Proves the snippets behave and match `custom-liquid/`. Fast, no browser. |
+| `npm run verify` | Proves the snippets behave, and reports drift from `custom-liquid/`. Fast, no browser. |
+| `npm run drift` | Unified diff of what the snippets render versus the frozen `custom-liquid/` blocks. |
 | `npm run check` | Drives the real upload flow across 10 viewports in headless Chromium. |
 | `npm run build` | Writes static HTML to `../dist/`. |
 | `npm run setup-libs` | One-off, Linux only: fetches Chromium's shared libraries without root. |
@@ -32,18 +33,37 @@ became.
 - Each variant's metafield guard selects exactly one snippet.
 - Forgetting `product:` renders nothing rather than erroring — the trap that
   makes this refactor fail silently, asserted so it stays documented.
-- Each of the four shapes produces the same markup and JS as the files in
-  `custom-liquid/`, which are what is deployed today.
-- No CSS rule was lost when the stylesheets were merged (checked rule by rule).
+- For each target (four shapes, cart, replacement) whether the snippets still
+  render the same markup and JS as the `custom-liquid/` blocks, and whether any
+  of the blocks' CSS rules has gone. Reported as `SAME` or `DRIFT`, not as a
+  failure: `custom-liquid/` is frozen at the parity commit, so drift is what
+  happens when the snippets move on.
+- That any drift has at least one entry in
+  [custom-liquid/PORTING-LOG.md](../custom-liquid/PORTING-LOG.md). This one
+  **fails**, so a snippet change without a log entry is caught on the first run.
 
 The snippets are consolidated, so they are no longer copies of the files in
 `custom-liquid/`. The comparison is therefore on rendered output, normalising
 whitespace, HTML comments, version stamps, JS quote style and trailing commas —
 each documented in the file with the reason it is safe to ignore.
 
-Run it before committing a snippet change. `custom-liquid/` is the reference
-implementation, so as long as you keep it this is what proves the snippets still
-do what the deployed code does.
+Run it before committing a snippet change.
+
+## `npm run drift`
+
+Renders every target from both `theme/snippets` and `custom-liquid`, puts the
+two into one canonical layout (one tag or statement per line, the same
+intentional differences ignored as above) and prints a unified diff per target
+using `git diff --no-index`. This is the change to carry into the pasted blocks
+if they ever need to catch up; the porting log says which snippet maps to which
+block.
+
+    npm run drift                            # all targets, to the terminal
+    npm run drift -- square cart             # just these
+    npm run drift -- --out ../dist/drift.diff
+
+Rendered output carries the fixture product ids (`square-test`, `bulk-sq-test`
+and so on) where a block has `{{ product.id }}`.
 
 ## `npm run check`
 

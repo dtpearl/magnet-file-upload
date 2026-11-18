@@ -7,13 +7,17 @@ luxmagnetco.myshopify.com.
 
 | Path | What it is |
 | --- | --- |
-| `custom-liquid/` | The blocks as deployed today, pasted by hand into Custom Liquid sections. Still the live approach. |
-| `theme/snippets/` | The same functionality consolidated into five theme snippets. Not deployed yet. |
+| `custom-liquid/` | The blocks as pasted by hand into Custom Liquid sections. **Frozen** at the commit named in [custom-liquid/PORTING-LOG.md](custom-liquid/PORTING-LOG.md). |
+| `theme/snippets/` | The same functionality consolidated into five theme snippets. **Where changes are made.** |
 | `tools/` | Local Liquid harness — render and test the snippets with no Shopify store. See [tools/README.md](tools/README.md). |
 
-`custom-liquid/` is the reference implementation: `cd tools && npm run verify`
-renders both and asserts the snippets produce the same markup, JS and CSS, so
-the consolidation provably changed nothing that reaches the browser.
+The two were proven identical on 2026-11-17: `cd tools && npm run verify`
+renders both and compares the markup, JS and CSS that reach the browser. From
+that point `custom-liquid/` is not edited. Changes go into `theme/snippets/`,
+and every commit that touches them adds an entry to
+[custom-liquid/PORTING-LOG.md](custom-liquid/PORTING-LOG.md) so the blocks can
+be brought back in step if they are ever needed again. `npm run verify` fails
+on drift with no entry; `npm run drift` prints the rendered diff to port.
 
 ## Two ways to deploy
 
