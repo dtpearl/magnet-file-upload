@@ -68,7 +68,7 @@ is the exact change, so the prose only has to say what and why.
 
 ## Entries
 
-### 2026-11-18  (hash: fill in on commit)  Sell bulk magnets in tiers and lock their cart quantity
+### 2026-11-18  f7173c8  Sell bulk magnets in tiers and lock their cart quantity
 
 - Snippets: photo-upload.liquid, cart-quantity-control.liquid
 - Blocks: photo-upload-bulk-square.html, photo-upload-bulk-rectangle.html,
