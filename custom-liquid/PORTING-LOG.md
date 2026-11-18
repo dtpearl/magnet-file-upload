@@ -106,7 +106,7 @@ is the exact change, so the prose only has to say what and why.
 - Porting notes: one rule, `.modal-content`, in the shared stylesheet. The
   mobile override at 768px is untouched.
 
-### 2026-11-18  (hash: fill in on commit)  Centre the modal headings
+### 2026-11-18  6501d0f  Centre the modal headings
 
 - Snippets: photo-upload-styles.liquid
 - Blocks: photo-upload-styles.html, and the CSS copy in test.html
