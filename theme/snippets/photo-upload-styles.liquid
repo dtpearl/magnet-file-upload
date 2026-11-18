@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-11-18.1
+  Version: 2026-11-18.2
   Every CSS rule in the project: the upload modals and cropper, the
   replacement page, and the cart button states. Rendered by photo-upload and
   photo-upload-replacement, which pull it in themselves - there is no paste
@@ -152,12 +152,18 @@
   }
   .modal-title-container {
     display: flex;
+    /* Everything else in the modal is centred; a flex row defaults to
+       packing its one child at the start, which left the heading hugging
+       the left edge of the content column. */
+    justify-content: center;
     width: 100%;
   }
   .modal-title {
     font-size: 20px;
     font-weight: 600;
     color: #374151;
+    /* For when it wraps on a narrow phone. */
+    text-align: center;
   }
   .close-btn {
     width: 48px;

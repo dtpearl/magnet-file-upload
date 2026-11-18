@@ -104,5 +104,15 @@ is the exact change, so the prose only has to say what and why.
   `max(32px, calc((100% - 720px) / 2 + 32px))`, so the element spans the modal
   and the content box is the same 656px, centred, as before.
 - Porting notes: one rule, `.modal-content`, in the shared stylesheet. The
-  mobile override at 768px is untouched. The `magnets` constant (45/30)
+  mobile override at 768px is untouched.
+
+### 2026-11-18  (hash: fill in on commit)  Centre the modal headings
+
+- Snippets: photo-upload-styles.liquid
+- Blocks: photo-upload-styles.html, and the CSS copy in test.html
+- What changed: `.modal-title-container` gets `justify-content: center` and
+  `.modal-title` gets `text-align: center`, so "Select your photos" and "Crop
+  your photo" sit on the same centre line as the rest of the modal instead of
+  hugging the left edge of the content column.
+- Porting notes: two declarations added to existing rules, nothing removed. The `magnets` constant (45/30)
   remains only as the fallback for a bulk product with no tier option.
