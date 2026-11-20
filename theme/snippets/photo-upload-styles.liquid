@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-11-20.1
+  Version: 2026-11-20.2
   Every CSS rule in the project: the upload modals and cropper, the
   replacement page, and the cart button states. Rendered by photo-upload and
   photo-upload-replacement, which pull it in themselves - there is no paste
@@ -248,6 +248,41 @@
     color: #4b5563;
     font-size: 24px;
     margin-top: 24px;
+  }
+  .file-count-display {
+    color: #374151;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+  /* Partial selection: photos are in the grid below and the customer needs
+     to add more. The drop-zone headline, 36px over three lines, was the
+     biggest thing on screen when the one fact that matters is how many are
+     still missing. The count moves to the top of the zone and takes the
+     headline size; "drag & drop your photos or" folds to one small line
+     above the button. Toggled by photo-upload-core in updateUploadUI. */
+  .upload-area.has-photos .file-count-display {
+    order: -1;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 16px;
+  }
+  .upload-area.has-photos .upload-text {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0 0.3em;
+    margin-bottom: 12px;
+  }
+  .upload-area.has-photos .upload-text h3 {
+    font-size: 16px;
+    font-weight: 400;
+    color: #374151;
+    margin: 0;
+  }
+  .upload-area.has-photos .upload-text .or-text {
+    font-size: 16px;
+    margin: 0;
   }
   .upload-status {
     color: #a33;
@@ -730,6 +765,16 @@
     }
     .upload-text .or-text {
       font-size: 28px;
+    }
+    .file-count-display {
+      font-size: 18px;
+    }
+    .upload-area.has-photos .file-count-display {
+      font-size: 26px;
+    }
+    .upload-area.has-photos .upload-text h3,
+    .upload-area.has-photos .upload-text .or-text {
+      font-size: 18px;
     }
     .upload-btn,
     .remove-all-files-btn,

@@ -138,3 +138,23 @@ is the exact change, so the prose only has to say what and why.
   brand `#95887a` fill under white text (3.5:1 on the Upload button, 2.6:1 on
   the product page's Select photos button because of its `opacity: 0.8`) and
   the disabled Upload button, which WCAG exempts.
+
+### 2026-11-20  (hash: fill in on commit)  Shrink the drop zone and enlarge the count once photos are in
+
+- Snippets: photo-upload-styles.liquid, photo-upload-core.liquid, photo-upload.liquid
+- Blocks: photo-upload-styles.html (and the CSS copy in test.html),
+  photo-upload-core.html, all four shape blocks
+- What changed: with some photos selected but not yet the full set, the
+  36px "drag & drop / your photos / or" headline was the largest thing in
+  the modal while the "5/9 photos selected" line was unstyled body text.
+  `updateUploadUI` now toggles `has-photos` on `.upload-area` when the
+  count is between one and the maximum. In that state the count line,
+  which gains the class `file-count-display`, moves to the top of the zone
+  (flex `order: -1`) at 22px bold (26px desktop), and the headline folds to
+  one 16px line (18px desktop) above the upload button. Empty and complete
+  states are unchanged.
+- Porting notes: the markup change is one class attribute on the
+  `file-count-display-{{ product.id }}` div and must land in all four shape
+  blocks. The JS is one `classList.toggle` line in `updateUploadUI` plus the
+  version stamps (header and `console.log`). The CSS is new rules only,
+  one block before `.upload-status` and three in the 769px breakpoint.

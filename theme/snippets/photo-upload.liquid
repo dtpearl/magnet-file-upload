@@ -1,6 +1,6 @@
 {% comment %}
   Photo Upload - product page
-  Version: 2026-11-18.1
+  Version: 2026-11-20.1
 
   The single line both product templates need:
 
@@ -213,7 +213,7 @@
         Upload from camera roll or PC
       </button>
       <div id="upload-status-{{ product.id }}" class="upload-status"></div>
-      <div id="file-count-display-{{ product.id }}">{% unless is_bulk %}0/{{ max_files }} photos selected{% endunless %}</div>
+      <div id="file-count-display-{{ product.id }}" class="file-count-display">{% unless is_bulk %}0/{{ max_files }} photos selected{% endunless %}</div>
       <div id="processing-indicator" class="processing-indicator">
         <svg class="processing-spinner" viewBox="0 0 50 50">
           <circle
