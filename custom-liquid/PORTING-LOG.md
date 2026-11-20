@@ -116,3 +116,25 @@ is the exact change, so the prose only has to say what and why.
   hugging the left edge of the content column.
 - Porting notes: two declarations added to existing rules, nothing removed. The `magnets` constant (45/30)
   remains only as the fallback for a bulk product with no tier option.
+
+### 2026-11-20  (hash: fill in on commit)  Darken the modal copy and outline buttons for contrast
+
+- Snippets: photo-upload-styles.liquid
+- Blocks: photo-upload-styles.html, and the CSS copy in test.html
+- What changed: the grey used for informational copy on the cream modal
+  background (`#6b7280` on `#f0e5d9`) measured 3.9:1, under the 4.5:1 AA
+  floor, and the outline button border (`#9ca3af`) 2.0:1. Every copy rule
+  that used it moves to `#374151`, the existing heading colour (8.3:1):
+  `.crop-info`, `.content-subtitle`, `.post-selection-info`,
+  `.progress-text`, `.processing-text`, and the resting text of
+  `.remove-all-files-btn` / `.confirm-cancel-btn`, whose border becomes
+  `#6b7280`. Their hover state is unchanged. `.upload-text .or-text` goes
+  from `#9ca3af` to `#4b5563`, and the inactive `.orientation-toggle-btn`
+  from `#7d7268` to `#4b5563` with its hover lifted to `#374151` so the two
+  states stay distinct.
+- Porting notes: colour values only, nine rules, no selector or layout change.
+  All in the shared stylesheet, so the block and the test.html copy get the
+  same substitutions. Not touched, by decision rather than oversight: the
+  brand `#95887a` fill under white text (3.5:1 on the Upload button, 2.6:1 on
+  the product page's Select photos button because of its `opacity: 0.8`) and
+  the disabled Upload button, which WCAG exempts.

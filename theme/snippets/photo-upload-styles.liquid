@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-11-18.2
+  Version: 2026-11-20.1
   Every CSS rule in the project: the upload modals and cropper, the
   replacement page, and the cart button states. Rendered by photo-upload and
   photo-upload-replacement, which pull it in themselves - there is no paste
@@ -68,8 +68,12 @@
     display: block;
     max-width: 100%;
   }
+  /* Copy on the cream modal background is #374151, the heading colour.
+     #6b7280 reads as a lighter grey but measures 3.9:1 against #f0e5d9,
+     under the 4.5:1 AA floor for body text, so it is kept for the hover
+     fill and border of the outline buttons only (white on it is 4.8:1). */
   .crop-info {
-    color: #6b7280;
+    color: #374151;
     font-size: 14px;
     text-align: center;
     margin: 16px 0 0;
@@ -120,14 +124,14 @@
     border: none;
     border-radius: 16px;
     background-color: transparent;
-    color: #7d7268;
+    color: #4b5563;
     cursor: pointer;
     font-weight: 500;
     font-size: 13px;
     transition: background-color 0.2s, color 0.2s;
   }
   .orientation-toggle-btn:hover {
-    color: #4b5563;
+    color: #374151;
   }
   .orientation-toggle-btn.active {
     background-color: #95887a;
@@ -206,7 +210,7 @@
     width: 100%;
   }
   .content-subtitle {
-    color: #6b7280;
+    color: #374151;
     font-size: 14px;
     margin-bottom: 32px;
   }
@@ -241,7 +245,7 @@
     margin-bottom: 8px;
   }
   .upload-text .or-text {
-    color: #9ca3af;
+    color: #4b5563;
     font-size: 24px;
     margin-top: 24px;
   }
@@ -389,7 +393,7 @@
     justify-content: center;
     text-align: center;
     width: 100%;
-    color: #6b7280;
+    color: #374151;
     font-size: 14px;
     margin-top: 16px;
     gap: 4px;
@@ -415,9 +419,9 @@
   }
   .remove-all-files-btn, .confirm-cancel-btn {
     background-color: transparent;
-    color: #6b7280;
+    color: #374151;
     padding: 8px 24px;
-    border: 1px solid #9ca3af;
+    border: 1px solid #6b7280;
     border-radius: 8px;
     font-family: Cardo, serif;
     font-weight: 500;
@@ -482,7 +486,7 @@
   }
   .progress-text {
     font-size: 14px;
-    color: #6b7280;
+    color: #374151;
   }
   .upload-complete {
     display: none;
@@ -582,7 +586,7 @@
   }
   .processing-text {
     font-size: 14px;
-    color: #6b7280;
+    color: #374151;
   }
   .bulk-click-instruction {
     display: none;
