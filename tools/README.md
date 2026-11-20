@@ -15,7 +15,7 @@ than assuming it.
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Dev server on <http://127.0.0.1:8080>. Edit a snippet, refresh. |
+| `npm run dev` | Dev server on <http://127.0.0.1:8080>. Edit anything, refresh; the harness files restart it themselves. |
 | `npm run verify` | Proves the snippets behave, and reports drift from `custom-liquid/`. Fast, no browser. |
 | `npm run drift` | Unified diff of what the snippets render versus the frozen `custom-liquid/` blocks. |
 | `npm run check` | Drives the real upload flow across 10 viewports in headless Chromium. |

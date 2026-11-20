@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Local Liquid rendering and layout checks for theme/snippets - no Shopify store required.",
   "scripts": {
-    "dev": "node serve.mjs",
+    "dev": "node --watch serve.mjs",
     "verify": "node verify-parity.mjs",
     "drift": "node drift.mjs",
     "build": "node render.mjs --all --out ../dist",

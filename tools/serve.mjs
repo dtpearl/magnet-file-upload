@@ -1,6 +1,8 @@
 // Dev server for theme/snippets. Renders on every request, so the loop is
 // edit a .liquid, refresh the browser - no build, no upload, and no second
 // copy of the markup to keep in sync (which is what test.html became).
+// `npm run dev` runs this under `node --watch`, so an edit to this file,
+// render.mjs or fixtures.mjs restarts the server by itself as well.
 //
 //   npm run dev            then open http://127.0.0.1:8080
 //   npm run dev -- --port 9000
