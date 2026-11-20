@@ -158,3 +158,22 @@ is the exact change, so the prose only has to say what and why.
   blocks. The JS is one `classList.toggle` line in `updateUploadUI` plus the
   version stamps (header and `console.log`). The CSS is new rules only,
   one block before `.upload-status` and three in the 769px breakpoint.
+
+### 2026-11-20  (hash: fill in on commit)  Shorter camera-roll button label on phones
+
+- Snippets: photo-upload.liquid, photo-upload-styles.liquid
+- Blocks: all four shape blocks; photo-upload-styles.html and the CSS copy
+  in test.html
+- What changed: "Upload from camera roll or PC" measures 306px at its 14px
+  Cardo size and the button's text area is 294px on a 390px phone, so it
+  wrapped to an orphaned "PC" on every phone. The label is now two spans,
+  `upload-btn-wide` and `upload-btn-narrow`; the stylesheet hides the
+  narrow one and swaps them below 768px, where the button reads "Upload
+  from camera roll". `text-wrap: balance` on the button keeps any wrap that
+  still happens even. Below 768px the button's side padding drops from
+  32px to 16px, which is what gets the shorter label onto one line at 320px.
+  The JS only listens for clicks on this button, so the spans change nothing
+  there.
+- Porting notes: the markup is the same two spans in all four shape blocks.
+  The CSS is one new rule after `.upload-btn:hover` and three in the existing
+  768px block.

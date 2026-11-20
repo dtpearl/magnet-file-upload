@@ -1,6 +1,6 @@
 <!--
   Photo Upload Styles
-  Version: 2026-11-20.2
+  Version: 2026-11-20.3
   Every CSS rule in the project: the upload modals and cropper, the
   replacement page, and the cart button states. Rendered by photo-upload and
   photo-upload-replacement, which pull it in themselves - there is no paste
@@ -312,6 +312,16 @@
   }
   .upload-btn:hover {
     background-color: #7d7268;
+  }
+  /* Two labels, one shown. The full label needs 306px at 14px and no phone
+     gives it that, so below 768px the button says "Upload from camera roll",
+     which is also the truer copy there - a phone has no PC. Balanced wrapping
+     is the fallback for anything narrower than the 320px floor. */
+  .upload-btn {
+    text-wrap: balance;
+  }
+  .upload-btn-narrow {
+    display: none;
   }
   /* Column count is derived, not declared: fit as many tracks as will
      hold the minimum and let the rest follow from the width available.
@@ -633,6 +643,17 @@
       flex-direction: column;
       align-items: stretch;
       overflow: auto;
+    }
+    .upload-btn-wide {
+      display: none;
+    }
+    .upload-btn-narrow {
+      display: inline;
+    }
+    /* 32px a side left 224px for the label on a 320px phone; it needs 248. */
+    .upload-btn {
+      padding-left: 16px;
+      padding-right: 16px;
     }
     .modal-content {
       overflow: unset;

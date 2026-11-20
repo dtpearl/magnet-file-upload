@@ -1,6 +1,6 @@
 {% comment %}
   Photo Upload - product page
-  Version: 2026-11-20.1
+  Version: 2026-11-20.2
 
   The single line both product templates need:
 
@@ -210,7 +210,8 @@
         <p class="or-text">or</p>
       </div>
       <button id="custom-upload-button-{{ product.id }}" class="upload-btn">
-        Upload from camera roll or PC
+        <span class="upload-btn-wide">Upload from camera roll or PC</span>
+        <span class="upload-btn-narrow">Upload from camera roll</span>
       </button>
       <div id="upload-status-{{ product.id }}" class="upload-status"></div>
       <div id="file-count-display-{{ product.id }}" class="file-count-display">{% unless is_bulk %}0/{{ max_files }} photos selected{% endunless %}</div>
