@@ -26,7 +26,9 @@ than assuming it.
 
 `npm run dev` re-renders on every request, so there is no build step and no
 second copy of the markup to keep in step — which is what `custom-liquid/test.html`
-became.
+became. The page wraps the snippets in the store theme's type (Cardo from Google
+Fonts, Dawn's 15px body size, tracking and line-height), so what you see is close
+to the storefront; the yellow harness bar stays in the system font on purpose.
 
 ## What `npm run verify` covers
 

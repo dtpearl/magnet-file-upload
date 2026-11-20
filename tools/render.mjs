@@ -39,10 +39,23 @@ function page({ title, body, nav = '', note = '' }) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${title}</title>
+    <!-- The store theme (Dawn, settings read from the live theme on 2026-11-20)
+         sets Cardo 400/700 for body and headings, 15px with 0.06rem tracking and
+         a 1.8 line-height. Google Fonts serves the same open-source face in the
+         same three cuts Shopify loads (400, 400 italic, 700), so the snippets
+         are measured in the type they will actually wear. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap" />
     <style>
       * { box-sizing: border-box; }
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      body { font-family: Cardo, serif; font-weight: 400; font-size: 15px;
+             letter-spacing: 0.06rem; line-height: 1.8;
              margin: 0; padding: 24px 16px 64px; background: #fff; color: #333; }
+      /* Harness chrome stays in the system font so it never passes for the store. */
+      .harness-bar, .harness-note, .harness-form {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        letter-spacing: 0; line-height: 1.4; }
       .harness-bar { background: #fff7e0; border-bottom: 1px solid #f0d59b; color: #805400;
                      padding: 10px 16px; font-size: 13px; text-align: center;
                      margin: -24px -16px 24px; }
