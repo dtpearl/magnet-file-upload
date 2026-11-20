@@ -117,7 +117,7 @@ is the exact change, so the prose only has to say what and why.
 - Porting notes: two declarations added to existing rules, nothing removed. The `magnets` constant (45/30)
   remains only as the fallback for a bulk product with no tier option.
 
-### 2026-11-20  (hash: fill in on commit)  Darken the modal copy and outline buttons for contrast
+### 2026-11-20  770659e  Darken the modal copy and outline buttons for contrast
 
 - Snippets: photo-upload-styles.liquid
 - Blocks: photo-upload-styles.html, and the CSS copy in test.html
@@ -139,7 +139,7 @@ is the exact change, so the prose only has to say what and why.
   the product page's Select photos button because of its `opacity: 0.8`) and
   the disabled Upload button, which WCAG exempts.
 
-### 2026-11-20  (hash: fill in on commit)  Shrink the drop zone and enlarge the count once photos are in
+### 2026-11-20  2261c5e  Shrink the drop zone and enlarge the count once photos are in
 
 - Snippets: photo-upload-styles.liquid, photo-upload-core.liquid, photo-upload.liquid
 - Blocks: photo-upload-styles.html (and the CSS copy in test.html),
@@ -159,7 +159,7 @@ is the exact change, so the prose only has to say what and why.
   version stamps (header and `console.log`). The CSS is new rules only,
   one block before `.upload-status` and three in the 769px breakpoint.
 
-### 2026-11-20  (hash: fill in on commit)  Shorter camera-roll button label on phones
+### 2026-11-20  dc15563  Shorter camera-roll button label on phones
 
 - Snippets: photo-upload.liquid, photo-upload-styles.liquid
 - Blocks: all four shape blocks; photo-upload-styles.html and the CSS copy
